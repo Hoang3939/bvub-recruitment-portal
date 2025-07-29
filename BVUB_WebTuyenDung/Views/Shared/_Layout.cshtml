@@ -1,49 +1,106 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - BVUB_WebTuyenDung</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/BVUB_WebTuyenDung.styles.css" asp-append-version="true" />
+    <title>@ViewData["Title"] - BV Ung Bướu</title>
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            background-color: #4475B9;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+        }
+
+            .header img {
+                height: 40px;
+                margin-right: 10px;
+            }
+
+            .header h1 {
+                font-size: 20px;
+                margin: 0;
+            }
+
+        .nav {
+            display: flex;
+            justify-content: space-around;
+            background-color: white;
+            padding: 15px 0;
+            font-weight: bold;
+            color: #000;
+            border-bottom: 2px solid #eee;
+        }
+
+        footer {
+            background-color: #f7f7f7;
+            padding: 30px 60px;
+        }
+
+        .info {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 40px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+            .info .info-block {
+                flex: 1;
+                min-width: 300px;
+                max-width: 600px;
+            }
+
+            .info .info-line {
+                display: flex;
+                gap: 5px;
+            }
+
+                .info .info-line strong {
+                    white-space: nowrap;
+                }
+    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">BVUB_WebTuyenDung</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+    <div class="header">
+        <img src="~/images/logo.png" alt="Logo" />
+        <h1>Bệnh viện Ung Bướu<br /><small>Thành phố Hồ Chí Minh</small></h1>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - BVUB_WebTuyenDung - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <div class="nav">
+        <div>Thông tin tuyển dụng</div>
+        <div>Hướng dẫn đăng ký</div>
+        <div>Tra cứu thông tin</div>
+    </div>
+
+    @RenderBody()
+
+    <footer>
+        <div class="info">
+            <div class="info-block">
+                <strong>Bệnh viện Ung Bướu TPHCM</strong><br />
+                <strong>Cơ sở 1:</strong> Số 47 Nguyễn Huy Lượng, P. Bình Thạnh, TP. HCM<br />
+                Số 6 Nguyễn Huy Lượng, P. Bình Thạnh, TP. HCM<br />
+                <strong>Cơ sở 2:</strong> Số 12 Đường 400, Phường Tăng Nhơn Phú, TP. HCM
+            </div>
+
+            <div class="info-block">
+                <div class="info-line"><strong>Email:</strong> <span>bvubhcm@gmail.com</span></div>
+                <div class="info-line"><strong>Chăm sóc khách hàng:</strong> <span>1900636223</span></div>
+                <div class="info-line"><strong>Cơ sở 1:</strong> <span>(028) 38433022</span></div>
+                <div class="info-line"><strong>Cơ sở 2:</strong> <span>(028) 36227722 – (028) 38433021</span></div>
+                <div class="info-line"><strong>Góp ý phản ánh BV Ung bướu:</strong> <span>0967981010</span></div>
+                <div class="info-line"><strong>Góp ý phản ánh Sở y tế:</strong> <span>0967771010</span></div>
+                <div class="info-line"><strong>Góp ý phản ánh Bộ y tế:</strong> <span>19009095</span></div>
+            </div>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

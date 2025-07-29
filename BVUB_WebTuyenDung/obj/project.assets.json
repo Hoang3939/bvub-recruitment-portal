@@ -8,23 +8,23 @@
     "net8.0": []
   },
   "packageFolders": {
-    "C:\\Users\\Hoang\\.nuget\\packages\\": {},
-    "D:\\VSShared\\NuGetPackages": {}
+    "C:\\Users\\User01\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Hoang\\source\\repos\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung.csproj",
+      "projectUniqueName": "C:\\Users\\User01\\Source\\Repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung.csproj",
       "projectName": "BVUB_WebTuyenDung",
-      "projectPath": "C:\\Users\\Hoang\\source\\repos\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung.csproj",
-      "packagesPath": "C:\\Users\\Hoang\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Hoang\\source\\repos\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung\\obj\\",
+      "projectPath": "C:\\Users\\User01\\Source\\Repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung.csproj",
+      "packagesPath": "C:\\Users\\User01\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\User01\\Source\\Repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "D:\\VSShared\\NuGetPackages"
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Hoang\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\User01\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -49,9 +49,9 @@
       "restoreAuditProperties": {
         "enableAudit": "true",
         "auditLevel": "low",
-        "auditMode": "direct"
+        "auditMode": "all"
       },
-      "SdkAnalysisLevel": "9.0.300"
+      "SdkAnalysisLevel": "9.0.100"
     },
     "frameworks": {
       "net8.0": {
@@ -75,7 +75,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
       }
     }
   }
