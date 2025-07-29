@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "BVUB_WebTuyenDung/1.0.0": {
+        "runtime": {
+          "BVUB_WebTuyenDung.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "BVUB_WebTuyenDung/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
