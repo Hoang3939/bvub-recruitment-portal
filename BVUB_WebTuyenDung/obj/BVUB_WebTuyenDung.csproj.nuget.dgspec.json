@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\User01\\source\\repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung.csproj": {}
+    "C:\\Users\\Hoang\\Source\\Repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung.csproj": {}
   },
   "projects": {
-    "C:\\Users\\User01\\source\\repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung.csproj": {
+    "C:\\Users\\Hoang\\Source\\Repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\User01\\source\\repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung.csproj",
+        "projectUniqueName": "C:\\Users\\Hoang\\Source\\Repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung.csproj",
         "projectName": "BVUB_WebTuyenDung",
-        "projectPath": "C:\\Users\\User01\\source\\repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung.csproj",
-        "packagesPath": "C:\\Users\\User01\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\User01\\source\\repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\obj\\",
+        "projectPath": "C:\\Users\\Hoang\\Source\\Repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\BVUB_WebTuyenDung.csproj",
+        "packagesPath": "C:\\Users\\Hoang\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Hoang\\Source\\Repos\\bvub-recruitment-portal\\BVUB_WebTuyenDung\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "D:\\VSShared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\User01\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Hoang\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -42,13 +42,23 @@
         "restoreAuditProperties": {
           "enableAudit": "true",
           "auditLevel": "low",
-          "auditMode": "all"
+          "auditMode": "direct"
         },
-        "SdkAnalysisLevel": "9.0.100"
+        "SdkAnalysisLevel": "9.0.300"
       },
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            },
+            "Microsoft.EntityFrameworkCore.SqlServer": {
+              "target": "Package",
+              "version": "[9.0.7, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",
@@ -68,7 +78,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.100/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.302/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
