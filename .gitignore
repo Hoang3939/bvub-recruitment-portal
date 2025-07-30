@@ -413,3 +413,8 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+**/AssemblyInfo.cs
+*.GeneratedMSBuildEditorConfig.cs
+project.assets.json
+project.nuget.cache
