@@ -419,3 +419,10 @@ FodyWeavers.xsd
 *.GeneratedMSBuildEditorConfig.cs
 project.assets.json
 project.nuget.cache
+
+echo "bin/"
+echo "obj/"
+BVUB_WebTuyenDung/obj/
+
+bin/
+obj/
