@@ -1,0 +1,132 @@
+﻿@{
+    ViewData["Title"] = "Đăng nhập";
+    Layout = null;
+}
+
+<title>@ViewBag.Title - Quản trị</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background-color: #4880FF;
+        font-family: 'Nunito Sans', sans-serif;
+    }
+
+    .login-bg {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: -1;
+    }
+
+        .login-bg div {
+            position: absolute;
+            background: #568AFF;
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+
+    .login-card {
+        width: 420px;
+        margin: 8% auto;
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #B9B9B9;
+        padding: 24px 30px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+        .login-card h2 {
+            font-size: 22px;
+            text-align: center;
+            font-weight: 700;
+            color: #202224;
+            margin-bottom: 10px;
+        }
+
+        .login-card p {
+            font-size: 13px;
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 25px;
+        }
+
+    .form-label {
+        font-weight: 600;
+        font-size: 13px;
+        color: #202224;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 8px 10px;
+        margin-top: 5px;
+        margin-bottom: 20px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        font-size: 13px;
+    }
+
+    .form-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 12px;
+        margin-top: -15px;
+    }
+
+        .form-footer a {
+            text-decoration: none;
+            color: #202224;
+            opacity: 0.6;
+            font-weight: 600;
+        }
+
+    .login-btn {
+        width: 100%;
+        background: #4880FF;
+        color: white;
+        font-size: 15px;
+        font-weight: 700;
+        border: none;
+        border-radius: 6px;
+        height: 42px;
+        margin-top: 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); 
+        transition: all 0.3s ease; 
+    }
+
+        .login-btn:hover {
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px); 
+        }
+
+
+</style>
+
+<div class="login-bg">
+    <div style="width: 600px; height: 600px; top: 60%; left: -150px;"></div>
+    <div style="width: 700px; height: 700px; top: -300px; left: 100%; transform: rotate(100deg);"></div>
+    <div style="width: 600px; height: 600px; top: 60%; left: 70%; transform: rotate(160deg); opacity: 0.6;"></div>
+    <div style="width: 750px; height: 750px; top: 120%; left: 50%; transform: rotate(-80deg);"></div>
+</div>
+
+<div class="login-card">
+    <h2>ĐĂNG NHẬP</h2>
+    <p>Vui lòng nhập Email và mật khẩu để tiếp tục</p>
+
+    <form asp-action="Login" asp-controller="Account" method="post">
+        <label class="form-label">Email:</label>
+        <input type="email" name="Email" class="form-control" required />
+
+        <div class="form-footer">
+            <label class="form-label">Mật khẩu:</label>
+            <a href="#">Quên mật khẩu?</a>
+        </div>
+        <input type="password" name="Password" class="form-control" required />
+
+        <button type="submit" class="login-btn">Đăng Nhập</button>
+    </form>
+</div>
