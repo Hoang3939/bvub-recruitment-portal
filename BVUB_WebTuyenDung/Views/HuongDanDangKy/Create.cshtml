@@ -1,0 +1,32 @@
+﻿@model BVUB_WebTuyenDung.Models.HuongDanDangKy
+
+@{
+    ViewData["Title"] = "Tạo Hướng Dẫn Đăng Ký";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Create">
+    <div class="form-group">
+        <label asp-for="TieuDe"></label>
+        <input asp-for="TieuDe" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="NoiDung"></label>
+        <textarea asp-for="NoiDung" class="form-control"></textarea>
+    </div>
+    <div class="form-group">
+        <label asp-for="FileHuongDan"></label>
+        <input asp-for="FileHuongDan" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="NgayCapNhat"></label>
+        <input asp-for="NgayCapNhat" type="date" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="LoaiHuongDan"></label>
+        <input asp-for="LoaiHuongDan" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <a asp-action="Index" class="btn btn-secondary">Huỷ</a>
+</form>

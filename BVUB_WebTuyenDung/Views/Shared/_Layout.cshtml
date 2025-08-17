@@ -18,15 +18,15 @@
             align-items: center;
         }
 
-            .header img {
-                height: 40px;
-                margin-right: 10px;
-            }
+        .header img {
+            height: 40px;
+            margin-right: 10px;
+        }
 
-            .header h1 {
-                font-size: 20px;
-                margin: 0;
-            }
+        .header h1 {
+            font-size: 20px;
+            margin: 0;
+        }
 
         .nav {
             display: flex;
@@ -52,20 +52,37 @@
             line-height: 1.6;
         }
 
-            .info .info-block {
-                flex: 1;
-                min-width: 300px;
-                max-width: 600px;
-            }
+        .info .info-block {
+            flex: 1;
+            min-width: 300px;
+            max-width: 600px;
+        }
 
-            .info .info-line {
-                display: flex;
-                gap: 5px;
-            }
+        .info .info-line {
+            display: flex;
+            gap: 5px;
+        }
 
-                .info .info-line strong {
-                    white-space: nowrap;
-                }
+        .info .info-line strong {
+            white-space: nowrap;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        .page-wrapper {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-wrapper {
+            flex: 1;
+        }
+
     </style>
 </head>
 <body>
@@ -79,29 +96,42 @@
         <div>Hướng dẫn đăng ký</div>
         <div>Tra cứu thông tin</div>
     </div>
-
-    @RenderBody()
-
-    <footer>
-        <div class="info">
-            <div class="info-block">
-                <strong>Bệnh viện Ung Bướu TPHCM</strong><br />
-                <strong>Cơ sở 1:</strong> Số 47 Nguyễn Huy Lượng, P. Bình Thạnh, TP. HCM<br />
-                Số 6 Nguyễn Huy Lượng, P. Bình Thạnh, TP. HCM<br />
-                <strong>Cơ sở 2:</strong> Số 12 Đường 400, Phường Tăng Nhơn Phú, TP. HCM
-            </div>
-
-            <div class="info-block">
-                <div class="info-line"><strong>Email:</strong> <span>bvubhcm@gmail.com</span></div>
-                <div class="info-line"><strong>Chăm sóc khách hàng:</strong> <span>1900636223</span></div>
-                <div class="info-line"><strong>Cơ sở 1:</strong> <span>(028) 38433022</span></div>
-                <div class="info-line"><strong>Cơ sở 2:</strong> <span>(028) 36227722 – (028) 38433021</span></div>
-                <div class="info-line"><strong>Góp ý phản ánh BV Ung bướu:</strong> <span>0967981010</span></div>
-                <div class="info-line"><strong>Góp ý phản ánh Sở y tế:</strong> <span>0967771010</span></div>
-                <div class="info-line"><strong>Góp ý phản ánh Bộ y tế:</strong> <span>19009095</span></div>
-            </div>
+    <div class="page-wrapper">
+        <div class="content-wrapper">
+            @RenderBody()
         </div>
-    </footer>
+        @{
+            var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+            var hideFooterActions = new[] { "VienChuc", "NguoiLaoDong" };
+            var showFooter = !hideFooterActions.Contains(currentAction);
+        }
+        @if (showFooter)
+        {
+            <footer>
+                <div class="info">
+                    <div class="info-block">
+                        <strong>Bệnh viện Ung Bướu TPHCM</strong><br />
+                        <strong>Cơ sở 1:</strong> Số 47 Nguyễn Huy Lượng, P. Bình Thạnh, TP. HCM<br />
+                        Số 6 Nguyễn Huy Lượng, P. Bình Thạnh, TP. HCM<br />
+                        <strong>Cơ sở 2:</strong> Số 12 Đường 400, Phường Tăng Nhơn Phú, TP. HCM
+                    </div>
+
+                    <div class="info-block">
+                        <div class="info-line"><strong>Email:</strong> <span>bvubhcm@gmail.com</span></div>
+                        <div class="info-line"><strong>Chăm sóc khách hàng:</strong> <span>1900636223</span></div>
+                        <div class="info-line"><strong>Cơ sở 1:</strong> <span>(028) 38433022</span></div>
+                        <div class="info-line"><strong>Cơ sở 2:</strong> <span>(028) 36227722 – (028) 38433021</span></div>
+                        <div class="info-line"><strong>Góp ý phản ánh BV Ung bướu:</strong> <span>0967981010</span></div>
+                        <div class="info-line"><strong>Góp ý phản ánh Sở y tế:</strong> <span>0967771010</span></div>
+                        <div class="info-line"><strong>Góp ý phản ánh Bộ y tế:</strong> <span>19009095</span></div>
+                    </div>
+                </div>
+            </footer>
+        }
+        
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+    @RenderSection("Scripts", required: false)
 </body>
 </html>
 
