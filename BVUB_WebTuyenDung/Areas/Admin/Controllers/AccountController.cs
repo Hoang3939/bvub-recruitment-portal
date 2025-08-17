@@ -1,23 +1,79 @@
-﻿using BVUB_WebTuyenDung.Areas.Admin.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using BVUB_WebTuyenDung.Areas.Admin.Data;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
+using System.Linq;
+using System.Threading.Tasks;
 
+[Area("Admin")]
 public class AccountController : Controller
 {
-    [HttpGet]
-    [Area("Admin")]
-    public IActionResult Login()
+    private readonly AdminDbContext _context;
+
+    public AccountController(AdminDbContext context)
     {
-        return View();
+        _context = context;
     }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult Login() => View();
 
     [HttpPost]
-    public IActionResult Login(LoginViewModel model)
+    [AllowAnonymous]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login(string username, string password)
     {
-        if (ModelState.IsValid)
+        var admin = _context.AdminUsers
+            .FirstOrDefault(a => a.Username == username && a.PasswordHash == password);
+
+        if (admin == null)
         {
-            return RedirectToAction("Index", "Home");
+            ViewBag.Error = "Sai tài khoản hoặc mật khẩu";
+            return View();
         }
 
-        return View(model);
+        var roleName = admin.Role == 1 ? "Admin" : "Staff";
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, admin.Username ?? string.Empty),
+            new Claim(ClaimTypes.Role, roleName)
+        };
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity)
+        );
+
+        return RedirectToAction("Index", "HomeAdmin", new { area = "Admin" });
     }
+
+    [Authorize]
+    [HttpGet]
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return RedirectToAction("Login", "Account", new { area = "Admin" });
+    }
+
+    [Authorize]
+    public IActionResult Profile()
+    {
+        var username = User.Identity?.Name;
+        if (string.IsNullOrEmpty(username))
+            return RedirectToAction("Login", "Account", new { area = "Admin" });
+
+        var admin = _context.AdminUsers.FirstOrDefault(a => a.Username == username);
+        if (admin == null) return NotFound();
+
+        return View(admin);
+    }
+
+    [HttpGet]
+    public IActionResult AccessDenied() => View();
 }

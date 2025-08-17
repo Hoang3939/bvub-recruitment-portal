@@ -1,14 +1,19 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
-namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
+[Area("Admin")]
+[Authorize(Policy = "StaffAndAdmin")]
+public class HomeAdminController : Controller
 {
-    [Area("Admin")]
-    public class HomeAdminController : Controller
+    public IActionResult Index()
     {
-        public IActionResult Index()
-        {
-            return View();
-        }
+        var username = User.FindFirstValue(ClaimTypes.Name);
+        var role = User.FindFirstValue(ClaimTypes.Role);
 
+        ViewBag.Username = username;
+        ViewBag.Role = role;
+
+        return View();
     }
 }

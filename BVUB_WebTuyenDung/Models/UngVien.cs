@@ -1,11 +1,16 @@
-﻿namespace BVUB_WebTuyenDung.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BVUB_WebTuyenDung.Models
 {
     public class UngVien
     {
+        [Key]
         public int UngVienId { get; set; }
+
+        [Required]
         public string HoTen { get; set; }
         public DateTime NgaySinh { get; set; }
-        public bool GioiTinh { get; set; }
+        public int GioiTinh { get; set; }
         public string SoDienThoai { get; set; }
         public string Email { get; set; }
         public string CCCD { get; set; }

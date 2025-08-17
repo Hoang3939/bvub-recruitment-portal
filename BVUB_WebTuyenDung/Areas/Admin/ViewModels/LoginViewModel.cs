@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace BVUB_WebTuyenDung.Areas.Admin.Models
+namespace BVUB_WebTuyenDung.Areas.Admin.ViewModels
 {
     public class LoginViewModel
     {

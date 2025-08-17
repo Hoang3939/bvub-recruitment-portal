@@ -1,8 +1,13 @@
-﻿namespace BVUB_WebTuyenDung.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BVUB_WebTuyenDung.Models
 {
     public class VanBang
     {
+        [Key]
         public int VanBangId { get; set; }
+
+        [Required]
         public int DonVienChucId { get; set; }
         public DonVienChuc DonVienChuc { get; set; }
 

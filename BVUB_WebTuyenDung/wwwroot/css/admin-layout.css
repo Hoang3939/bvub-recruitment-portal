@@ -1,0 +1,236 @@
+﻿html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f9f9f9;
+}
+
+body {
+    display: flex;
+}
+
+.sidebar {
+    width: 260px;
+    background-color: #95BCF2;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.05);
+    z-index: 1000;
+    transition: width 0.3s ease;
+}
+
+    .sidebar.collapsed {
+        width: 60px;
+    }
+
+        .sidebar.collapsed .nav-menu a span,
+        .sidebar.collapsed .header h1,
+        .sidebar.collapsed .header small {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-menu a {
+            justify-content: center;
+            padding: 12px 0;
+        }
+
+            .sidebar.collapsed .nav-menu a i {
+                margin: 0;
+                font-size: 18px;
+            }
+
+            /* Highlight dạng nút tròn khi thu gọn */
+            .sidebar.collapsed .nav-menu a.active {
+                background-color: #ffffff;
+                color: #4475B9;
+                border-radius: 50%;
+                width: 42px;
+                height: 42px;
+                margin: 0 auto;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            }
+
+                .sidebar.collapsed .nav-menu a.active i {
+                    font-size: 18px;
+                    color: #4475B9;
+                }
+
+.main {
+    margin-left: 260px;
+    flex: 1;
+    width: calc(100% - 260px);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease, width 0.3s ease;
+}
+
+    .main.collapsed {
+        margin-left: 60px;
+        width: calc(100% - 60px);
+    }
+
+.header {
+    background-color: #4475b9;
+    color: white;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+}
+
+    .header img {
+        height: 40px;
+        margin-right: 10px;
+    }
+
+    .header h1 {
+        font-size: 14px;
+        margin: 0;
+        color: #fff;
+        line-height: 1.2;
+    }
+
+.nav-menu {
+    list-style: none;
+    padding: 0 12px;
+    margin-top: 20px;
+    flex-grow: 1;
+}
+
+    .nav-menu li {
+        margin: 10px 0;
+    }
+
+    .nav-menu a {
+        text-decoration: none;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 15px;
+        padding: 10px 14px;
+        border-radius: 10px;
+        transition: background-color 0.3s ease;
+    }
+
+        .nav-menu a:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-menu a i {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .nav-menu a.active {
+            background-color: #ffffff;
+            color: #4475B9;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    height: 60px;
+    background-color: #4475b9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 25px;
+    border-bottom: 1px solid #eee;
+}
+
+.menu-toggle {
+    font-size: 20px;
+    color: white;
+    cursor: pointer;
+    margin-right: 20px;
+}
+
+.topbar .profile {
+    position: relative;
+}
+
+    .topbar .profile img {
+        border-radius: 50%;
+        margin-right: 10px;
+    }
+
+.search-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 6px 10px;
+    width: 250px;
+}
+
+    .search-box i {
+        color: #999;
+        margin-right: 8px;
+        font-size: 16px;
+    }
+
+    .search-box input {
+        border: none;
+        outline: none;
+        flex: 1;
+        font-size: 14px;
+    }
+
+.profile-name {
+    display: flex;
+    align-items: center;
+    color: white;
+}
+
+.name-role {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+    .name-role .name {
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .name-role .role {
+        font-size: 11px;
+        font-weight: 300;
+        color: #e0e0e0;
+        margin-top: 1px;
+    }
+
+.dropdown-toggle::after {
+    color: white !important;
+}
+
+.dropdown-menu {
+    min-width: 200px;
+}
+
+.content {
+    padding: 30px;
+    flex: 1;
+}

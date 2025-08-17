@@ -1,0 +1,96 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.Models.UngVien
+@using System.Globalization
+
+@functions {
+    string FormatDate(object date)
+    {
+        if (date == null) return "";
+        var t = date.GetType();
+
+        var mi = t.GetMethod("ToString", new[] { typeof(string), typeof(IFormatProvider) });
+        if (mi != null)
+        {
+            try
+            {
+                return (string)mi.Invoke(date, new object[] { "dd/MM/yyyy", CultureInfo.InvariantCulture });
+            }
+            catch {}
+        }
+
+        if (date is DateTime dt) return dt.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+
+        return date.ToString();
+    }
+}
+
+<style>
+    .dv-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px 24px;
+    }
+
+    .dv-field {
+        background: #fafbfc;
+        border: 1px solid #eef0f2;
+        border-radius: 8px;
+        padding: 10px 12px;
+    }
+
+    .dv-label {
+        display: block;
+        font-size: .85rem;
+        color: #6b7280;
+        margin-bottom: 4px;
+    }
+
+    .dv-value {
+        font-weight: 700;
+        color: #1f2937;
+        word-break: break-word;
+    }
+
+    @@media (max-width: 768px) {
+        .dv-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="dv-grid">
+    <div class="dv-field"><span class="dv-label">Mã ứng viên</span><span class="dv-value">@Model.UngVienId</span></div>
+    <div class="dv-field"><span class="dv-label">Họ và tên</span><span class="dv-value">@Model.HoTen</span></div>
+
+    <div class="dv-field">
+        <span class="dv-label">Ngày sinh</span>
+        <span class="dv-value">@FormatDate(Model.NgaySinh)</span>
+    </div>
+
+    <div class="dv-field"><span class="dv-label">Giới tính</span><span class="dv-value">@(Model.GioiTinh == 1 ? "Nam" : "Nữ")</span></div>
+
+    <div class="dv-field"><span class="dv-label">Số điện thoại</span><span class="dv-value">@Model.SoDienThoai</span></div>
+    <div class="dv-field"><span class="dv-label">Email</span><span class="dv-value">@Model.Email</span></div>
+
+    <div class="dv-field"><span class="dv-label">CCCD</span><span class="dv-value">@Model.CCCD</span></div>
+
+    <div class="dv-field">
+        <span class="dv-label">Ngày cấp CCCD</span>
+        <span class="dv-value">@FormatDate(Model.NgayCapCCCD)</span>
+    </div>
+
+    <div class="dv-field"><span class="dv-label">Nơi cấp CCCD</span><span class="dv-value">@Model.NoiCapCCCD</span></div>
+
+    <div class="dv-field">
+        <span class="dv-label">Ngày ứng tuyển</span>
+        <span class="dv-value">@FormatDate(Model.NgayUngTuyen)</span>
+    </div>
+
+    <div class="dv-field" style="grid-column:1/-1"><span class="dv-label">Địa chỉ thường trú</span><span class="dv-value">@Model.DiaChiThuongTru</span></div>
+    <div class="dv-field" style="grid-column:1/-1"><span class="dv-label">Địa chỉ cư trú</span><span class="dv-value">@Model.DiaChiCuTru</span></div>
+
+    <div class="dv-field"><span class="dv-label">Mã số thuế</span><span class="dv-value">@Model.MaSoThue</span></div>
+    <div class="dv-field"><span class="dv-label">Số tài khoản</span><span class="dv-value">@Model.SoTaiKhoan</span></div>
+
+    <div class="dv-field"><span class="dv-label">Tình trạng sức khỏe</span><span class="dv-value">@Model.TinhTrangSucKhoe</span></div>
+    <div class="dv-field"><span class="dv-label">Trình độ chuyên môn</span><span class="dv-value">@Model.TrinhDoChuyenMon</span></div>
+</div>

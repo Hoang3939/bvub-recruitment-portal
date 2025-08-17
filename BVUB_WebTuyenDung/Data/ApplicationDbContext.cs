@@ -1,7 +1,5 @@
 ﻿using BVUB_WebTuyenDung.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Reflection.Emit;
 
 namespace BVUB_WebTuyenDung.Data
 {
@@ -19,7 +17,7 @@ namespace BVUB_WebTuyenDung.Data
         public DbSet<DonVienChuc> DonVienChuc { get; set; }
         public DbSet<VanBang> VanBang { get; set; }
         public DbSet<HopDongNguoiLaoDong> HopDongNguoiLaoDong { get; set; }
-        public DbSet<AdminUser> AdminUser { get; set; }
+        public DbSet<AdminUser> AdminUser { get; set; } 
         public DbSet<AuditTrail> AuditTrail { get; set; }
         public DbSet<ThongTinTuyenDung> ThongTinTuyenDung { get; set; }
         public DbSet<HuongDanDangKy> HuongDanDangKy { get; set; }
@@ -28,7 +26,7 @@ namespace BVUB_WebTuyenDung.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure các bảng nếu cần thêm
+
             modelBuilder.Entity<AuditTrail>()
                 .Property(a => a.LoaiDon)
                 .IsRequired();
@@ -37,7 +35,6 @@ namespace BVUB_WebTuyenDung.Data
                 .HasOne(a => a.AdminCapNhat)
                 .WithMany()
                 .HasForeignKey(a => a.AdminCapNhatId);
-
         }
     }
 }

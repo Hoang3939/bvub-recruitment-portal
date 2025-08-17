@@ -1,0 +1,84 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.Models.AdminUser
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+}
+<style>
+    .profile-container {
+        max-width: 700px;
+        margin: 40px auto;
+        background: #fff;
+        border-radius: 10px;
+        padding: 30px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .profile-title {
+        font-weight: bold;
+        color: #000;
+        margin-bottom: 20px;
+    }
+
+    .profile-avatar {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .avatar-img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #f0f0f0;
+    }
+
+    .change-photo-btn {
+        display: block; 
+        margin: 10px auto 0; 
+        background: none;
+        border: none;
+        color: #007bff;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+        .change-photo-btn:hover {
+            text-decoration: underline;
+        }
+
+    .profile-field {
+        margin-bottom: 15px;
+    }
+
+        .profile-field label {
+            font-weight: bold;
+            display: block;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .profile-field input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background: #f9f9f9;
+        }
+
+</style>
+<div class="profile-container">
+    <h2 class="profile-title">Thông tin cá nhân</h2>
+
+<div class="profile-avatar">
+    <img src="~/images/avtAD.jpg" alt="Avatar" class="avatar-img">
+    <button type="button" class="change-photo-btn">Thay đổi ảnh</button>
+</div>
+
+<div class="profile-field">
+    <label>Tên tài khoản</label>
+    <div class="readonly-text">@Model.Username</div>
+</div>
+
+<div class="profile-field">
+    <label>Chức vụ</label>
+    <div class="readonly-text">@Model.Role</div>
+</div>
