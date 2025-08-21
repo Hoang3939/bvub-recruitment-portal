@@ -80,41 +80,61 @@ namespace BVUB_WebTuyenDung.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UngTuyenNguoiLaoDong(UngTuyenNguoiLaoDongViewModel model)
         {
-            // các field server-generated: loại bỏ để tránh Required phàn nàn trước khi gán
             ModelState.Remove("UngVien.NgayUngTuyen");
             ModelState.Remove("HopDongNguoiLaoDong.NgayNop");
             ModelState.Remove("HopDongNguoiLaoDong.UngVienId");
             ModelState.Remove("HopDongNguoiLaoDong.MaTraCuu");
             ModelState.Remove("HopDongNguoiLaoDong.Loai");
+            ModelState.Remove("HopDongNguoiLaoDong.UngVien"); // tránh validate navigation
 
             if (!ModelState.IsValid)
             {
-                // refill dropdown trước khi trả view
                 ViewBag.KhoaPhongList = new SelectList(
                     _context.DanhMucKhoaPhong.Where(k => k.TamNgung == 0).AsNoTracking().ToList(),
                     "KhoaPhongId", "Ten", model.HopDongNguoiLaoDong?.KhoaPhongCongTacId
                 );
-                return View("NguoiLaoDong", model); // <<< QUAN TRỌNG
+                return View("NguoiLaoDong", model);
             }
 
-            var now = DateTime.Now;
+            try
+            {
+                // 1) Lấy hoặc tạo UngVien theo Email (KHÔNG tạo trùng)
+                var ungVien = await GetOrCreateUngVienByEmailAsync(model.UngVien);
 
-            // Ứng viên
-            model.UngVien.NgayUngTuyen = now;
-            _context.UngVien.Add(model.UngVien);
-            await _context.SaveChangesAsync();
+                // 2) Không cho tạo 2 hợp đồng cho cùng 1 ứng viên
+                if (await _context.HopDongNguoiLaoDong.AnyAsync(h => h.UngVienId == ungVien.UngVienId))
+                {
+                    ModelState.AddModelError("", "Email này đã có hồ sơ người lao động.");
+                    ViewBag.KhoaPhongList = new SelectList(
+                        _context.DanhMucKhoaPhong.Where(k => k.TamNgung == 0).AsNoTracking().ToList(),
+                        "KhoaPhongId", "Ten", model.HopDongNguoiLaoDong?.KhoaPhongCongTacId
+                    );
+                    return View("NguoiLaoDong", model);
+                }
 
-            // Hợp đồng NLD
-            model.HopDongNguoiLaoDong.UngVienId = model.UngVien.UngVienId;
-            model.HopDongNguoiLaoDong.NgayNop = now;
-            model.HopDongNguoiLaoDong.TrangThai = 1;                  // mới nộp
-            model.HopDongNguoiLaoDong.Loai = "Người lao động";   // ép loại
-            model.HopDongNguoiLaoDong.MaTraCuu = await GenerateUniqueMaTraCuuAsync(6);
+                // 3) Lưu hợp đồng
+                var hd = model.HopDongNguoiLaoDong;
+                hd.UngVienId = ungVien.UngVienId;
+                hd.NgayNop = DateTime.Now;
+                hd.TrangThai = 1;                       // mới nộp
+                hd.Loai = "Người lao động";
+                hd.MaTraCuu = await GenerateUniqueMaTraCuuAsync(6);
 
-            _context.HopDongNguoiLaoDong.Add(model.HopDongNguoiLaoDong);
-            await _context.SaveChangesAsync();
+                _context.HopDongNguoiLaoDong.Add(hd);
+                await _context.SaveChangesAsync();
 
-            return RedirectToAction("ThanhCong");
+                return RedirectToAction("ThanhCong");
+            }
+            catch (DbUpdateException ex)
+            {
+                // Nếu lỡ race-condition tạo trùng, rớt vào đây:
+                ModelState.AddModelError("", ex.InnerException?.Message ?? ex.Message);
+                ViewBag.KhoaPhongList = new SelectList(
+                    _context.DanhMucKhoaPhong.Where(k => k.TamNgung == 0).AsNoTracking().ToList(),
+                    "KhoaPhongId", "Ten", model.HopDongNguoiLaoDong?.KhoaPhongCongTacId
+                );
+                return View("NguoiLaoDong", model);
+            }
         }
 
         // Trang thông báo nộp đơn thành công
@@ -193,13 +213,37 @@ namespace BVUB_WebTuyenDung.Controllers
             // --- LƯU ---
             var danhSachVanBang = model.VanBangs ?? new List<VanBang>();
 
-            _context.UngVien.Add(model.UngVien);
-            await _context.SaveChangesAsync();
+            // (1) Lấy hoặc tạo UngVien theo Email (KHÔNG tạo trùng)
+            var ungVien = await GetOrCreateUngVienByEmailAsync(model.UngVien);
 
-            model.DonVienChuc.UngVienId = model.UngVien.UngVienId;
+            // (2) Không cho nộp ĐƠN VIÊN CHỨC lần 2 cho cùng Ứng viên
+            if (await _context.DonVienChuc.AnyAsync(d => d.UngVienId == ungVien.UngVienId))
+            {
+                ModelState.AddModelError("", "Email này đã có hồ sơ VIÊN CHỨC.");
+                // Refill ViewBag như nhánh !ModelState.IsValid
+                ViewBag.LoaiVanBangOptions = GetLoaiVanBangOptions();
+                ViewBag.ChucDanhList = new SelectList(
+                    _context.DanhMucChucDanhDuTuyen.AsNoTracking().ToList(),
+                    "ChucDanhId", "TenChucDanh", model.DonVienChuc?.ChucDanhDuTuyenId);
+
+                var cdId = model.DonVienChuc?.ChucDanhDuTuyenId;
+                ViewBag.ViTriList = cdId.HasValue
+                    ? new SelectList(
+                        _context.DanhMucViTriDuTuyen.Where(v => v.ChucDanhId == cdId.Value)
+                                .AsNoTracking().ToList(),
+                        "ViTriId", "TenViTri", model.DonVienChuc?.ViTriDuTuyenId)
+                    : new SelectList(Enumerable.Empty<SelectListItem>());
+
+                ViewBag.KhoaPhongList = new SelectList(Enumerable.Empty<SelectListItem>());
+                return View("VienChuc", model);
+            }
+
+            // (3) Lưu Đơn Viên Chức
+            model.DonVienChuc.UngVienId = ungVien.UngVienId;
             _context.DonVienChuc.Add(model.DonVienChuc);
             await _context.SaveChangesAsync();
 
+            // (4) Lưu Văn Bằng (nếu có)
             if (danhSachVanBang.Count > 0)
             {
                 foreach (var vb in danhSachVanBang)
@@ -210,7 +254,6 @@ namespace BVUB_WebTuyenDung.Controllers
 
             return RedirectToAction("ThanhCong");
         }
-
 
         [HttpGet]
         public IActionResult GetViTriByChucDanh(int chucDanhId)
@@ -256,28 +299,26 @@ namespace BVUB_WebTuyenDung.Controllers
                 return Json(new { ok = false, message = "Vui lòng nhập Email." });
 
             email = email.Trim();
-
-            // chỉ cho @gmail.com (giữ nguyên nếu bạn muốn nới lỏng)
             var pattern = @"^[^@\s]+@gmail\.com$";
-            if (!System.Text.RegularExpressions.Regex.IsMatch(
-                    email, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
-            {
+            if (!System.Text.RegularExpressions.Regex.IsMatch(email, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
                 return Json(new { ok = false, message = "Sai định dạng (chỉ chấp nhận @gmail.com)." });
-            }
 
             var ungVien = await _context.UngVien
                 .Include(u => u.HopDongNguoiLaoDong)
+                .Include(u => u.DonVienChuc) // <<< thêm cho trang Viên chức
                 .AsNoTracking()
-                .FirstOrDefaultAsync(u => u.Email == email);   // ❗ DÙNG Email
+                .FirstOrDefaultAsync(u => u.Email == email);
 
             if (ungVien == null)
-                return Json(new { ok = true, exists = false });
+                return Json(new { ok = true, exists = false, hasUngVien = false });
 
             return Json(new
             {
                 ok = true,
                 exists = true,
-                hasHopDong = ungVien.HopDongNguoiLaoDong != null,
+                hasUngVien = true,                                      // cho VC
+                hasHopDong = ungVien.HopDongNguoiLaoDong != null,       // cho NLD
+                hasDonVienChuc = ungVien.DonVienChuc != null,           // cho VC
                 ungVien = new
                 {
                     ungVien.HoTen,
@@ -296,6 +337,39 @@ namespace BVUB_WebTuyenDung.Controllers
                     ungVien.TrinhDoChuyenMon
                 }
             });
+        }
+
+        private async Task<UngVien> GetOrCreateUngVienByEmailAsync(UngVien posted)
+        {
+            var email = (posted.Email ?? "").Trim();
+            var existing = await _context.UngVien.FirstOrDefaultAsync(u => u.Email == email);
+
+            if (existing != null)
+            {
+                // (tuỳ chọn) cập nhật mềm vài trường
+                existing.HoTen = string.IsNullOrWhiteSpace(posted.HoTen) ? existing.HoTen : posted.HoTen;
+                existing.GioiTinh = posted.GioiTinh;
+                existing.NgaySinh = posted.NgaySinh ?? existing.NgaySinh;
+                existing.SoDienThoai = string.IsNullOrWhiteSpace(posted.SoDienThoai) ? existing.SoDienThoai : posted.SoDienThoai;
+                existing.CCCD = string.IsNullOrWhiteSpace(posted.CCCD) ? existing.CCCD : posted.CCCD;
+                existing.NgayCapCCCD = posted.NgayCapCCCD ?? existing.NgayCapCCCD;
+                existing.NoiCapCCCD = string.IsNullOrWhiteSpace(posted.NoiCapCCCD) ? existing.NoiCapCCCD : posted.NoiCapCCCD;
+                existing.DiaChiThuongTru = string.IsNullOrWhiteSpace(posted.DiaChiThuongTru) ? existing.DiaChiThuongTru : posted.DiaChiThuongTru;
+                existing.DiaChiCuTru = string.IsNullOrWhiteSpace(posted.DiaChiCuTru) ? existing.DiaChiCuTru : posted.DiaChiCuTru;
+                existing.MaSoThue = string.IsNullOrWhiteSpace(posted.MaSoThue) ? existing.MaSoThue : posted.MaSoThue;
+                existing.SoTaiKhoan = string.IsNullOrWhiteSpace(posted.SoTaiKhoan) ? existing.SoTaiKhoan : posted.SoTaiKhoan;
+                existing.TinhTrangSucKhoe = string.IsNullOrWhiteSpace(posted.TinhTrangSucKhoe) ? existing.TinhTrangSucKhoe : posted.TinhTrangSucKhoe;
+                existing.TrinhDoChuyenMon = string.IsNullOrWhiteSpace(posted.TrinhDoChuyenMon) ? existing.TrinhDoChuyenMon : posted.TrinhDoChuyenMon;
+
+                await _context.SaveChangesAsync();
+                return existing;
+            }
+
+            // chưa có -> tạo mới
+            posted.NgayUngTuyen = DateTime.Now;
+            _context.UngVien.Add(posted);
+            await _context.SaveChangesAsync();
+            return posted;
         }
     }
 }

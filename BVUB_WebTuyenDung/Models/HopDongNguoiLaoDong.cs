@@ -28,7 +28,7 @@ namespace BVUB_WebTuyenDung.Models
         [Required, StringLength(50)]
         public string MaTraCuu { get; set; }
 
-        public virtual UngVien UngVien { get; set; }
+        public virtual UngVien? UngVien { get; set; }
     }
 
 }
