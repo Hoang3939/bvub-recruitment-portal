@@ -426,3 +426,8 @@ BVUB_WebTuyenDung/obj/
 
 bin/
 obj/
+
+*.csproj.user
+
+appsettings.Development.json
+BVUB_WebTuyenDung/appsettings.Development.json
