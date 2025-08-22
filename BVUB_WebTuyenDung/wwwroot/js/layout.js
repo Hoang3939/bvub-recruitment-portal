@@ -1,5 +1,4 @@
-﻿
-function initDatepickers(scope) {
+﻿function initDatepickers(scope) {
     if (typeof flatpickr === "undefined") return;
 
     const vi = {

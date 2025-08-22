@@ -87,6 +87,12 @@ namespace BVUB_WebTuyenDung.Controllers
             ModelState.Remove("HopDongNguoiLaoDong.Loai");
             ModelState.Remove("HopDongNguoiLaoDong.UngVien"); // tránh validate navigation
 
+            if (model.UngVien?.NgaySinh is DateTime ns && ns.Date > DateTime.Today)
+                ModelState.AddModelError("UngVien.NgaySinh", "Ngày sinh không được lớn hơn ngày hiện tại.");
+
+            if (model.UngVien?.NgayCapCCCD is DateTime nc && nc.Date > DateTime.Today)
+                ModelState.AddModelError("UngVien.NgayCapCCCD", "Ngày cấp không được lớn hơn ngày hiện tại.");
+
             if (!ModelState.IsValid)
             {
                 ViewBag.KhoaPhongList = new SelectList(
@@ -149,41 +155,53 @@ namespace BVUB_WebTuyenDung.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UngTuyenVienChuc(UngTuyenVienChucViewModel model)
         {
-            // --- Sinh các giá trị server-generated TRƯỚC khi validate ---
             var now = DateTime.Now;
-            if (model.UngVien == null) model.UngVien = new UngVien();
-            if (model.DonVienChuc == null) model.DonVienChuc = new DonVienChuc();
+            model.UngVien ??= new UngVien();
+            model.DonVienChuc ??= new DonVienChuc();
 
-            model.UngVien.NgayUngTuyen = now;                             // [Required]
-            model.DonVienChuc.NgayNop = now;                             // [Required]
-            model.DonVienChuc.TrangThai = 1;                               // 1: mới nộp
-            model.DonVienChuc.MaTraCuu = await GenerateUniqueMaTraCuuAsync(6); // [Required]
+            model.UngVien.NgayUngTuyen = now;
+            model.DonVienChuc.NgayNop = now;
+            model.DonVienChuc.TrangThai = 1;
+            model.DonVienChuc.MaTraCuu = await GenerateUniqueMaTraCuuAsync(6);
 
-            // Nếu người dùng chọn "Khác" cho TĐVH/TTSK thì ép giá trị từ textbox
+            // Map "Khác" từ textbox
             var tdvhKhac = (Request.Form["TrinhDoVanHoaKhac"].ToString() ?? "").Trim();
             if (string.Equals(model.DonVienChuc.TrinhDoVanHoa, "Khác", StringComparison.OrdinalIgnoreCase)
                 && !string.IsNullOrWhiteSpace(tdvhKhac))
+            {
                 model.DonVienChuc.TrinhDoVanHoa = tdvhKhac;
+            }
 
             var skKhac = (Request.Form["TinhTrangSucKhoeKhac"].ToString() ?? "").Trim();
             if (string.Equals(model.UngVien.TinhTrangSucKhoe, "Khác", StringComparison.OrdinalIgnoreCase)
                 && !string.IsNullOrWhiteSpace(skKhac))
+            {
                 model.UngVien.TinhTrangSucKhoe = skKhac;
+            }
 
-            // --- Loại các key server-generated khỏi ModelState để không bị Required phàn nàn ---
+            var uuTienKhac = (Request.Form["DoiTuongUuTienKhac"].ToString() ?? "").Trim();
+            if (string.Equals(model.DonVienChuc.DoiTuongUuTien, "Khác", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(model.DonVienChuc.DoiTuongUuTien, "__OTHER__", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrWhiteSpace(uuTienKhac))
+                    model.DonVienChuc.DoiTuongUuTien = uuTienKhac;
+            }
+
+            var loaiHinhKhac = (Request.Form["LoaiHinhDaoTaoKhac"].ToString() ?? "").Trim();
+            if (string.Equals(model.DonVienChuc.LoaiHinhDaoTao, "Khác", StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(loaiHinhKhac))
+            {
+                model.DonVienChuc.LoaiHinhDaoTao = loaiHinhKhac;
+            }
+
+            // Bỏ qua validate mấy field server-generated
             ModelState.Remove("UngVien.NgayUngTuyen");
             ModelState.Remove("DonVienChuc.NgayNop");
             ModelState.Remove("DonVienChuc.MaTraCuu");
-            ModelState.Remove("DonVienChuc.UngVienId"); // sẽ set sau khi lưu UngVien
+            ModelState.Remove("DonVienChuc.UngVienId");
+            ModelState.Remove("DonVienChuc.ChucDanhDuTuyen"); // nếu còn key cũ
 
-            // Nếu bạn có đổi từ ChucDanhDuTuyen -> ChucDanhDuTuyenId, nhớ remove key cũ nếu tồn tại
-            ModelState.Remove("DonVienChuc.ChucDanhDuTuyen");
-
-            // --- (Tuỳ chọn) re-validate toàn model sau khi đã gán các giá trị ---
-            // ModelState.Clear();
-            // TryValidateModel(model);
-
-            // Validate bổ sung cho các Id chọn từ combobox
+            // Validate bổ sung
             if (model.DonVienChuc.ChucDanhDuTuyenId <= 0)
                 ModelState.AddModelError("DonVienChuc.ChucDanhDuTuyenId", "Vui lòng chọn chức danh.");
             if (model.DonVienChuc.ViTriDuTuyenId <= 0)
@@ -191,68 +209,77 @@ namespace BVUB_WebTuyenDung.Controllers
             if (model.DonVienChuc.KhoaPhongId <= 0)
                 ModelState.AddModelError("DonVienChuc.KhoaPhongId", "Vui lòng chọn khoa/phòng.");
 
+            if (model.UngVien?.NgaySinh is DateTime ns && ns.Date > DateTime.Today)
+                ModelState.AddModelError("UngVien.NgaySinh", "Ngày sinh không được lớn hơn ngày hiện tại.");
+
+            if (model.UngVien?.NgayCapCCCD is DateTime nc && nc.Date > DateTime.Today)
+                ModelState.AddModelError("UngVien.NgayCapCCCD", "Ngày cấp không được lớn hơn ngày hiện tại.");
+
+
             if (!ModelState.IsValid)
             {
-                // Refill ViewBag... (giữ nguyên như bạn đang làm)
-                ViewBag.LoaiVanBangOptions = GetLoaiVanBangOptions();
-                ViewBag.ChucDanhList = new SelectList(
-                    _context.DanhMucChucDanhDuTuyen.AsNoTracking().ToList(),
-                    "ChucDanhId", "TenChucDanh", model.DonVienChuc?.ChucDanhDuTuyenId);
-
-                var cdId = model.DonVienChuc?.ChucDanhDuTuyenId;
-                ViewBag.ViTriList = cdId.HasValue
-                    ? new SelectList(
-                        _context.DanhMucViTriDuTuyen.Where(v => v.ChucDanhId == cdId.Value).AsNoTracking().ToList(),
-                        "ViTriId", "TenViTri", model.DonVienChuc?.ViTriDuTuyenId)
-                    : new SelectList(Enumerable.Empty<SelectListItem>());
-
-                ViewBag.KhoaPhongList = new SelectList(Enumerable.Empty<SelectListItem>());
+                RefillVienChucViewBags(model);
                 return View("VienChuc", model);
             }
 
-            // --- LƯU ---
-            var danhSachVanBang = model.VanBangs ?? new List<VanBang>();
-
-            // (1) Lấy hoặc tạo UngVien theo Email (KHÔNG tạo trùng)
-            var ungVien = await GetOrCreateUngVienByEmailAsync(model.UngVien);
-
-            // (2) Không cho nộp ĐƠN VIÊN CHỨC lần 2 cho cùng Ứng viên
-            if (await _context.DonVienChuc.AnyAsync(d => d.UngVienId == ungVien.UngVienId))
+            try
             {
-                ModelState.AddModelError("", "Email này đã có hồ sơ VIÊN CHỨC.");
-                // Refill ViewBag như nhánh !ModelState.IsValid
-                ViewBag.LoaiVanBangOptions = GetLoaiVanBangOptions();
-                ViewBag.ChucDanhList = new SelectList(
-                    _context.DanhMucChucDanhDuTuyen.AsNoTracking().ToList(),
-                    "ChucDanhId", "TenChucDanh", model.DonVienChuc?.ChucDanhDuTuyenId);
+                // (1) Lấy / tạo UngVien theo email (KHÔNG trùng)
+                var ungVien = await GetOrCreateUngVienByEmailAsync(model.UngVien);
 
-                var cdId = model.DonVienChuc?.ChucDanhDuTuyenId;
-                ViewBag.ViTriList = cdId.HasValue
-                    ? new SelectList(
-                        _context.DanhMucViTriDuTuyen.Where(v => v.ChucDanhId == cdId.Value)
-                                .AsNoTracking().ToList(),
-                        "ViTriId", "TenViTri", model.DonVienChuc?.ViTriDuTuyenId)
-                    : new SelectList(Enumerable.Empty<SelectListItem>());
+                // (2) Chặn nộp Đơn Viên Chức lần 2
+                var daCoDonVC = await _context.DonVienChuc.AnyAsync(d => d.UngVienId == ungVien.UngVienId);
+                if (daCoDonVC)
+                {
+                    ModelState.AddModelError("", "Email này đã có hồ sơ VIÊN CHỨC.");
+                    RefillVienChucViewBags(model);
+                    return View("VienChuc", model);
+                }
 
-                ViewBag.KhoaPhongList = new SelectList(Enumerable.Empty<SelectListItem>());
-                return View("VienChuc", model);
-            }
-
-            // (3) Lưu Đơn Viên Chức
-            model.DonVienChuc.UngVienId = ungVien.UngVienId;
-            _context.DonVienChuc.Add(model.DonVienChuc);
-            await _context.SaveChangesAsync();
-
-            // (4) Lưu Văn Bằng (nếu có)
-            if (danhSachVanBang.Count > 0)
-            {
-                foreach (var vb in danhSachVanBang)
-                    vb.DonVienChucId = model.DonVienChuc.VienChucId;
-                _context.VanBang.AddRange(danhSachVanBang);
+                // (3) Lưu đơn VC
+                model.DonVienChuc.UngVienId = ungVien.UngVienId;
+                _context.DonVienChuc.Add(model.DonVienChuc);
                 await _context.SaveChangesAsync();
-            }
 
-            return RedirectToAction("ThanhCong");
+                // (4) Lưu văn bằng
+                var danhSachVanBang = model.VanBangs ?? new List<VanBang>();
+                if (danhSachVanBang.Count > 0)
+                {
+                    foreach (var vb in danhSachVanBang)
+                        vb.DonVienChucId = model.DonVienChuc.VienChucId;
+
+                    _context.VanBang.AddRange(danhSachVanBang);
+                    await _context.SaveChangesAsync();
+                }
+
+                return RedirectToAction("ThanhCong");
+            }
+            catch (DbUpdateException ex)
+            {
+                ModelState.AddModelError("", ex.InnerException?.Message ?? ex.Message);
+                RefillVienChucViewBags(model);
+                return View("VienChuc", model);
+            }
+        }
+
+        private void RefillVienChucViewBags(UngTuyenVienChucViewModel model)
+        {
+            ViewBag.LoaiVanBangOptions = GetLoaiVanBangOptions();
+
+            ViewBag.ChucDanhList = new SelectList(
+                _context.DanhMucChucDanhDuTuyen.AsNoTracking().Where(x => x.TamNgung == 0).ToList(),
+                "ChucDanhId", "TenChucDanh", model.DonVienChuc?.ChucDanhDuTuyenId
+            );
+
+            var cdId = model.DonVienChuc?.ChucDanhDuTuyenId;
+            ViewBag.ViTriList = cdId.HasValue
+                ? new SelectList(
+                    _context.DanhMucViTriDuTuyen.Where(v => v.ChucDanhId == cdId && v.TamNgung == 0)
+                        .AsNoTracking().ToList(),
+                    "ViTriId", "TenViTri", model.DonVienChuc?.ViTriDuTuyenId)
+                : new SelectList(Enumerable.Empty<SelectListItem>());
+
+            ViewBag.KhoaPhongList = new SelectList(Enumerable.Empty<SelectListItem>());
         }
 
         [HttpGet]

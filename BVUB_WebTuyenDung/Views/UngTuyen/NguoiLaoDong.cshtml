@@ -1,18 +1,10 @@
 ﻿@model BVUB_WebTuyenDung.Models.UngTuyenNguoiLaoDongViewModel
+
 @{
     ViewData["Title"] = "Ứng tuyển người lao động";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/apply-forms.css" asp-append-version="true" />
-}
-
-@if (TempData["ModelErrors"] != null)
-{
-    <div class="alert alert-warning">@TempData["ModelErrors"]</div>
-}
-
-<form asp-action="UngTuyenNguoiLaoDong" method="post" novalidate class="form-card">
+<form asp-action="UngTuyenNguoiLaoDong" method="post" class="form-card" data-mode="nld" novalidate>
     @Html.AntiForgeryToken()
 
     <h2 class="form-title">@ViewData["Title"]</h2>
@@ -94,14 +86,14 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.DiaChiThuongTru" class="form-label">Địa chỉ thường trú</label>
-        <input asp-for="UngVien.DiaChiThuongTru" class="form-control" />
+        <label asp-for="UngVien.DiaChiThuongTru" class="form-label">Địa chỉ thường trú (ghi đầy đủ và chính xác theo thông tin trong ứng dụng VNeID)</label>
+        <input asp-for="UngVien.DiaChiThuongTru" class="form-control" placeholder="Ví dụ: 59 Nguyễn Thị Minh Khai, phường Bến Thành, Thành phố Hồ Chí Minh" />
         <span asp-validation-for="UngVien.DiaChiThuongTru" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.DiaChiCuTru" class="form-label">Địa chỉ cư trú</label>
-        <input asp-for="UngVien.DiaChiCuTru" class="form-control" />
+        <label asp-for="UngVien.DiaChiCuTru" class="form-label">Địa chỉ nơi cư trú (để báo tin)(dựa trên Đơn vị hành chính mới theo quy định)</label>
+        <input asp-for="UngVien.DiaChiCuTru" class="form-control" placeholder="Ví dụ: 59 Nguyễn Thị Minh Khai, phường Bến Thành, Thành phố Hồ Chí Minh" />
         <span asp-validation-for="UngVien.DiaChiCuTru" class="text-danger"></span>
     </div>
 
@@ -132,8 +124,8 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.TrinhDoChuyenMon" class="form-label">Trình độ chuyên môn</label>
-        <input asp-for="UngVien.TrinhDoChuyenMon" class="form-control" />
+        <label asp-for="UngVien.TrinhDoChuyenMon" class="form-label">Trình độ chuyên môn/Trình độ đào tạo</label>
+        <input asp-for="UngVien.TrinhDoChuyenMon" class="form-control" placeholder="Ví dụ: Cử nhân Quản lý nhà nước/ Bác sĩ Chuyên khoa cấp II..." />
         <span asp-validation-for="UngVien.TrinhDoChuyenMon" class="text-danger"></span>
     </div>
 
@@ -149,44 +141,44 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="HopDongNguoiLaoDong.NoiSinh" class="form-label">Nơi sinh</label>
-        <input asp-for="HopDongNguoiLaoDong.NoiSinh" class="form-control" />
+        <label asp-for="HopDongNguoiLaoDong.NoiSinh" class="form-label">Nơi sinh (Ghi theo đơn vị hành chính cấp tỉnh)</label>
+        <input asp-for="HopDongNguoiLaoDong.NoiSinh" class="form-control" placeholder="Ví dụ: Thành phố Hồ Chí Minh, tỉnh Lâm Đồng" />
         <span asp-validation-for="HopDongNguoiLaoDong.NoiSinh" class="text-danger"></span>
     </div>
 
     <div class="form-group">
         <label asp-for="HopDongNguoiLaoDong.ChuyenNganhDaoTao" class="form-label">Chuyên ngành đào tạo</label>
-        <input asp-for="HopDongNguoiLaoDong.ChuyenNganhDaoTao" class="form-control" />
+        <input asp-for="HopDongNguoiLaoDong.ChuyenNganhDaoTao" class="form-control" placeholder="Ví dụ: Quản lý nhà nước/ Tổ chức quản lý y tế/ Bác sĩ y khoa,..."/>
         <span asp-validation-for="HopDongNguoiLaoDong.ChuyenNganhDaoTao" class="text-danger"></span>
     </div>
 
     <div class="form-group">
         <label asp-for="HopDongNguoiLaoDong.NamTotNghiep" class="form-label">Năm tốt nghiệp</label>
-        <input asp-for="HopDongNguoiLaoDong.NamTotNghiep" class="form-control" />
+        <input asp-for="HopDongNguoiLaoDong.NamTotNghiep" class="form-control" placeholder="Ví dụ: Cử nhân Quản lý bệnh viện: năm 2020"/>
         <span asp-validation-for="HopDongNguoiLaoDong.NamTotNghiep" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="HopDongNguoiLaoDong.TrinhDoTinHoc" class="form-label">Trình độ tin học</label>
-        <input asp-for="HopDongNguoiLaoDong.TrinhDoTinHoc" class="form-control" />
+        <label asp-for="HopDongNguoiLaoDong.TrinhDoTinHoc" class="form-label">Trình độ tin học (nếu có điền đầy đủ tên)</label>
+        <input asp-for="HopDongNguoiLaoDong.TrinhDoTinHoc" class="form-control" placeholder="Ví dụ: Ứng dụng công nghệ thông tin cơ bản hoặc điền 'Không có'"/>
         <span asp-validation-for="HopDongNguoiLaoDong.TrinhDoTinHoc" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="HopDongNguoiLaoDong.TrinhDoNgoaiNgu" class="form-label">Trình độ ngoại ngữ</label>
-        <input asp-for="HopDongNguoiLaoDong.TrinhDoNgoaiNgu" class="form-control" />
+        <label asp-for="HopDongNguoiLaoDong.TrinhDoNgoaiNgu" class="form-label">Trình độ ngoại ngữ (nếu có điền đầy đủ tên)</label>
+        <input asp-for="HopDongNguoiLaoDong.TrinhDoNgoaiNgu" class="form-control" placeholder="Ví dụ: Tiếng anh trình độ B1/ IELTS 9.0/ TOEIC 990 hoặc điền 'Không có'"/>
         <span asp-validation-for="HopDongNguoiLaoDong.TrinhDoNgoaiNgu" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="HopDongNguoiLaoDong.ChungChiHanhNghe" class="form-label">Chứng chỉ hành nghề (nếu có)</label>
-        <input asp-for="HopDongNguoiLaoDong.ChungChiHanhNghe" class="form-control" />
+        <label asp-for="HopDongNguoiLaoDong.ChungChiHanhNghe" class="form-label">Chứng chỉ hành nghề (nếu có điền đầy đủ số hiệu)</label>
+        <input asp-for="HopDongNguoiLaoDong.ChungChiHanhNghe" class="form-control" placeholder="Ví dụ: 01234/HCM-CCHN hoặc điền 'Không có'"/>
         <span asp-validation-for="HopDongNguoiLaoDong.ChungChiHanhNghe" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung" class="form-label">Nghề nghiệp trước tuyển dụng</label>
-        <input asp-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung" class="form-control" />
+        <label asp-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung" class="form-label">Nghề nghiệp trước tuyển dụng (nếu có)</label>
+        <input asp-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung" class="form-control" placeholder="Nếu không điền 'Không có'" />
         <span asp-validation-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung" class="text-danger"></span>
     </div>
 
@@ -195,186 +187,14 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <!-- giữ nguyên các script gốc của bạn -->
-    <script>
-        (function () {
-            const $email = $('#txtEmail');
-            const $hint  = $('#emailHint');
-            const emailRegex = /^[^@@\s]+@@gmail\.com$/i;
 
-            let lastCheckedEmail = null;
-            let canSubmit = false;
+    <script src="~/js/apply-macdinh.js" asp-append-version="true"></script>
+    <script src="~/js/apply-email.js" asp-append-version="true"></script>
+    <script src="~/js/apply-suckhoe.js" asp-append-version="true"></script>
+    <script src="~/js/apply-init.js" asp-append-version="true"></script>
+    <script src="~/js/apply-date.js" asp-append-version="true"></script>
+}
 
-            function setHint(msg, isErr){
-                $hint.text(msg || '')
-                    .toggleClass('text-danger', !!isErr)
-                    .toggleClass('text-muted', !isErr);
-            }
-
-            function formatDate(iso) { return iso ? iso.split('T')[0] : ''; }
-
-            function fillUngVien(u){
-                if (!u) return;
-                $('[name="UngVien.HoTen"]').val(u.HoTen ?? u.hoTen ?? '');
-                $('[name="UngVien.GioiTinh"]').val(u.GioiTinh ?? u.gioiTinh ?? 0);
-                window.setDateInput('[name="UngVien.NgaySinh"]', u.NgaySinh ?? u.ngaySinh);
-                $('[name="UngVien.SoDienThoai"]').val(u.SoDienThoai ?? u.soDienThoai ?? '');
-                $('[name="UngVien.Email"]').val(u.Email ?? u.email ?? '');
-                $('[name="UngVien.CCCD"]').val(u.CCCD ?? u.cccd ?? '');
-                window.setDateInput('[name="UngVien.NgayCapCCCD"]', u.NgayCapCCCD ?? u.ngayCapCCCD);
-                $('[name="UngVien.NoiCapCCCD"]').val(u.NoiCapCCCD ?? u.noiCapCCCD ?? '');
-                $('[name="UngVien.DiaChiThuongTru"]').val(u.DiaChiThuongTru ?? u.diaChiThuongTru ?? '');
-                $('[name="UngVien.DiaChiCuTru"]').val(u.DiaChiCuTru ?? u.diaChiCuTru ?? '');
-                $('[name="UngVien.MaSoThue"]').val(u.MaSoThue ?? u.maSoThue ?? '');
-                $('[name="UngVien.SoTaiKhoan"]').val(u.SoTaiKhoan ?? u.soTaiKhoan ?? '');
-                const sk = (u.TinhTrangSucKhoe ?? u.tinhTrangSucKhoe ?? '').trim();
-                if (window.setTinhTrangSucKhoe) window.setTinhTrangSucKhoe(sk);
-                $('[name="UngVien.TrinhDoChuyenMon"]').val(u.TrinhDoChuyenMon ?? u.trinhDoChuyenMon ?? '');
-            }
-
-            $email.on('input', function(){
-                lastCheckedEmail = null;
-                canSubmit = false;
-                setHint('');
-            });
-
-            $('#btnCheckEmail').on('click', function(){
-                const email = ($email.val() || '').trim();
-                if (!email) { setHint('Vui lòng nhập Email trước.', true); return; }
-                if (!emailRegex.test(email)) { setHint('Sai định dạng (chỉ chấp nhận @@gmail.com).', true); return; }
-
-                setHint('Đang kiểm tra...');
-                $.getJSON('@Url.Action("CheckEmail", "UngTuyen")', { email })
-                .done(function(res){
-                    lastCheckedEmail = email;
-                    if (!res || !res.ok) {
-                        setHint(res?.message || 'Không kiểm tra được Email.', true);
-                        canSubmit=false;
-                        return;
-                    }
-
-                    if (!res.exists) {
-                        setHint('Email hợp lệ và chưa tồn tại. Bạn có thể nộp đơn.', false);
-                        canSubmit = true;
-                        return;
-                    }
-
-                    if (res.ungVien) fillUngVien(res.ungVien);
-
-                    if (res.hasHopDong) {
-                        setHint('Email này đã có hồ sơ NGƯỜI LAO ĐỘNG. Không thể nộp thêm.', true);
-                        canSubmit = false;
-                    } else {
-                        setHint('Đã tìm thấy hồ sơ. Thông tin Ứng viên đã được điền sẵn, bạn có thể nộp đơn.', false);
-                        canSubmit = true;
-                    }
-                })
-                .fail(function(){
-                    setHint('Lỗi kết nối. Vui lòng thử lại.', true);
-                    canSubmit = false;
-                });
-            });
-
-            $('form').on('submit', function(e){
-                const email = ($email.val() || '').trim();
-                if (!lastCheckedEmail || email !== lastCheckedEmail) {
-                    e.preventDefault();
-                    setHint('Vui lòng nhập Email và bấm "Kiểm tra" trước khi nộp.', true);
-                    alert('Vui lòng kiểm tra Email trước khi nộp đơn.');
-                    return;
-                }
-                if (!canSubmit) {
-                    e.preventDefault();
-                    setHint('Bạn không đủ điều kiện nộp đơn với Email này.', true);
-                    alert('Bạn không đủ điều kiện nộp đơn với Email này.');
-                }
-            });
-        })();
-    </script>
-
-    <script>
-        (function () {
-            const radios = document.querySelectorAll('.js-sk');
-            const hid    = document.getElementById('hidSK');
-            const txt    = document.getElementById('txtSkKhac');
-            const rOther = document.getElementById('skKhac');
-            const KNOWN  = ['Loại I','Loại II','Loại III'];
-
-            function reflect() {
-                const val = (hid.value || '').trim();
-                if (!val) { txt.style.display='none'; txt.value=''; radios.forEach(r=>r.checked=false); return; }
-                if (KNOWN.includes(val)) {
-                    txt.style.display='none'; txt.value='';
-                    radios.forEach(r => r.checked = (r.value === val));
-                } else {
-                    rOther.checked = true;
-                    txt.style.display = 'block';
-                    txt.value = val;
-                }
-            }
-
-            radios.forEach(r => r.addEventListener('change', function () {
-                if (this.value === '__OTHER__') {
-                    txt.style.display = 'block';
-                    hid.value = txt.value.trim();
-                } else {
-                    txt.style.display = 'none';
-                    txt.value = '';
-                    hid.value = this.value;
-                }
-            }));
-
-            txt.addEventListener('input', function () {
-                if (rOther.checked) hid.value = this.value.trim();
-            });
-
-            window.setTinhTrangSucKhoe = function (sk) { hid.value = (sk||'').trim(); reflect(); };
-            reflect();
-        })();
-    </script>
-
-    <script>
-        (function () {
-            const radios = document.querySelectorAll('.js-sk');
-            const hid    = document.getElementById('hidSK');
-            const txt    = document.getElementById('txtSkKhac');
-            const rOther = document.getElementById('skKhac');
-            const KNOWN  = ['Loại I','Loại II','Loại III'];
-
-            function reflectHiddenToUI() {
-                const val = (hid.value || '').trim();
-                if (!val) { txt.style.display='none'; txt.value=''; radios.forEach(r=>r.checked=false); return; }
-                if (KNOWN.includes(val)) {
-                    txt.style.display='none'; txt.value='';
-                    radios.forEach(r => r.checked = (r.value === val));
-                } else {
-                    rOther.checked = true;
-                    txt.style.display='block';
-                    txt.value = val;
-                }
-            }
-
-            radios.forEach(r => r.addEventListener('change', function () {
-                if (this.value === '__OTHER__') {
-                    txt.style.display = 'block';
-                    hid.value = txt.value.trim();
-                } else {
-                    txt.style.display = 'none';
-                    txt.value = '';
-                    hid.value = this.value;
-                }
-            }));
-
-            txt.addEventListener('input', function () {
-                if (rOther.checked) hid.value = this.value.trim();
-            });
-
-            window.setTinhTrangSucKhoe = function (value) {
-                hid.value = (value || '').trim();
-                reflectHiddenToUI();
-            };
-
-            reflectHiddenToUI();
-        })();
-    </script>
+@section Styles {
+    <link rel="stylesheet" href="~/css/apply-forms.css" asp-append-version="true" />
 }

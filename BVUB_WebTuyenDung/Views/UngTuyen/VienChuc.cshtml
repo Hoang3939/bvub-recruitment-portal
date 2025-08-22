@@ -5,11 +5,7 @@
     var loaiVanBangOptions = ViewBag.LoaiVanBangOptions as List<string> ?? new List<string>();
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/apply-forms.css" asp-append-version="true" />
-}
-
-<form asp-action="UngTuyenVienChuc" method="post" class="form-card">
+<form asp-action="UngTuyenVienChuc" method="post" class="form-card" data-mode="vc" novalidate>
     @Html.AntiForgeryToken()
 
     <h2 class="form-title">@ViewData["Title"]</h2>
@@ -23,7 +19,7 @@
     <div class="form-group">
         <label asp-for="UngVien.Email" class="form-label">Email</label>
         <div class="inline-row">
-            <input asp-for="UngVien.Email" type="text" class="form-control" id="txtEmail" />
+            <input asp-for="UngVien.Email" type="text" class="form-control" id="txtEmail placeholder="Ví dụ: abc@gmail.com" />
             <button type="button" id="btnCheckEmail" class="btn btn-secondary">Kiểm tra</button>
         </div>
         <span asp-validation-for="UngVien.Email" class="text-danger"></span>
@@ -32,7 +28,7 @@
 
     <div class="form-group">
         <label asp-for="UngVien.HoTen" class="form-label">Họ tên</label>
-        <input asp-for="UngVien.HoTen" class="form-control" />
+        <input asp-for="UngVien.HoTen" class="form-control placeholder="Ví dụ: Nguyễn Văn A" />
         <span asp-validation-for="UngVien.HoTen" class="text-danger"></span>
     </div>
 
@@ -81,14 +77,14 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.DiaChiThuongTru" class="form-label">Địa chỉ thường trú</label>
-        <input asp-for="UngVien.DiaChiThuongTru" class="form-control" />
+        <label asp-for="UngVien.DiaChiThuongTru" class="form-label">Địa chỉ thường trú (ghi đầy đủ và chính xác theo thông tin trong ứng dụng VNeID)</label>
+        <input asp-for="UngVien.DiaChiThuongTru" class="form-control" placeholder="Ví dụ: 59 Nguyễn Thị Minh Khai, phường Bến Thành, Thành phố Hồ Chí Minh"/>
         <span asp-validation-for="UngVien.DiaChiThuongTru" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.DiaChiCuTru" class="form-label">Địa chỉ nơi cư trú</label>
-        <input asp-for="UngVien.DiaChiCuTru" class="form-control" />
+        <label asp-for="UngVien.DiaChiCuTru" class="form-label">Địa chỉ nơi cư trú (để báo tin)(dựa trên Đơn vị hành chính mới theo quy định)</label>
+        <input asp-for="UngVien.DiaChiCuTru" class="form-control" placeholder="Ví dụ: 59 Nguyễn Thị Minh Khai, phường Bến Thành, Thành phố Hồ Chí Minh" />
         <span asp-validation-for="UngVien.DiaChiCuTru" class="text-danger"></span>
     </div>
 
@@ -115,12 +111,6 @@
         </div>
         <input id="txtSkKhac" name="TinhTrangSucKhoeKhac" class="form-control mt-2" placeholder="Nhập tình trạng khác" style="display:none;" />
         <span asp-validation-for="UngVien.TinhTrangSucKhoe" class="text-danger"></span>
-    </div>
-
-    <div class="form-group">
-        <label asp-for="UngVien.TrinhDoChuyenMon" class="form-label">Trình độ chuyên môn/Trình độ đào tạo</label>
-        <input asp-for="UngVien.TrinhDoChuyenMon" class="form-control" />
-        <span asp-validation-for="UngVien.TrinhDoChuyenMon" class="text-danger"></span>
     </div>
 
     <hr class="hr-soft" />
@@ -150,8 +140,8 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="DonVienChuc.DanToc" class="form-label">Dân tộc</label>
-        <input asp-for="DonVienChuc.DanToc" class="form-control" />
+        <label asp-for="DonVienChuc.DanToc" class="form-label">Dân tộc (điền theo giấy khai sinh)</label>
+        <input asp-for="DonVienChuc.DanToc" class="form-control"/>
         <span asp-validation-for="DonVienChuc.DanToc" class="text-danger"></span>
     </div>
     <div class="form-group">
@@ -160,25 +150,25 @@
         <span asp-validation-for="DonVienChuc.TonGiao" class="text-danger"></span>
     </div>
     <div class="form-group">
-        <label asp-for="DonVienChuc.QueQuan" class="form-label">Quê quán</label>
-        <input asp-for="DonVienChuc.QueQuan" class="form-control" />
+        <label asp-for="DonVienChuc.QueQuan" class="form-label">Quê quán (dựa trên Đơn vị hành chính mới theo quy định)</label>
+        <input asp-for="DonVienChuc.QueQuan" class="form-control" placeholder="Ví dụ: phường Bến Thành, Thành phố Hồ Chí Minh"/>
         <span asp-validation-for="DonVienChuc.QueQuan" class="text-danger"></span>
     </div>
     <div class="form-group">
-        <label asp-for="DonVienChuc.HoKhau" class="form-label">Thông tin về hộ khẩu (nếu có)</label>
-        <input asp-for="DonVienChuc.HoKhau" class="form-control" />
+        <label asp-for="DonVienChuc.HoKhau" class="form-label">Thông tin về hộ khẩu (nếu có ghi đầy đủ và chính xác thông tin)</label>
+        <input asp-for="DonVienChuc.HoKhau" class="form-control" placeholder="Ví dụ: Không có"/>
         <span asp-validation-for="DonVienChuc.HoKhau" class="text-danger"></span>
     </div>
     <div class="form-group">
         <label asp-for="DonVienChuc.ChieuCao" class="form-label">Chiều cao (cm)</label>
         <input name="DonVienChuc.ChieuCao" type="number" class="form-control"
-               inputmode="numeric" autocomplete="off" placeholder="Ví dụ: 168" />
+               inputmode="numeric" autocomplete="off" placeholder="Ví dụ: 160" />
         <span asp-validation-for="DonVienChuc.ChieuCao" class="text-danger"></span>
     </div>
     <div class="form-group">
         <label asp-for="DonVienChuc.CanNang" class="form-label">Cân nặng (kg)</label>
         <input name="DonVienChuc.CanNang" type="number" class="form-control"
-               inputmode="numeric" autocomplete="off" placeholder="Ví dụ: 60" />
+               inputmode="numeric" autocomplete="off" placeholder="Ví dụ: 50" />
         <span asp-validation-for="DonVienChuc.CanNang" class="text-danger"></span>
     </div>
 
@@ -200,15 +190,71 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="DonVienChuc.LoaiHinhDaoTao" class="form-label">Loại hình đào tạo</label>
-        <input asp-for="DonVienChuc.LoaiHinhDaoTao" class="form-control" />
+        <label asp-for="UngVien.TrinhDoChuyenMon" class="form-label">Trình độ chuyên môn/Trình độ đào tạo</label>
+        <input asp-for="UngVien.TrinhDoChuyenMon" class="form-control" placeholder="Ví dụ: Cử nhân Quản lý nhà nước/ Bác sĩ Chuyên khoa cấp II..." />
+        <span asp-validation-for="UngVien.TrinhDoChuyenMon" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label class="form-label">Loại hình đào tạo</label>
+        <div class="choice-vertical">
+            <label class="choice-item">
+                <input type="radio" name="DonVienChuc.LoaiHinhDaoTao" value="Chính quy" class="radio-solid" />
+                Chính quy
+            </label>
+            <label class="choice-item">
+                <input type="radio" name="DonVienChuc.LoaiHinhDaoTao" value="Tại chức" class="radio-solid" />
+                Tại chức
+            </label>
+            <label class="choice-item">
+                <input type="radio" name="DonVienChuc.LoaiHinhDaoTao" value="Liên thông" class="radio-solid" />
+                Liên thông
+            </label>
+            <label class="choice-item">
+                <input type="radio" name="DonVienChuc.LoaiHinhDaoTao" value="Từ xa" class="radio-solid" />
+                Từ xa
+            </label>
+            <label class="choice-item">
+                <input type="radio" name="DonVienChuc.LoaiHinhDaoTao" value="Khác" class="radio-solid loaihinh-khac" />
+                Khác:
+            </label>
+        </div>
+        <input type="text" class="form-control mt-2 js-loaihinh-khac-input"
+               name="LoaiHinhDaoTaoKhac" placeholder="Nhập loại hình đào tạo khác"
+               style="display:none;" />
         <span asp-validation-for="DonVienChuc.LoaiHinhDaoTao" class="text-danger"></span>
     </div>
+
     <div class="form-group">
-        <label asp-for="DonVienChuc.DoiTuongUuTien" class="form-label">Đối tượng ưu tiên</label>
-        <input asp-for="DonVienChuc.DoiTuongUuTien" class="form-control" />
+        <label class="form-label">Đối tượng ưu tiên (nếu có)</label>
+
+        <input type="hidden" asp-for="DonVienChuc.DoiTuongUuTien" id="hidUuTien" />
+
+        <div class="choice-vertical" id="uutien-group">
+            <label class="choice-item">
+                <input type="radio" name="DoiTuongUuTienUI" value="Không" class="radio-solid"> Không
+            </label>
+            <label class="choice-item">
+                <input type="radio" name="DoiTuongUuTienUI" value="Con thương binh" class="radio-solid"> Con thương binh
+            </label>
+            <label class="choice-item">
+                <input type="radio" name="DoiTuongUuTienUI" value="Người dân tộc thiểu số" class="radio-solid"> Người dân tộc thiểu số
+            </label>
+            <label class="choice-item">
+                <input type="radio" name="DoiTuongUuTienUI" value="Người hoàn thành nghĩa vụ quân sự" class="radio-solid"> Người hoàn thành nghĩa vụ quân sự
+            </label>
+            <label class="choice-item">
+                <input type="radio" name="DoiTuongUuTienUI" value="__OTHER__" id="rdUuTienOther" class="radio-solid"> Khác:
+            </label>
+        </div>
+
+        <input id="txtUuTienOther" name="DoiTuongUuTienKhac"
+               class="form-control mt-2" placeholder="Nhập đối tượng khác"
+               style="display:none;" />
+
         <span asp-validation-for="DonVienChuc.DoiTuongUuTien" class="text-danger"></span>
     </div>
+
 
     <hr class="hr-soft" />
     <h4 class="section-title">Văn bằng</h4>
@@ -231,361 +277,18 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
-    <!-- giữ nguyên các script gốc của bạn -->
-    <script>
-        function renderVBFields() {
-            const container = document.getElementById('vanbang-container');
-            container.innerHTML = '';
+    <script src="~/js/apply-macdinh.js" asp-append-version="true"></script>
+    <script src="~/js/apply-email.js" asp-append-version="true"></script>
+    <script src="~/js/apply-suckhoe.js" asp-append-version="true"></script>
+    <script src="~/js/apply-trinhdovanhoa.js" asp-append-version="true"></script>
+    <script src="~/js/apply-vanbang.js" asp-append-version="true"></script>
+    <script src="~/js/apply-cascade.js" asp-append-version="true"></script>
+    <script src="~/js/apply-init.js" asp-append-version="true"></script>
+    <script src="~/js/apply-uutien.js" asp-append-version="true"></script>
+    <script src="~/js/apply-loaihinhdaotao.js" asp-append-version="true"></script>
+    <script src="~/js/apply-date.js" asp-append-version="true"></script>
+}
 
-            const selected = Array.from(document.querySelectorAll('.vb-checkbox:checked')).map(c => c.value);
-
-            selected.forEach((loai, index) => {
-                const isKhac = (loai === 'Khác');
-
-                const html = `
-              <div class="vanbang-block">
-                <h5>Văn bằng: ${loai}</h5>
-                <input type="hidden" name="VanBangs[${index}].LoaiVanBang" value="${loai}" />
-                ${isKhac ? `
-                  <div class="form-group">
-                    <label class="form-label">Tên văn bằng (bắt buộc khi chọn “Khác”)</label>
-                    <input class="form-control vb-khac" data-idx="${index}" type="text" placeholder="Ví dụ: Văn bằng 2, trung cấp"/>
-                  </div>
-                ` : ''}
-
-                <div class="form-group">
-                  <label class="form-label">Tên cơ sở cấp</label>
-                  <input name="VanBangs[${index}].TenCoSo" class="form-control" type="text" />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Ngày cấp</label>
-                  <input name="VanBangs[${index}].NgayCap" class="form-control js-date" type="text" />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Số hiệu</label>
-                  <input name="VanBangs[${index}].SoHieu" class="form-control" type="text" />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Chuyên ngành đào tạo</label>
-                  <input name="VanBangs[${index}].ChuyenNganhDaoTao" class="form-control" type="text" />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Ngành đào tạo</label>
-                  <input name="VanBangs[${index}].NganhDaoTao" class="form-control" type="text" />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Hình thức đào tạo</label>
-                  <div class="choice-vertical">
-                    <label class="choice-item"><input type="radio" name="VanBangs[${index}].HinhThucDaoTao" value="Chính quy" class="radio-solid">Chính quy</label>
-                    <label class="choice-item"><input type="radio" name="VanBangs[${index}].HinhThucDaoTao" value="Tại chức" class="radio-solid">Tại chức</label>
-                    <label class="choice-item"><input type="radio" name="VanBangs[${index}].HinhThucDaoTao" value="Liên thông" class="radio-solid">Liên thông</label>
-                    <label class="choice-item"><input type="radio" name="VanBangs[${index}].HinhThucDaoTao" value="Từ xa" class="radio-solid">Từ xa</label>
-                    <label class="choice-item"><input type="radio" name="VanBangs[${index}].HinhThucDaoTao" value="Khác" class="radio-solid ht-khac" data-index="${index}">Khác:</label>
-                  </div>
-                  <input type="text" class="form-control mt-2" name="VanBangs[${index}].HinhThucDaoTaoKhac" placeholder="Nhập hình thức đào tạo khác" style="display:none;" />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">Xếp loại</label>
-                  <input name="VanBangs[${index}].XepLoai" class="form-control" type="text" />
-                </div>
-              </div>`;
-                container.insertAdjacentHTML('beforeend', html);
-                window.initDatepickers && window.initDatepickers(container);
-            });
-        }
-
-        (function attachOverrideOnSubmit() {
-            const form = document.querySelector('form');
-            if (!form) return;
-
-            form.addEventListener('submit', function (e) {
-                let ok = true;
-
-                document.querySelectorAll('.vb-khac').forEach(input => {
-                    const val = (input.value || '').trim();
-                    const idx = input.getAttribute('data-idx');
-                    const hidden = document.querySelector(`input[name="VanBangs[${idx}].LoaiVanBang"]`);
-
-                    if (!val) {
-                        ok = false;
-                        input.focus();
-                        alert('Vui lòng nhập Tên văn bằng cho mục “Khác”.');
-                        return;
-                    }
-                    if (hidden) hidden.value = val;
-                });
-
-                if (!ok) e.preventDefault();
-            });
-        })();
-
-        document.addEventListener('change', function (e) {
-            if (e.target.matches('input[name^="VanBangs"][name$="].HinhThucDaoTao"]')) {
-                const parent = e.target.closest('.form-group');
-                const otherInput = parent.querySelector('input[name$=".HinhThucDaoTaoKhac"]');
-                if (e.target.value === "Khác") {
-                    otherInput.style.display = "block";
-                } else {
-                    otherInput.style.display = "none";
-                    otherInput.value = "";
-                }
-            }
-        });
-    </script>
-
-    <script>
-        (function () {
-            const radios = document.querySelectorAll('.js-sk');
-            const hid    = document.getElementById('hidSK');
-            const txt    = document.getElementById('txtSkKhac');
-            const rOther = document.getElementById('skKhac');
-            const KNOWN  = ['Loại I','Loại II','Loại III'];
-
-            function reflectHiddenToUI() {
-                const val = (hid.value || '').trim();
-                if (!val) { txt.style.display='none'; txt.value=''; radios.forEach(r=>r.checked=false); return; }
-                if (KNOWN.includes(val)) {
-                    txt.style.display='none'; txt.value='';
-                    radios.forEach(r => r.checked = (r.value === val));
-                } else {
-                    rOther.checked = true;
-                    txt.style.display='block';
-                    txt.value = val;
-                }
-            }
-
-            radios.forEach(r => r.addEventListener('change', function () {
-                if (this.value === '__OTHER__') {
-                    txt.style.display = 'block';
-                    hid.value = txt.value.trim();
-                } else {
-                    txt.style.display = 'none';
-                    txt.value = '';
-                    hid.value = this.value;
-                }
-            }));
-
-            txt.addEventListener('input', function () {
-                if (rOther.checked) hid.value = this.value.trim();
-            });
-
-            window.setTinhTrangSucKhoe = function (value) {
-                hid.value = (value || '').trim();
-                reflectHiddenToUI();
-            };
-
-            reflectHiddenToUI();
-        })();
-    </script>
-
-    <script>
-        $(function () {
-            const $chucDanh = $('#ChucDanhId');
-            const $viTri    = $('#ViTriId');
-            const $khoaPhong= $('#KhoaPhongId');
-
-            function reset($s, ph) {
-                $s.prop('disabled', false).html('<option value="">' + (ph || '-- Chọn --') + '</option>');
-            }
-            function loading($s, t) {
-                $s.prop('disabled', true).html('<option>' + (t || 'Đang tải...') + '</option>');
-            }
-
-            $chucDanh.on('change', function () {
-                const idRaw = $(this).val();
-                const id = parseInt(idRaw, 10);
-                loading($viTri, 'Đang tải vị trí...');
-                reset($khoaPhong, '-- Chọn khoa/phòng --');
-
-                if (!idRaw || Number.isNaN(id)) { reset($viTri, '-- Chọn vị trí --'); return; }
-
-                $.getJSON('@Url.Action("GetViTriByChucDanh", "UngTuyen")', { chucDanhId: id })
-                .done(function (data) {
-                    reset($viTri, '-- Chọn vị trí --');
-                    if (!data || !data.length) { $viTri.append('<option value="">(Không có vị trí)</option>'); return; }
-                    data.forEach(function (x) {
-                        const text = x.tenViTri ?? x.TenViTri;
-                        const val  = x.viTriId   ?? x.ViTriId;
-                        if (val != null) { $viTri.append(new Option(text, val)); }
-                    });
-                })
-                .fail(function () {
-                    reset($viTri, '-- Chọn vị trí --');
-                    alert('Không tải được danh sách vị trí');
-                });
-            });
-
-            $viTri.on('change', function () {
-                const idRaw = $(this).val();
-                const id = parseInt(idRaw, 10);
-                loading($khoaPhong, 'Đang tải khoa/phòng...');
-
-                if (!idRaw || Number.isNaN(id)) { reset($khoaPhong, '-- Chọn khoa/phòng --'); return; }
-
-                $.getJSON('@Url.Action("GetKhoaPhongByViTri", "UngTuyen")', { viTriId: id })
-                .done(function (data) {
-                    reset($khoaPhong, '-- Chọn khoa/phòng --');
-                    if (!data || !data.length) { $khoaPhong.append('<option value="">(Không có khoa/phòng)</option>'); return; }
-                    data.forEach(function (x) {
-                        const text = x.tenKhoaPhong ?? x.TenKhoaPhong;
-                        const val  = x.khoaPhongId  ?? x.KhoaPhongId;
-                        if (val != null) { $khoaPhong.append(new Option(text, val)); }
-                    });
-                })
-                .fail(function () {
-                    reset($khoaPhong, '-- Chọn khoa/phòng --');
-                    alert('Không tải được danh sách khoa/phòng');
-                });
-            });
-
-            function preload() {
-                const cdVal = $chucDanh.val();
-                const vtVal = $viTri.val();
-                const kpVal = $khoaPhong.val();
-
-                if (!cdVal) return;
-
-                $chucDanh.trigger('change');
-
-                if (vtVal) {
-                    const t = setInterval(function () {
-                        if ($viTri.find('option').length > 1) {
-                            clearInterval(t);
-                            $viTri.val(vtVal).trigger('change');
-
-                            if (kpVal) {
-                                const t2 = setInterval(function () {
-                                    if ($khoaPhong.find('option').length > 1) {
-                                        clearInterval(t2);
-                                        $khoaPhong.val(kpVal);
-                                    }
-                                }, 120);
-                            }
-                        }
-                    }, 120);
-                }
-            }
-            preload();
-            window.addEventListener('pageshow', preload);
-        });
-    </script>
-
-    <script>
-        (function () {
-            const $email = $('#txtEmail');
-            const $hint  = $('#emailHint');
-            const emailRegex = /^[a-zA-Z0-9._%+-]+@@gmail\.com$/i;
-
-            let lastCheckedEmail = null;
-            let canSubmitForVC   = false;
-
-            function setHint(msg, danger) {
-                $hint.text(msg || '')
-                    .toggleClass('text-danger', !!danger)
-                    .toggleClass('text-muted', !danger);
-            }
-
-            function fillUngVien(u) {
-                if (!u) return;
-                $('[name="UngVien.HoTen"]').val(u.hoTen ?? u.HoTen ?? '');
-                $('[name="UngVien.GioiTinh"]').val(u.gioiTinh ?? u.GioiTinh ?? 0);
-                window.setDateInput('[name="UngVien.NgaySinh"]', u.NgaySinh ?? u.ngaySinh);
-                $('[name="UngVien.SoDienThoai"]').val(u.soDienThoai ?? u.SoDienThoai ?? '');
-                $('[name="UngVien.Email"]').val(u.email ?? u.Email ?? '');
-                $('[name="UngVien.CCCD"]').val(u.cccd ?? u.CCCD ?? '');
-                window.setDateInput('[name="UngVien.NgayCapCCCD"]', u.NgayCapCCCD ?? u.ngayCapCCCD);
-                $('[name="UngVien.NoiCapCCCD"]').val(u.noiCapCCCD ?? u.NoiCapCCCD ?? '');
-                $('[name="UngVien.DiaChiThuongTru"]').val(u.diaChiThuongTru ?? u.DiaChiThuongTru ?? '');
-                $('[name="UngVien.DiaChiCuTru"]').val(u.diaChiCuTru ?? u.DiaChiCuTru ?? '');
-                $('[name="UngVien.MaSoThue"]').val(u.maSoThue ?? u.MaSoThue ?? '');
-                $('[name="UngVien.SoTaiKhoan"]').val(u.soTaiKhoan ?? u.SoTaiKhoan ?? '');
-                $('[name="UngVien.TrinhDoChuyenMon"]').val(u.trinhDoChuyenMon ?? u.TrinhDoChuyenMon ?? '');
-                const sk = (u.tinhTrangSucKhoe ?? u.TinhTrangSucKhoe ?? '').trim();
-                if (window.setTinhTrangSucKhoe) window.setTinhTrangSucKhoe(sk);
-            }
-
-            $email.on('input', function () {
-                lastCheckedEmail = null;
-                canSubmitForVC = false;
-                setHint('');
-            });
-
-            $('#btnCheckEmail').on('click', function () {
-                const email = ($email.val() || '').trim();
-                if (!email) { setHint('Vui lòng nhập Email trước.', true); return; }
-                if (!emailRegex.test(email)) { setHint('Sai định dạng Email. Vui lòng nhập địa chỉ @@gmail.com hợp lệ.', true); return; }
-
-                setHint('Đang kiểm tra...');
-                $.getJSON('@Url.Action("CheckEmail", "UngTuyen")', { email: email })
-                .done(function (res) {
-                    if (!res || !res.ok) {
-                        setHint(res?.message || 'Không kiểm tra được Email.', true);
-                        canSubmitForVC = false;
-                        lastCheckedEmail = email;
-                        return;
-                    }
-                    lastCheckedEmail = email;
-
-                    if (!res.exists) {
-                        setHint('Email chưa tồn tại trong hệ thống. Bạn có thể nhập mới và nộp đơn.', false);
-                        canSubmitForVC = true;
-                        return;
-                    }
-
-                    fillUngVien(res.ungVien);
-
-                    if (res.hasDonVienChuc) {
-                        setHint('Email này đã có ĐƠN VIÊN CHỨC. Bạn không thể nộp thêm đơn viên chức.', true);
-                        canSubmitForVC = false;
-                    } else {
-                        setHint('Đã tìm thấy hồ sơ ứng viên. Thông tin đã được điền sẵn, bạn có thể nộp đơn viên chức.', false);
-                        canSubmitForVC = true;
-                    }
-                })
-                .fail(function () {
-                    setHint('Lỗi kết nối. Vui lòng thử lại.', true);
-                    canSubmitForVC = false;
-                    lastCheckedEmail = email;
-                });
-            });
-
-            $('form').on('submit', function (e) {
-                const email = ($email.val() || '').trim();
-                if (!lastCheckedEmail || email !== lastCheckedEmail) {
-                    e.preventDefault();
-                    setHint('Vui lòng nhập Email và bấm "Kiểm tra" trước khi nộp.', true);
-                    alert('Vui lòng kiểm tra Email trước khi nộp đơn.');
-                    return;
-                }
-                if (!canSubmitForVC) {
-                    e.preventDefault();
-                    setHint('Bạn không đủ điều kiện nộp đơn viên chức với Email này.', true);
-                    alert('Bạn không đủ điều kiện nộp đơn viên chức với Email này.');
-                }
-            });
-        })();
-    </script>
-
-    <script>
-        (function () {
-          const otherBox = document.getElementById('txtTrinhDoKhac');
-          function syncTDVH() {
-            const picked = document.querySelector('input[name="DonVienChuc.TrinhDoVanHoa"]:checked');
-            const isOther = picked && picked.value === 'Khác';
-            otherBox.style.display = isOther ? 'block' : 'none';
-            if (!isOther) otherBox.value = '';
-          }
-          document.addEventListener('change', function (e) {
-            if (e.target && e.target.name === 'DonVienChuc.TrinhDoVanHoa') syncTDVH();
-          });
-          syncTDVH(); // chạy lần đầu
-        })();
-    </script>
-
+@section Styles {
+    <link rel="stylesheet" href="~/css/apply-forms.css" asp-append-version="true" />
 }
