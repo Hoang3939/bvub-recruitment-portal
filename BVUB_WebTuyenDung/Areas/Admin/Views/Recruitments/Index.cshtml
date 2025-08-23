@@ -1,0 +1,117 @@
+﻿@using System.Security.Claims
+@using M = BVUB_WebTuyenDung.Areas.Admin.Models
+@model IEnumerable<M.ThongTinTuyenDung>
+
+@{
+    ViewData["Title"] = "Thông tin tuyển dụng";
+    bool isAdmin =
+        User.IsInRole("1") || User.IsInRole("Admin") ||
+        User.Claims.Any(c => c.Type == ClaimTypes.Role &&
+                             (string.Equals(c.Value, "1") ||
+                              string.Equals(c.Value, "Admin", StringComparison.OrdinalIgnoreCase)));
+
+    Func<string, string> iconByType = (lt) =>
+    {
+        lt = (lt ?? "").ToLower();
+        if (lt.Contains("bác sĩ") || lt.Contains("bac si")) return "fa-user-doctor";
+        if (lt.Contains("điều dưỡng") || lt.Contains("dieu duong")) return "fa-user-nurse";
+        if (lt.Contains("kỹ sư") || lt.Contains("ky su") || lt.Contains("it")) return "fa-microchip";
+        if (lt.Contains("hành chính") || lt.Contains("nhân sự")) return "fa-people-group";
+        return "fa-briefcase";
+    };
+
+    string q = Context.Request.Query["q"];
+    string st = Context.Request.Query["st"];
+}
+
+<link rel="stylesheet" href="~/css/admin-recruitments-index.css" asp-append-version="true" />
+
+<div class="header-row"><h2>@ViewData["Title"]</h2></div>
+
+<div class="main-content">
+    <div class="actions">
+        <form method="get" asp-area="Admin" asp-controller="Recruitments" asp-action="Index" class="filter-form" role="search">
+            <select name="st" class="mini-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="1" selected="@(st=="1")">Đang tuyển</option>
+                <option value="2" selected="@(st=="2")">Tạm ẩn</option>
+                <option value="3" selected="@(st=="3")">Ngừng tuyển</option>
+                <option value="4" selected="@(st=="4")">Đã đóng</option>
+            </select>
+
+            <input type="text" name="q" class="mini-search-input"
+                   placeholder="Nhập: tiêu đề / loại tuyển dụng / ngày (dd/MM/yyyy)"
+                   value="@q" />
+            <button type="submit" class="btn btn-filter">Lọc</button>
+        </form>
+
+        @if (isAdmin)
+        {
+            <a class="btn btn-add" asp-area="Admin" asp-controller="Recruitments" asp-action="Create">+ Thêm</a>
+        }
+    </div>
+
+    <div class="rec-list">
+        @if (Model == null || !Model.Any())
+        {
+            <div style="color:#6b7280">Chưa có thông tin tuyển dụng.</div>
+        }
+        else
+        {
+            @foreach (var r in Model)
+            {
+                var icon = iconByType(r.LoaiTuyenDung);
+                var dateRange = $"{r.NgayDang:dd/MM/yyyy} - {r.HanNopHoSo:dd/MM/yyyy}";
+                var summary = (r.NoiDung ?? "");
+                summary = summary.Length > 220 ? summary.Substring(0, 220) + "…" : summary;
+
+                <article class="rec-card" data-id="@r.TuyenDungId" aria-label="Xem chi tiết tuyển dụng">
+                    <span class="badge-status @r.TrangThaiClass">@r.TrangThaiLabel</span>
+                    <div class="rec-icon"><i class="fa-solid @icon" aria-hidden="true"></i></div>
+                    <div class="rec-body">
+                        <h3 class="rec-title"><span>@(r.TieuDe?.ToUpper())</span></h3>
+                        <p class="rec-desc">@summary</p>
+                        <div class="rec-meta">
+                            <span class="pill">Loại: @r.LoaiTuyenDung</span>
+                            <span class="pill">@dateRange</span>
+                            @if (!string.IsNullOrWhiteSpace(r.FileDinhKem))
+                            {
+                                <span class="pill">Đính kèm: @System.IO.Path.GetFileName(r.FileDinhKem)</span>
+                            }
+                        </div>
+                    </div>
+                </article>
+            }
+        }
+    </div>
+</div>
+
+<!-- Modal chi tiết -->
+<div id="recDetailModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="recModalTitle">
+        <div class="modal-header">
+            <h3 id="recModalTitle" class="modal-title">Chi tiết tuyển dụng</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div id="recDetailContainer" class="modal-body">Đang tải...</div>
+        <div class="modal-footer">
+            <a id="recEditBtn" href="#" class="btn btn-primary">Sửa</a>
+            <button id="recDeleteBtn" type="button" class="btn btn-danger">Xóa</button>
+        </div>
+    </div>
+</div>
+
+<!-- Anti-forgery cho AJAX Xóa -->
+<form id="af-rec" method="post" style="display:none;">@Html.AntiForgeryToken()</form>
+
+<!-- Config cho JS -->
+<div id="rec-index-config"
+     data-is-admin="@isAdmin.ToString().ToLower()"
+     data-details-url='@Url.Action("DetailsPartial", "Recruitments", new { area = "Admin" })'
+     data-edit-url-template='@Url.Action("Edit", "Recruitments", new { area = "Admin", id = "__ID__" })'
+     data-delete-url='@Url.Action("Delete", "Recruitments", new { area = "Admin" })'>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/admin.recruitments.index.js" asp-append-version="true"></script>
+}

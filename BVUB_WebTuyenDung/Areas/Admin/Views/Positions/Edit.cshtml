@@ -1,0 +1,49 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.PositionFormVm
+@{
+    ViewData["Title"] = "Sửa vị trí";
+}
+<h2>@ViewData["Title"]</h2>
+
+@if (TempData["ToastError"] != null)
+{
+    <div class="alert alert-danger" role="alert">@TempData["ToastError"]</div>
+}
+
+<form method="post" asp-action="Edit" asp-route-id="@Model.ViTriId">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ViTriId" />
+
+    <div asp-validation-summary="All" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="TenViTri" class="form-label">Tên vị trí</label>
+        <input asp-for="TenViTri" class="form-control" />
+        <span asp-validation-for="TenViTri" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ChucDanhId" class="form-label">Chức danh</label>
+        <select asp-for="ChucDanhId" asp-items="Model.AllChucDanhs" class="form-select">
+            @if (Model.ChucDanhId == 0)
+            {
+                <option value="">-- chọn chức danh --</option>
+            }
+        </select>
+        <span asp-validation-for="ChucDanhId" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Trạng thái</label>
+        <select asp-for="TamNgung" class="form-select">
+            <option value="0">Sử dụng</option>
+            <option value="1">Tạm ngưng</option>
+        </select>
+    </div>
+
+    <button class="btn btn-primary">Lưu</button>
+    <a asp-action="Index" class="btn btn-link">Hủy</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

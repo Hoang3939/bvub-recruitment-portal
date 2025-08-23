@@ -1,0 +1,196 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.UngTuyenNguoiLaoDongViewModel
+@{
+    ViewData["Title"] = "Sửa hợp đồng người lao động";
+    var backUrl = Url.Action("Index", "Candidates", new { area = "Admin" });
+}
+
+<link rel="stylesheet" href="~/css/admin-edit.css" asp-append-version="true" />
+
+<form asp-area="Admin" asp-controller="HopDongNguoiLaoDong" asp-action="Edit" method="post" id="frmHDLD">
+    @Html.AntiForgeryToken()
+
+    <!-- khóa chính -->
+    <input type="hidden" asp-for="HopDongNguoiLaoDong.HopDongId" />
+    <input type="hidden" asp-for="UngVien.UngVienId" />
+    <!-- giữ giá trị không sửa nhưng cần post -->
+    <input type="hidden" asp-for="HopDongNguoiLaoDong.MaTraCuu" />
+    <input type="hidden" asp-for="HopDongNguoiLaoDong.NgayNop" />
+    <input type="hidden" asp-for="HopDongNguoiLaoDong.Loai" />
+
+    <h2>@ViewData["Title"]</h2>
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <hr />
+    <h4>Thông tin ứng viên</h4>
+
+    <div class="form-group">
+        <label asp-for="UngVien.Email">Email</label>
+        <input asp-for="UngVien.Email" class="form-control" readonly />
+        <span asp-validation-for="UngVien.Email" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UngVien.HoTen">Họ và tên</label>
+        <input asp-for="UngVien.HoTen" class="form-control" />
+        <span asp-validation-for="UngVien.HoTen" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UngVien.GioiTinh">Giới tính</label>
+        <select asp-for="UngVien.GioiTinh" class="form-control">
+            <option value="0">Nam</option>
+            <option value="1">Nữ</option>
+        </select>
+        <span asp-validation-for="UngVien.GioiTinh" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UngVien.NgaySinh">Ngày sinh</label>
+        <input asp-for="UngVien.NgaySinh" type="date" class="form-control" />
+        <span asp-validation-for="UngVien.NgaySinh" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UngVien.SoDienThoai">Số điện thoại</label>
+        <input asp-for="UngVien.SoDienThoai" class="form-control" />
+        <span asp-validation-for="UngVien.SoDienThoai" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UngVien.CCCD">CCCD</label>
+        <input asp-for="UngVien.CCCD" class="form-control" maxlength="12" />
+        <span asp-validation-for="UngVien.CCCD" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UngVien.NgayCapCCCD">Ngày cấp</label>
+        <input asp-for="UngVien.NgayCapCCCD" type="date" class="form-control" />
+        <span asp-validation-for="UngVien.NgayCapCCCD" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UngVien.NoiCapCCCD">Nơi cấp CCCD</label>
+        <select asp-for="UngVien.NoiCapCCCD" class="form-control">
+            <option value="">-- Chọn nơi cấp --</option>
+            <option value="Bộ Công an">Bộ Công an</option>
+            <option value="Cục Cảnh sát quản lý hành chính về trật tự xã hội">Cục Cảnh sát quản lý hành chính về trật tự xã hội</option>
+            <option value="Cục Cảnh sát đăng ký quản lý cư trú và dữ liệu Quốc gia về dân cư">Cục Cảnh sát đăng ký quản lý cư trú và dữ liệu Quốc gia về dân cư</option>
+        </select>
+        <span asp-validation-for="UngVien.NoiCapCCCD" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UngVien.DiaChiThuongTru">Địa chỉ thường trú</label>
+        <input asp-for="UngVien.DiaChiThuongTru" class="form-control" />
+        <span asp-validation-for="UngVien.DiaChiThuongTru" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UngVien.DiaChiCuTru">Địa chỉ cư trú</label>
+        <input asp-for="UngVien.DiaChiCuTru" class="form-control" />
+        <span asp-validation-for="UngVien.DiaChiCuTru" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UngVien.MaSoThue">Mã số thuế</label>
+        <input asp-for="UngVien.MaSoThue" class="form-control" maxlength="13" />
+        <span asp-validation-for="UngVien.MaSoThue" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UngVien.SoTaiKhoan">Số tài khoản Vietinbank CN7</label>
+        <input asp-for="UngVien.SoTaiKhoan" class="form-control" maxlength="12" />
+        <span asp-validation-for="UngVien.SoTaiKhoan" class="text-danger"></span>
+    </div>
+
+    <!-- Tình trạng sức khỏe -->
+    <div class="form-group">
+        <label class="form-label fw-bold">Tình trạng sức khỏe</label>
+        <input type="hidden" asp-for="UngVien.TinhTrangSucKhoe" id="hidSK" />
+        <div class="form-check"><input class="radio-solid js-sk form-check-input" type="radio" name="skUI" value="Loại I" id="sk1"><label for="sk1">Loại I</label></div>
+        <div class="form-check"><input class="radio-solid js-sk form-check-input" type="radio" name="skUI" value="Loại II" id="sk2"><label for="sk2">Loại II</label></div>
+        <div class="form-check"><input class="radio-solid js-sk form-check-input" type="radio" name="skUI" value="Loại III" id="sk3"><label for="sk3">Loại III</label></div>
+        <div class="form-check"><input class="radio-solid js-sk form-check-input" type="radio" name="skUI" value="__OTHER__" id="skKhac"><label for="skKhac">Khác</label></div>
+        <input type="text" class="form-control" id="txtSkKhac" placeholder="Nhập tình trạng khác" style="display:none;" />
+        <span asp-validation-for="UngVien.TinhTrangSucKhoe" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="UngVien.TrinhDoChuyenMon">Trình độ chuyên môn</label>
+        <input asp-for="UngVien.TrinhDoChuyenMon" class="form-control" />
+        <span asp-validation-for="UngVien.TrinhDoChuyenMon" class="text-danger"></span>
+    </div>
+
+    <hr />
+    <h4>Thông tin hợp đồng</h4>
+
+    <div class="form-group">
+        <label asp-for="HopDongNguoiLaoDong.KhoaPhongCongTacId">Khoa/Phòng công tác</label>
+        <select asp-for="HopDongNguoiLaoDong.KhoaPhongCongTacId" class="form-control" asp-items="ViewBag.KhoaPhongList">
+            <option value="">-- Chọn khoa/phòng --</option>
+        </select>
+        <span asp-validation-for="HopDongNguoiLaoDong.KhoaPhongCongTacId" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="HopDongNguoiLaoDong.NoiSinh">Nơi sinh</label>
+        <input asp-for="HopDongNguoiLaoDong.NoiSinh" class="form-control" />
+        <span asp-validation-for="HopDongNguoiLaoDong.NoiSinh" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="HopDongNguoiLaoDong.ChuyenNganhDaoTao">Chuyên ngành đào tạo</label>
+        <input asp-for="HopDongNguoiLaoDong.ChuyenNganhDaoTao" class="form-control" />
+        <span asp-validation-for="HopDongNguoiLaoDong.ChuyenNganhDaoTao" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="HopDongNguoiLaoDong.NamTotNghiep">Năm tốt nghiệp</label>
+        <input asp-for="HopDongNguoiLaoDong.NamTotNghiep" class="form-control" />
+        <span asp-validation-for="HopDongNguoiLaoDong.NamTotNghiep" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="HopDongNguoiLaoDong.TrinhDoTinHoc">Trình độ tin học</label>
+        <input asp-for="HopDongNguoiLaoDong.TrinhDoTinHoc" class="form-control" />
+        <span asp-validation-for="HopDongNguoiLaoDong.TrinhDoTinHoc" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="HopDongNguoiLaoDong.TrinhDoNgoaiNgu">Trình độ ngoại ngữ</label>
+        <input asp-for="HopDongNguoiLaoDong.TrinhDoNgoaiNgu" class="form-control" />
+        <span asp-validation-for="HopDongNguoiLaoDong.TrinhDoNgoaiNgu" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="HopDongNguoiLaoDong.ChungChiHanhNghe">Chứng chỉ hành nghề (nếu có)</label>
+        <input asp-for="HopDongNguoiLaoDong.ChungChiHanhNghe" class="form-control" />
+        <span asp-validation-for="HopDongNguoiLaoDong.ChungChiHanhNghe" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung">Nghề nghiệp trước tuyển dụng</label>
+        <input asp-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung" class="form-control" />
+        <span asp-validation-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung" class="text-danger"></span>
+    </div>
+
+    <div style="margin-top:16px;">
+        <button type="submit" class="btn btn-primary">Lưu</button>
+        <a class="btn btn-secondary" href="@backUrl">Quay lại</a>
+    </div>
+</form>
+
+<!-- Popup kết quả lưu -->
+<dialog id="saveDialog" class="save-dialog">
+    <h3 id="dlgTitle" style="margin:0 0 12px;">Kết quả lưu</h3>
+    <div id="dlgMsg" style="margin:0 0 18px;"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+        <a class="btn btn-secondary" href="@backUrl">Quay lại</a>
+        <button type="button" class="btn btn-primary" id="dlgClose">Đóng</button>
+    </div>
+</dialog>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/pages/admin.hopdong.edit.js" asp-append-version="true"></script>
+}

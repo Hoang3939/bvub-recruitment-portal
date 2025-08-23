@@ -23,39 +23,7 @@
     }
 }
 
-<style>
-    .dv-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px 24px;
-    }
-
-    .dv-field {
-        background: #fafbfc;
-        border: 1px solid #eef0f2;
-        border-radius: 8px;
-        padding: 10px 12px;
-    }
-
-    .dv-label {
-        display: block;
-        font-size: .85rem;
-        color: #6b7280;
-        margin-bottom: 4px;
-    }
-
-    .dv-value {
-        font-weight: 700;
-        color: #1f2937;
-        word-break: break-word;
-    }
-
-    @@media (max-width: 768px) {
-        .dv-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-</style>
+<link rel="stylesheet" href="~/css/admin-candidates-index.css" asp-append-version="true" />
 
 <div class="dv-grid">
     <div class="dv-field"><span class="dv-label">Mã ứng viên</span><span class="dv-value">@Model.UngVienId</span></div>
@@ -66,7 +34,7 @@
         <span class="dv-value">@FormatDate(Model.NgaySinh)</span>
     </div>
 
-    <div class="dv-field"><span class="dv-label">Giới tính</span><span class="dv-value">@(Model.GioiTinh == 1 ? "Nam" : "Nữ")</span></div>
+    <div class="dv-field"><span class="dv-label">Giới tính</span><span class="dv-value">@(Model.GioiTinh == 1 ? "Nữ" : "Nam")</span></div>
 
     <div class="dv-field"><span class="dv-label">Số điện thoại</span><span class="dv-value">@Model.SoDienThoai</span></div>
     <div class="dv-field"><span class="dv-label">Email</span><span class="dv-value">@Model.Email</span></div>

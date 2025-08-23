@@ -1,0 +1,158 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.HopDongNguoiLaoDongDetailsVm
+@using System.Reflection
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Chi tiết Hợp đồng người lao động";
+
+    var uvMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["UngVienId"] = "Mã ứng viên",
+                ["HoTen"] = "Họ và tên",
+                ["NgaySinh"] = "Ngày sinh",
+                ["GioiTinh"] = "Giới tính",
+                ["SoDienThoai"] = "Số điện thoại",
+                ["Email"] = "Email",
+                ["CCCD"] = "CCCD",
+                ["NgayCapCCCD"] = "Ngày cấp CCCD",
+                ["NoiCapCCCD"] = "Nơi cấp CCCD",
+                ["DiaChiThuongTru"] = "Địa chỉ thường trú",
+                ["DiaChiCuTru"] = "Địa chỉ cư trú",
+                ["MaSoThue"] = "Mã số thuế",
+                ["SoTaiKhoan"] = "Số tài khoản",
+                ["TinhTrangSucKhoe"] = "Tình trạng sức khỏe",
+                ["TrinhDoChuyenMon"] = "Trình độ chuyên môn",
+                ["NgayUngTuyen"] = "Ngày ứng tuyển"
+            };
+    var hdMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["HopDongId"] = "Mã hợp đồng",
+                ["UngVienId"] = "Mã ứng viên",
+                ["Loai"] = "Loại nhân viên",
+                ["NoiSinh"] = "Nơi sinh",
+                ["ChuyenNganhDaoTao"] = "Chuyên ngành đào tạo",
+                ["NamTotNghiep"] = "Năm tốt nghiệp",
+                ["TrinhDoTinHoc"] = "Trình độ tin học",
+                ["TrinhDoNgoaiNgu"] = "Trình độ ngoại ngữ",
+                ["ChungChiHanhNghe"] = "Chứng chỉ hành nghề",
+                ["NgheNghiepTruocTuyenDung"] = "Nghề nghiệp trước tuyển dụng",
+                ["MaTraCuu"] = "Mã tra cứu",
+                ["NgayNop"] = "Ngày nộp"
+            };
+    string Fmt(string prop, object? v)
+    {
+        if (prop.Equals("GioiTinh", StringComparison.OrdinalIgnoreCase))
+        {
+            if (v is int gi) return gi == 0 ? "Nam" : gi == 1 ? "Nữ" : "";
+            if (v is string gs && int.TryParse(gs, out var t)) return t == 0 ? "Nam" : t == 1 ? "Nữ" : "";
+        }
+        if (v is DateTime dt) return dt.ToString("dd/MM/yyyy");
+        if (v is DateTimeOffset dto) return dto.ToString("dd/MM/yyyy");
+        return v?.ToString() ?? "";
+    }
+    string SplitPascal(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return s;
+        var r = new List<char>(s.Length + 8);
+        for (int i = 0; i < s.Length; i++)
+        {
+            var c = s[i];
+            if (i > 0 && char.IsUpper(c) && (char.IsLower(s[i - 1]) || (i + 1 < s.Length && char.IsLower(s[i + 1]))))
+                r.Add(' ');
+            r.Add(char.ToLowerInvariant(c));
+        }
+        return new string(r.ToArray());
+    }
+    string LabelOf(string n, string? disp, IDictionary<string, string> map)
+    {
+        if (!string.IsNullOrWhiteSpace(disp)) return disp!;
+        if (map.TryGetValue(n, out var lbl)) return lbl;
+        return n.EndsWith("Id", StringComparison.OrdinalIgnoreCase) ? "Mã " + SplitPascal(n[..^2]) : SplitPascal(n);
+    }
+    IEnumerable<(string L, string V)> Rows(object obj, IDictionary<string, string> map, params string[] exclude)
+    {
+        var skip = new HashSet<string>(exclude ?? Array.Empty<string>(), StringComparer.OrdinalIgnoreCase);
+        foreach (var p in obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        {
+            if (p.GetIndexParameters().Length > 0 || skip.Contains(p.Name)) continue;
+            var pt = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+            bool simple = pt.IsPrimitive || pt.IsEnum || pt == typeof(string) || pt == typeof(decimal) ||
+                          pt == typeof(DateTime) || pt == typeof(DateTimeOffset) || pt == typeof(Guid);
+            if (!simple) continue;
+            var disp = p.GetCustomAttributes(typeof(DisplayAttribute), true).OfType<DisplayAttribute>().FirstOrDefault()?.Name;
+            yield return (LabelOf(p.Name, disp, map), Fmt(p.Name, p.GetValue(obj)));
+        }
+    }
+
+    bool isAdmin = User.IsInRole("1") || User.IsInRole("Admin")
+                   || User.Claims.Any(c => c.Type == ClaimTypes.Role &&
+                        (string.Equals(c.Value, "1") || string.Equals(c.Value, "Admin", StringComparison.OrdinalIgnoreCase)));
+    bool isPending = string.Equals(Model.TrangThaiClass, "pending", StringComparison.OrdinalIgnoreCase);
+}
+
+<link rel="stylesheet" href="~/css/admin-hopdongnld-details.css" asp-append-version="true" />
+
+<div class="page">
+    <div class="header">
+        <a class="btn btn-back" href="@Url.Action("Index","Candidates", new { area="Admin" })#uv-@Model.UngVien.UngVienId">← Quay lại</a>
+
+        @if (isPending)
+        {
+            if (isAdmin)
+            {
+                <button id="btnDuyetHD" class="btn btn-approve" type="button">Duyệt</button>
+            }
+        }
+        else
+        {
+            <a class="btn btn-primary" href="@Url.Action("Edit","HopDongNguoiLaoDong", new { area="Admin", id=Model.Don.HopDongId })">Sửa</a>
+        }
+
+        <a class="btn btn-export-word" href="@Url.Action("ExportWord","HopDongNguoiLaoDong", new { area="Admin", id=Model.Don.HopDongId })">Xuất Word</a>
+    </div>
+
+    <h1 class="form-title">HỢP ĐỒNG NGƯỜI LAO ĐỘNG</h1>
+    <div class="meta">
+        Mã hợp đồng: #@Model.Don.HopDongId · Ứng viên: @Model.UngVien.HoTen ·
+        Ngày nộp: @Model.Don.NgayNop.ToString("dd/MM/yyyy") ·
+        Trạng thái: <span class="badge @Model.TrangThaiClass">@Model.TrangThaiLabel</span>
+    </div>
+
+    <div class="section">
+        <h3>I. Thông tin ứng viên</h3>
+        <table class="detail">
+            @foreach (var r in Rows(Model.UngVien, uvMap))
+            {
+                <tr><td class="label">@r.L</td><td>@r.V</td></tr>
+            }
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>II. Thông tin hợp đồng</h3>
+        <table class="detail">
+            @foreach (var r in Rows(Model.Don, hdMap, "TrangThai", "KhoaPhongCongTacId"))
+            {
+                <tr><td class="label">@r.L</td><td>@r.V</td></tr>
+            }
+            <tr><td class="label">Khoa/Phòng công tác</td><td>@(Model.Don.KhoaPhongCongTac?.Ten ?? "")</td></tr>
+            <tr><td class="label">Loại khoa/phòng</td><td>@(Model.Don.KhoaPhongCongTac?.Loai ?? "")</td></tr>
+            <tr><td class="label">Trạng thái</td><td><span class="badge @Model.TrangThaiClass">@Model.TrangThaiLabel</span></td></tr>
+        </table>
+    </div>
+</div>
+
+<!-- Anti-forgery -->
+<form id="af-hd" method="post" style="display:none;">@Html.AntiForgeryToken()</form>
+
+<!-- Cấu hình cho file JS -->
+<div id="admin-hd-details-config"
+     data-approve-url='@Url.Action("ApproveNow", "Candidates", new { area = "Admin" })'
+     data-don-id='@Model.Don.HopDongId'
+     data-edit-url='@Url.Action("Edit", "HopDongNguoiLaoDong", new { area = "Admin", id = Model.Don.HopDongId })'>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/admin.hopdong.details.js" asp-append-version="true"></script>
+}

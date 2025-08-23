@@ -1,0 +1,208 @@
+﻿*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #4880FF;
+    font-family: 'Nunito Sans', sans-serif;
+}
+
+/* ===== BG circles ===== */
+.login-bg {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+    .login-bg div {
+        position: absolute;
+        background: #568AFF;
+        border-radius: 50%;
+        opacity: 0.5;
+    }
+
+    .login-bg .circle-1 {
+        width: 600px;
+        height: 600px;
+        top: 60%;
+        left: -150px;
+    }
+
+    .login-bg .circle-2 {
+        width: 700px;
+        height: 700px;
+        top: -300px;
+        left: 100%;
+        transform: rotate(100deg);
+    }
+
+    .login-bg .circle-3 {
+        width: 600px;
+        height: 600px;
+        top: 60%;
+        left: 70%;
+        transform: rotate(160deg);
+        opacity: 0.6;
+    }
+
+    .login-bg .circle-4 {
+        width: 750px;
+        height: 750px;
+        top: 120%;
+        left: 50%;
+        transform: rotate(-80deg);
+    }
+
+/* ===== Card ===== */
+.login-card {
+    width: 420px;
+    margin: 8% auto;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid #B9B9B9;
+    padding: 24px 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+    .login-card h2 {
+        font-size: 22px;
+        text-align: center;
+        font-weight: 700;
+        color: #202224;
+        margin-bottom: 10px;
+    }
+
+    .login-card p {
+        font-size: 13px;
+        text-align: center;
+        opacity: 0.8;
+        margin-bottom: 25px;
+    }
+
+/* ===== Form ===== */
+.form-label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #202224;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px 10px;
+    margin-top: 5px;
+    margin-bottom: 20px; /* mặc định cho các input khác */
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 13px;
+    /* FIX đảm bảo không tràn khi có padding phải lớn cho nút 👁 */
+    box-sizing: border-box;
+    height: 42px;
+}
+
+.form-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    margin-top: -15px;
+}
+
+    .form-footer a {
+        text-decoration: none;
+        color: #202224;
+        opacity: 0.6;
+        font-weight: 600;
+    }
+
+/* ===== Password eye button ===== */
+.password-group {
+    position: relative;
+    margin-bottom: 20px; /* chuyển margin từ input sang container */
+}
+
+    .password-group .form-control {
+        padding-right: 44px; /* chừa chỗ cho nút 👁 */
+        margin-bottom: 0; /* tránh kéo lệch nút */
+    }
+
+.toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 0;
+    bottom: 0; /* cao bằng input để dễ bấm và canh giữa dọc */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    padding: 0 8px;
+    cursor: pointer;
+    line-height: 1;
+    color: #64748b;
+}
+
+    .toggle-password:hover {
+        color: #334155;
+    }
+
+    .toggle-password svg {
+        display: block;
+    }
+
+    .toggle-password .icon-eye-off {
+        display: none;
+    }
+
+    .toggle-password[data-state="show"] .icon-eye {
+        display: none;
+    }
+
+    .toggle-password[data-state="show"] .icon-eye-off {
+        display: inline;
+    }
+
+/* Ẩn icon reveal mặc định của Edge/IE nếu có */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+    display: none;
+}
+
+/* ===== Misc ===== */
+.alert-success {
+    margin-bottom: 20px;
+    font-size: 14px;
+}
+
+.remember-row {
+    margin-top: -10px;
+    margin-bottom: 15px;
+}
+
+.login-btn {
+    width: 100%;
+    background: #4880FF;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 6px;
+    height: 42px;
+    margin-top: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+    .login-btn:hover {
+        box-shadow: 0 6px 16px rgba(0,0,0,0.3);
+        transform: translateY(-2px);
+    }
+
+@media (max-width: 480px) {
+    .login-card {
+        width: calc(100% - 32px);
+        margin: 40px 16px;
+    }
+}

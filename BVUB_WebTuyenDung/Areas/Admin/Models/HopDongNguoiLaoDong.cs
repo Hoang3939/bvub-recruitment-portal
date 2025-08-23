@@ -9,21 +9,45 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
         [Key]
         public int HopDongId { get; set; }
 
+        [Required]
         public int UngVienId { get; set; }
-        public string Loai { get; set; }  
-        public int KhoaPhongCongTacId { get; set; }
-        public string NoiSinh { get; set; }
-        public string ChuyenNganhDaoTao { get; set; }
-        public string NamTotNghiep { get; set; }
-        public string TrinhDoTinHoc { get; set; }
-        public string TrinhDoNgoaiNgu { get; set; }
-        public string ChungChiHanhNghe { get; set; }
-        public string NgheNghiepTruocTuyenDung { get; set; }
-        public DateTime NgayNop { get; set; }
-        public int TrangThai { get; set; }
-        public string? MaTraCuu { get; set; }
+        public UngVien UngVien { get; set; }
 
-        [ForeignKey(nameof(UngVienId))]
-        public BVUB_WebTuyenDung.Areas.Admin.Models.UngVien? UngVien { get; set; }
+        [Required, MaxLength(20)]
+        public string Loai { get; set; } // "NguoiLaoDong" | "VienChuc"
+
+        // FK -> DanhMucKhoaPhong(KhoaPhongId)
+        [Required]
+        public int KhoaPhongCongTacId { get; set; }
+        public DanhMucKhoaPhong KhoaPhongCongTac { get; set; }  
+
+        [Required, MaxLength(255)]
+        public string NoiSinh { get; set; }
+
+        [Required, MaxLength(50)]
+        public string ChuyenNganhDaoTao { get; set; }
+
+        [Required, MaxLength(50)]
+        public string NamTotNghiep { get; set; }
+
+        [Required, MaxLength(100)]
+        public string TrinhDoTinHoc { get; set; }
+
+        [Required, MaxLength(100)]
+        public string TrinhDoNgoaiNgu { get; set; }
+
+        [Required, MaxLength(100)]
+        public string ChungChiHanhNghe { get; set; }
+
+        [Required, MaxLength(100)]
+        public string NgheNghiepTruocTuyenDung { get; set; }
+
+        [Column(TypeName = "date")]
+        public DateTime NgayNop { get; set; }
+
+        public int TrangThai { get; set; } = 0;
+
+        [Required, MaxLength(50)]
+        public string MaTraCuu { get; set; }
     }
 }

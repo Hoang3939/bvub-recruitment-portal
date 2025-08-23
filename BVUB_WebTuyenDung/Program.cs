@@ -3,40 +3,56 @@ using BVUB_WebTuyenDung.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using BVUB_WebTuyenDung.Areas.Admin.Data;
+using Microsoft.AspNetCore.DataProtection;
+using BVUB_WebTuyenDung.Areas.Admin.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// MVC
 builder.Services.AddControllersWithViews();
 
+// Policies
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
     options.AddPolicy("StaffAndAdmin", policy => policy.RequireRole("Admin", "Staff"));
 });
 
-// Cấu hình ApplicationDbContext
+// DbContexts
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Cấu hình AdminDbContext
 builder.Services.AddDbContext<AdminDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("AdminConnection")));
 
-// Cấu hình Cookie Authentication
+// Cookie Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Admin/Account/Login"; 
-        options.LogoutPath = "/Admin/Account/Logout"; 
-        options.AccessDeniedPath = "/Admin/Account/AccessDenied"; 
-        options.ExpireTimeSpan = TimeSpan.FromDays(14); 
-        options.SlidingExpiration = true; 
+        options.LoginPath = "/Admin/Account/Login";
+        options.LogoutPath = "/Admin/Account/Logout";
+        options.AccessDeniedPath = "/Admin/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromDays(14);
+        options.SlidingExpiration = true;
     });
+
+builder.Services.AddDataProtection();
+
+// Session (đếm đăng nhập sai 3 lần mới hiện “Quên mật khẩu”)
+builder.Services.AddSession(options =>
+{
+    options.Cookie.Name = ".BVUB.Admin.Session";
+    options.IdleTimeout = TimeSpan.FromMinutes(60);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+// Email Sender qua SendGrid 
+builder.Services.AddSingleton<IEmailSender, SendGridEmailSender>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -48,18 +64,21 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseSession();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Định tuyến cho Area 
+// Area routes
 app.MapControllerRoute(
     name: "admin",
     pattern: "{area:exists}/{controller=HomeAdmin}/{action=Index}/{id?}"
 );
 
-// Định tuyến mặc định
+// Default route
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}"
+);
 
 app.Run();

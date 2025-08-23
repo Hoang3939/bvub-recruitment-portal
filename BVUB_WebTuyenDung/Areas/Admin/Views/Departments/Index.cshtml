@@ -1,0 +1,116 @@
+﻿@model IEnumerable<BVUB_WebTuyenDung.Areas.Admin.Models.DanhMucKhoaPhong>
+@{
+    ViewData["Title"] = "Khoa / Phòng";
+}
+<link rel="stylesheet" href="~/css/admin-departments-index.css" asp-append-version="true" />
+
+<!-- TIÊU ĐỀ -->
+<div class="header-row">
+    <h2>@ViewData["Title"]</h2>
+</div>
+
+<div class="main-content">
+    <div class="actions">
+        <form method="get" asp-action="Index" class="filter-form" role="search">
+            <input type="text" name="q" class="mini-search-input"
+                   placeholder="Nhập: tên / loại"
+                   value="@(ViewBag.q ?? Context?.Request?.Query["q"].ToString())" />
+            <button type="submit" class="btn btn-filter">Lọc</button>
+        </form>
+
+        <a asp-action="Create" class="btn btn-success">
+            <i class="fa fa-plus me-1"></i> Thêm
+        </a>
+    </div>
+
+    @if (TempData["ToastSuccess"] != null || TempData["ToastError"] != null)
+    {
+        <div id="toast" class="toast-mini @(TempData["ToastError"]!=null?"error":"")">
+            @((TempData["ToastSuccess"] ?? TempData["ToastError"]) as string)
+        </div>
+    }
+
+    <div class="table-wrap">
+        <table class="departments-table" aria-label="Danh sách khoa/phòng">
+            <thead>
+                <tr>
+                    <th class="col-name">Tên</th>
+                    <th class="col-type">Loại</th>
+                    <th class="col-attach">Vị trí gắn</th>
+                    <th class="col-status">Trạng thái</th>
+                    <th class="col-actions" style="text-align:center;">Hoạt động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var k in Model)
+                {
+                    var suspended = k.TamNgung == 1;
+                    <tr class="row-click" data-id="@k.KhoaPhongId">
+                        <td>@k.Ten</td>
+                        <td>@k.Loai</td>
+                        <td>
+                            @if (k.KhoaPhongViTris?.Any() == true)
+                            {
+                                @string.Join(", ", k.KhoaPhongViTris.Select(x => x.ViTri?.TenViTri))
+                            }
+                        </td>
+                        <td>
+                            <span class="status @(suspended ? "cancelled" : "approved")">
+                                @(suspended ? "Tạm ngưng" : "Sử dụng")
+                            </span>
+                        </td>
+                        <td class="cell-actions" style="text-align:center;">
+                            <a asp-action="Edit" asp-route-id="@k.KhoaPhongId" class="btn btn-primary">Sửa</a>
+                            <form id="del-@k.KhoaPhongId" asp-action="Delete" asp-route-id="@k.KhoaPhongId"
+                                  method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="button" class="btn-icon btn-delete" data-form="#del-@k.KhoaPhongId" title="Xóa"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===== Modal CHI TIẾT ===== -->
+<div id="deptDetailModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card modal-lg" role="dialog" aria-modal="true" aria-labelledby="deptModalTitle">
+        <div class="modal-header">
+            <h3 id="deptModalTitle" class="modal-title">Thông tin khoa/phòng</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div id="deptDetailContainer" class="modal-body">Đang tải...</div>
+    </div>
+</div>
+
+<!-- ===== Modal confirm XÓA ===== -->
+<div id="confirmDelete" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmDelTitle">
+        <div class="modal-header">
+            <h3 id="confirmDelTitle" class="modal-title">Xóa khoa/phòng</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0">Bạn có chắc chắn muốn xóa mục này?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnDelCancel" class="btn btn-export">Thoát</button>
+            <button type="button" id="btnDelYes" class="btn btn-danger">Xóa</button>
+        </div>
+    </div>
+</div>
+
+<form id="af-dept" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<!-- Config cho JS -->
+<div id="admin-dept-index-config"
+     data-url-details='@Url.Action("DetailsPartial", "Departments", new { area = "Admin" })'>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/admin.departments.index.js" asp-append-version="true"></script>
+}

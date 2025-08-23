@@ -1,138 +1,93 @@
-﻿@{
-    ViewBag.Title = "Trang chủ";
+﻿@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.DashboardVm
+@using System.Text.Json
+
+@{
+    ViewBag.Title = "Bảng điều khiển";
 }
 
-<style>
-    .overview {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 20px;
-        margin-bottom: 40px;
-    }
-
-    .card {
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        transition: 0.3s;
-        position: relative;
-    }
-
-        .card:hover {
-            transform: translateY(-3px);
-        }
-
-        .card p {
-            margin: 0;
-            color: #888;
-            font-size: 15px;
-        }
-
-        .card h2 {
-            margin: 8px 0;
-            font-size: 24px;
-        }
-
-        .card span.up {
-            color: green;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .card span.down {
-            color: red;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-    .chart-section, .deals-section {
-        margin-top: 30px;
-        background-color: #fff;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-
-        .chart-section h3, .deals-section h3 {
-            margin-bottom: 20px;
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-
-        table thead {
-            background-color: #f3f3f3;
-        }
-
-        table th, table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-            text-align: left;
-        }
-
-    .status {
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 500;
-    }
-
-        .status.delivered {
-            background-color: #d1f7d6;
-            color: #2e7d32;
-        }
-
-    .card::before {
-        content: '';
-        font-family: "Font Awesome 6 Free";
-        font-weight: 900;
-        position: absolute;
-        top: 20px;
-        right: 20px;
-        font-size: 28px;
-        color: #eaeaea;
-    }
-
-    .card:nth-child(1)::before {
-        content: '\f007'; 
-    }
-
-    .card:nth-child(2)::before {
-        content: '\f0ae';
-    }
-
-    .card:nth-child(3)::before {
-        content: '\f017';
-    }
-</style>
+<link rel="stylesheet" href="~/css/admin-homeindex.css" asp-append-version="true" />
 
 <h1 style="font-size: 24px; margin-bottom: 20px;">Bảng điều khiển</h1>
 
 <div class="overview">
     <div class="card">
         <p>Tổng ứng viên</p>
-        <h2>40.689</h2>
-        <span class="up">↑ 8.5% so với hôm qua</span>
+        <h2>@Model.TotalCandidates</h2>
+        <span class="@(Model.MoMNewCandidatesPct >= 0 ? "up" : "down")">
+            @(Model.MoMNewCandidatesPct >= 0 ? "↑" : "↓") @Model.MoMNewCandidatesPct% so với tháng trước
+        </span>
     </div>
     <div class="card">
-        <p>Phiếu đăng ký chờ duyệt</p>
-        <h2>10.293</h2>
-        <span class="up">↑ 1.3% so với hôm qua</span>
+        <p>Ứng viên mới hôm nay</p>
+        <h2>@Model.NewCandidatesToday</h2>
+        <span class="@(Model.DoDNewCandidatesPct >= 0 ? "up" : "down")">
+            @(Model.DoDNewCandidatesPct >= 0 ? "↑" : "↓") @Model.DoDNewCandidatesPct% so với hôm qua
+        </span>
     </div>
     <div class="card">
-        <p>Yêu cầu chờ xử lý</p>
-        <h2>2040</h2>
-        <span class="up">↑ 1.8% so với hôm qua</span>
+        <p>Ứng viên mới trong tháng</p>
+        <h2>@Model.NewCandidatesThisMonth</h2>
+        <span class="up">Cập nhật theo ngày</span>
     </div>
 </div>
 
 <div class="chart-section">
-    <h3>Chi tiết doanh số</h3>
-    <img src="~/images/chart.png" alt="Biểu đồ doanh số" style="width:100%; border-radius: 5px;" />
+    <h3>Ứng viên 30 ngày gần nhất</h3>
+    <canvas id="line30"></canvas>
 </div>
+
+<div class="chart-section" style="margin-top:20px;">
+    <h3>Giới tính</h3>
+    <div style="max-width:520px;">
+        <canvas id="genderPie"></canvas>
+    </div>
+</div>
+
+<div class="chart-section" style="margin-top:20px;">
+    <h3>Nhóm tuổi</h3>
+    <canvas id="ageBar"></canvas>
+</div>
+
+<div class="deals-section" style="margin-top:30px;">
+    <h3>Hoạt động gần đây</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Mã UV</th>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Ngày ứng tuyển</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model.RecentCandidates)
+            {
+                <tr>
+                    <td>@r.UngVienId</td>
+                    <td>@r.HoTen</td>
+                    <td>@r.Email</td>
+                    <td>@r.NgayUngTuyen.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <a class="btn btn-sm btn-primary"
+                           asp-area="Admin" asp-controller="Candidates" asp-action="Index"
+                           asp-route-id="@r.UngVienId">Xem</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Config cho JS -->
+<div id="admin-home-index-config"
+     data-series='@Html.Raw(JsonSerializer.Serialize(Model.Last30DaysSeries))'
+     data-female='@Model.FemaleCount'
+     data-male='@Model.MaleCount'
+     data-buckets='@Html.Raw(JsonSerializer.Serialize(Model.AgeBuckets))'>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="~/js/pages/admin.home.index.js" asp-append-version="true"></script>
+}

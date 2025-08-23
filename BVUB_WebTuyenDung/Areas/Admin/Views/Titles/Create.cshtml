@@ -1,0 +1,35 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.TitleFormVm
+@{
+    ViewData["Title"] = "Thêm chức danh";
+}
+<h2>@ViewData["Title"]</h2>
+
+@if (TempData["ToastError"] != null)
+{
+    <div class="alert alert-danger" role="alert">@TempData["ToastError"]</div>
+}
+
+<form method="post" asp-action="Create">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label asp-for="TenChucDanh" class="form-label">Tên chức danh</label>
+        <input asp-for="TenChucDanh" class="form-control" placeholder="Nhập tên chức danh" />
+        <span asp-validation-for="TenChucDanh" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TamNgung" class="form-label">Trạng thái</label>
+        <select asp-for="TamNgung" class="form-select">
+            <option value="0">Sử dụng</option>
+            <option value="1">Tạm ngưng</option>
+        </select>
+    </div>
+
+    <button class="btn btn-primary">Lưu</button>
+    <a asp-action="Index" class="btn btn-link">Hủy</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

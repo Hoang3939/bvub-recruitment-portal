@@ -1,271 +1,139 @@
 ﻿@model IEnumerable<BVUB_WebTuyenDung.Areas.Admin.ViewModels.CandidateListItemVm>
+@using System.Security.Claims
 @{
     ViewData["Title"] = "Danh sách ứng viên";
+
+    bool isAdmin =
+        User.IsInRole("1") ||
+        User.IsInRole("Admin") ||
+        User.Claims.Any(c => c.Type == ClaimTypes.Role &&
+                             (string.Equals(c.Value, "1") ||
+                              string.Equals(c.Value, "Admin", StringComparison.OrdinalIgnoreCase)));
 }
 
-<style>
-    .main-content {
-        max-width: 1100px;
-        margin: 30px auto;
-        padding: 25px 30px;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 8px 16px rgba(0,0,0,.1);
-    }
+<link rel="stylesheet" href="~/css/admin-candidates-index.css" asp-append-version="true" />
 
-    .header-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-    }
-
-        .header-row h2 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 0;
-        }
-
-    .actions {
-        display: flex;
-        gap: 12px;
-    }
-
-    .btn {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
-        box-shadow: 0 3px 6px rgba(0,0,0,.12);
-    }
-
-    .btn-export {
-        background: #6c757d;
-        color: #fff;
-    }
-
-        .btn-export:hover {
-            filter: brightness(.95);
-        }
-
-    .btn-filter {
-        background: #0d6efd;
-        color: #fff;
-    }
-
-        .btn-filter:hover {
-            filter: brightness(.95);
-        }
-
-    .btn-add {
-        background: #198754;
-        color: #fff;
-    }
-
-        .btn-add:hover {
-            filter: brightness(.95);
-        }
-
-    .candidate-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0 6px;
-    }
-
-        .candidate-table th {
-            background: #f1f3f5;
-            padding: 12px 14px;
-            text-align: left;
-            font-weight: 700;
-        }
-
-        .candidate-table td {
-            background: #fff;
-            padding: 12px 14px;
-            border-bottom: none;
-        }
-
-        .candidate-table tr {
-            cursor: pointer;
-        }
-
-            .candidate-table tr:hover td {
-                background: #f7fbff;
-            }
-
-    .status {
-        display: inline-block;
-        padding: 6px 12px;
-        border-radius: 16px;
-        color: #fff;
-        font-weight: 700;
-        font-size: .9rem;
-    }
-
-        .status.pending {
-            background: #f0ad4e;
-        }
-
-        .status.approved {
-            background: #5cb85c;
-        }
-
-        .status.cancelled {
-            background: #dc3545;
-        }
-
-    .btn-icon {
-        background: transparent;
-        border: none;
-        cursor: pointer;
-        padding: 4px 6px;
-        margin: 0 4px;
-        border-radius: 50%;
-    }
-
-    .btn-success {
-        background: #28a745;
-        color: #fff;
-    }
-
-    .btn-primary {
-        background: #0d6efd;
-        color: #fff;
-    }
-
-    .btn-danger {
-        background: #dc3545;
-        color: #fff;
-    }
-
-    .btn-restore {
-        background: #17a2b8;
-        color: #fff;
-    }
-
-    /* MODAL */
-    .modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,.5);
-        display: none;
-        z-index: 1000;
-    }
-
-        .modal-overlay.show {
-            display: block;
-        }
-
-    .modal-card {
-        position: relative;
-        width: min(900px,92vw);
-        max-height: 84vh;
-        margin: 6vh auto;
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 12px 30px rgba(0,0,0,.2);
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .modal-header {
-        padding: 14px 18px;
-        border-bottom: 1px solid #eef0f2;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .modal-title {
-        font-size: 1.25rem;
-        font-weight: 800;
-        margin: 0;
-    }
-
-    .modal-close {
-        background: transparent;
-        border: none;
-        font-size: 24px;
-        line-height: 1;
-        cursor: pointer;
-    }
-
-    .modal-body {
-        padding: 16px 18px;
-        overflow: auto;
-    }
-
-    .modal-footer {
-        padding: 12px 18px;
-        border-top: 1px solid #eef0f2;
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-    }
-</style>
-
-<div class="main-content">
-    <div class="header-row">
-        <h2>Danh sách ứng viên</h2>
-        <div class="actions">
-            <a href="@Url.Action("ExportCsv","Candidates", new { area = "Admin" })" class="btn btn-export">Xuất danh sách (Excel)</a>
-            <button type="button" class="btn btn-filter">Lọc</button>
-            <a href="@Url.Action("Create","Candidates", new { area = "Admin" })" class="btn btn-add">Thêm mới</a>
-        </div>
-    </div>
-
-    <table class="candidate-table" aria-label="Danh sách ứng viên">
-        <thead>
-            <tr>
-                <th>Mã ứng viên</th>
-                <th>Tên ứng viên</th>
-                <th>Loại đơn</th>
-                <th>Trạng thái</th>
-                <th style="text-align:center;">Hoạt động</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var c in Model)
-            {
-                <tr data-id="@c.UngVienId">
-                    <td>@c.UngVienId</td>
-                    <td>@c.HoTen</td>
-                    <td>@c.LoaiDon</td>
-                    <td>
-                        @if (!string.IsNullOrWhiteSpace(c.TrangThai))
-                        {
-                            <span class="status @c.TrangThaiClass">@c.TrangThai</span>
-                        }
-                    </td>
-                    <td style="display:flex; gap:8px; justify-content:center;">
-                        @* giữ nguyên hành vi theo trạng thái *@
-                        @if (c.TrangThaiClass == "pending")
-                        {
-                            <button class="btn btn-success" type="button">Duyệt</button>
-                            <button class="btn btn-danger" type="button">Hủy</button>
-                            <button class="btn-icon" type="button" title="Xóa">🗑</button>
-                        }
-                        else if (c.TrangThaiClass == "approved")
-                        {
-                            <a class="btn btn-primary" href="@Url.Action("Edit","Candidates", new { area="Admin", id=c.UngVienId })">Sửa</a>
-                            <button class="btn btn-danger" type="button">Hủy</button>
-                            <button class="btn-icon" type="button" title="Xóa">🗑</button>
-                        }
-                        else if (c.TrangThaiClass == "cancelled")
-                        {
-                            <button class="btn btn-restore" type="button">Khôi phục</button>
-                            <button class="btn-icon" type="button" title="Xóa">🗑</button>
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+<!-- TIÊU ĐỀ ĐỂ NGOÀI KHUNG -->
+<div class="header-row">
+    <h2>Danh sách ứng viên</h2>
 </div>
 
-<!-- Modal -->
+<!-- KHUNG main-content BỌC CẢ CỤM LỌC + BẢNG -->
+<div class="main-content">
+    <div class="actions">
+        <!-- Form lọc (GET) -->
+        <form method="get"
+              asp-area="Admin" asp-controller="Candidates" asp-action="Index"
+              class="filter-form" role="search">
+            <select name="type" class="mini-select">
+                <option value="">Tất cả loại đơn</option>
+                <option value="VC" selected="@( (string)ViewBag.type=="VC" )">Viên chức</option>
+                <option value="HD" selected="@( (string)ViewBag.type=="HD" )">HĐ lao động</option>
+            </select>
+
+            <input type="text" name="q" class="mini-search-input"
+                   placeholder="Nhập: Mã UV / Tên / Email / Trạng thái / Ngày (dd/MM/yyyy)"
+                   value="@ViewBag.q" />
+            <button type="submit" class="btn btn-filter">Lọc</button>
+        </form>
+
+        <a href="@Url.Action("ExportCsv","Candidates", new { area="Admin", q = Context.Request.Query["q"] })"
+           class="btn btn-export">
+            Xuất danh sách (Excel)
+        </a>
+    </div>
+
+    <div class="table-wrap">
+        <table class="candidate-table" aria-label="Danh sách ứng viên">
+            <thead>
+                <tr>
+                    <th class="col-id">Mã ứng viên</th>
+                    <th class="col-name">Tên ứng viên</th>
+                    <th class="col-email">Email</th>
+                    <th class="col-type">Loại đơn</th>
+                    <th class="col-date">Ngày ứng tuyển</th>
+                    <th class="col-status">Trạng thái</th>
+                    <th class="col-actions" style="text-align:center;">Hoạt động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model)
+                {
+                    var isVC = string.Equals(c.DonType, "VC", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(c.LoaiDon, "VienChuc", StringComparison.OrdinalIgnoreCase);
+
+                    var editHref = isVC
+                    ? Url.Action("Edit", "DonVienChuc", new { area = "Admin", id = c.DonId })
+                    : Url.Action("Edit", "HopDongNguoiLaoDong", new { area = "Admin", id = c.DonId });
+
+                    <tr data-id="@c.UngVienId"
+                        data-dontype="@c.DonType"
+                        data-donid="@(c.DonId?.ToString() ?? "")"
+                        data-loaidon="@c.LoaiDon"
+                        data-editurl="@editHref">
+                        <td>@c.UngVienId</td>
+                        <td>@c.HoTen</td>
+                        <td>@c.Email</td>
+                        <td>@c.LoaiDon</td>
+                        <td>@c.NgayUngTuyen.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            @if (!string.IsNullOrWhiteSpace(c.TrangThai))
+                            {
+                                <span class="status @c.TrangThaiClass">@c.TrangThai</span>
+                            }
+                        </td>
+                        <td class="cell-actions">
+                            @if (c.TrangThaiClass == "pending")
+                            {
+                                if (isAdmin)
+                                {
+                                    <button class="btn btn-success btn-approve" type="button">Duyệt</button>
+                                }
+                                <button class="btn btn-danger btn-cancel" type="button">Hủy</button>
+                                @if (isAdmin)
+                                {
+                                    <button class="btn-icon btn-delete" type="button" title="Xóa">🗑</button>
+                                }
+                            }
+                            else if (c.TrangThaiClass == "approved")
+                            {
+                                <a class="btn btn-primary" href="@editHref">Sửa</a>
+                                <button class="btn btn-danger btn-cancel" type="button">Hủy</button>
+                                @if (isAdmin)
+                                {
+                                    <button class="btn-icon btn-delete" type="button" title="Xóa">🗑</button>
+                                }
+                            }
+                            else if (c.TrangThaiClass == "cancelled")
+                            {
+                                <button class="btn btn-restore" type="button">Khôi phục</button>
+                                @if (isAdmin)
+                                {
+                                    <button class="btn-icon btn-delete" type="button" title="Xóa">🗑</button>
+                                }
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Cấu hình URL cho JS -->
+<div id="candidates-index-config"
+     data-url-details-partial="@Url.Action("DetailsPartial", "Candidates", new { area = "Admin" })"
+     data-url-export-word="@Url.Action("ExportWord", "Candidates", new { area = "Admin" })"
+     data-url-approve="@Url.Action("ApproveNow", "Candidates", new { area = "Admin" })"
+     data-url-cancel="@Url.Action("CancelNow", "Candidates", new { area = "Admin" })"
+     data-url-restore="@Url.Action("RestoreNow", "Candidates", new { area = "Admin" })"
+     data-url-delete="@Url.Action("DeleteApplication", "Candidates", new { area = "Admin" })"
+     data-url-vc-details-tmpl="@Url.Action("Details", "DonVienChuc", new { area = "Admin", id = "__ID__" })"
+     data-url-hd-details-tmpl="@Url.Action("Details", "HopDongNguoiLaoDong", new { area = "Admin", id = "__ID__" })">
+</div>
+
+<!-- ==== Các modal giữ nguyên bên dưới ==== -->
+<!-- Modal xem chi tiết -->
 <div id="detailModal" class="modal-overlay" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-header">
@@ -275,77 +143,84 @@
         <div id="detailContainer" class="modal-body">Đang tải...</div>
         <div class="modal-footer">
             <a id="exportWordBtn" class="btn btn-primary" href="#" target="_blank" rel="noopener">Xuất Word</a>
-            <a id="viewApplicationBtn" class="btn btn-export" href="#" target="_blank" rel="noopener">Xem đơn</a>
+            <a id="viewApplicationBtn" class="btn btn-export" href="#" rel="noopener" style="display:none">Xem đơn</a>
         </div>
     </div>
 </div>
 
+<!-- Popup xác nhận duyệt -->
+<div id="approveConfirm" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="approveTitle">
+        <div class="modal-header">
+            <h3 id="approveTitle" class="modal-title">Xác nhận duyệt</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0 0 10px">Bạn có thể xem thông tin chi tiết ứng viên trước khi duyệt.</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnViewBeforeApprove" class="btn btn-export">Xem chi tiết</button>
+            <button type="button" id="btnApproveNow" class="btn btn-success">Duyệt ngay</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup xác nhận hủy -->
+<div id="cancelConfirm" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="cancelTitle">
+        <div class="modal-header">
+            <h3 id="cancelTitle" class="modal-title">Xác nhận hủy đơn</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0">Nếu hủy, đơn sẽ <b>tạm dừng xử lý</b> và có thể khôi phục sau. Bạn có chắc chắn muốn hủy?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnCancelClose" class="btn btn-export">Thoát</button>
+            <button type="button" id="btnCancelNow" class="btn btn-danger">Hủy đơn</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup xác nhận khôi phục -->
+<div id="restoreConfirm" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="restoreTitle">
+        <div class="modal-header">
+            <h3 id="restoreTitle" class="modal-title">Khôi phục đơn</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0">Khôi phục đơn về trạng thái <b>Đã duyệt</b>. Bạn có chắc muốn tiếp tục?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnRestoreClose" class="btn btn-export">Thoát</button>
+            <button type="button" id="btnRestoreNow" class="btn btn-success">Khôi phục</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup xác nhận XÓA -->
+<div id="deleteConfirm" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
+        <div class="modal-header">
+            <h3 id="deleteTitle" class="modal-title">Xóa đơn</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0">Hành động này sẽ <b>xóa đơn này khỏi hệ thống</b>. Bạn có chắc chắn muốn xóa?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnDeleteClose" class="btn btn-export">Thoát</button>
+            <button type="button" id="btnDeleteNow" class="btn btn-danger">Xóa</button>
+        </div>
+    </div>
+</div>
+
+<!-- Form ẩn để lấy Anti-forgery token -->
+<form id="af-index" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
 @section Scripts {
-    <script>
-        (function () {
-          const modal = document.getElementById('detailModal');
-          const container = document.getElementById('detailContainer');
-          const exportBtn = document.getElementById('exportWordBtn');
-          const viewBtn = document.getElementById('viewApplicationBtn');
-          const closeEls = modal.querySelectorAll('.modal-close');
-
-          function openModal() { modal.classList.add('show'); document.body.style.overflow = 'hidden'; }
-          function closeModal() { modal.classList.remove('show'); document.body.style.overflow = ''; }
-
-          closeEls.forEach(el => el.addEventListener('click', closeModal));
-          modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
-
-          async function loadDetails(id) {
-            // 1) load partial chi tiết
-            const url = '@Url.Action("DetailsPartial", "Candidates", new { area = "Admin" })' + '?id=' + encodeURIComponent(id);
-            try {
-              container.innerHTML = 'Đang tải...';
-              const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-              if (!resp.ok) { container.innerHTML = 'Không tải được dữ liệu.'; return; }
-              container.innerHTML = await resp.text();
-
-              // 2) set link Xuất Word
-              exportBtn.href = '@Url.Action("ExportWord", "Candidates", new { area = "Admin" })' + '?id=' + encodeURIComponent(id);
-
-              // 3) gọi API lấy link "Xem đơn"
-              const linkApi = '@Url.Action("GetApplicationLink", "Candidates", new { area = "Admin" })' + '?id=' + encodeURIComponent(id);
-              try {
-                const linkResp = await fetch(linkApi, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
-                if (linkResp.ok) {
-                  const data = await linkResp.json();
-                  if (data && data.url) {
-                    viewBtn.href = data.url;
-                    viewBtn.textContent = data.label || 'Xem đơn';
-                    viewBtn.style.display = '';
-                    viewBtn.setAttribute('target', '_blank');
-                  } else {
-                    viewBtn.style.display = 'none';
-                    viewBtn.removeAttribute('href');
-                  }
-                } else {
-                  viewBtn.style.display = 'none';
-                  viewBtn.removeAttribute('href');
-                }
-              } catch {
-                viewBtn.style.display = 'none';
-                viewBtn.removeAttribute('href');
-              }
-
-              openModal();
-            } catch (err) {
-              container.innerHTML = 'Có lỗi khi tải dữ liệu.';
-            }
-          }
-
-          // mở modal khi click vào hàng (bỏ qua khi click vào nút/link/icon)
-          document.addEventListener('click', function (e) {
-            const interactive = e.target.closest('button, a, .btn-icon, svg, path');
-            if (interactive) return;
-            const row = e.target.closest('tr[data-id]');
-            if (!row) return;
-            const id = row.getAttribute('data-id');
-            if (id) loadDetails(id);
-          });
-        })();
-    </script>
+    <script src="~/js/pages/admin.candidates.index.js" asp-append-version="true"></script>
 }
