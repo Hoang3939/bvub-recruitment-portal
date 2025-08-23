@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BVUB_WebTuyenDung.Models
 {
@@ -6,9 +7,11 @@ namespace BVUB_WebTuyenDung.Models
     {
         [Key]
         public int KhoaPhongId { get; set; }
-        [Required]
         public string Ten { get; set; }
-        public string Loai { get; set; } // Phòng hoặc Khoa
+        public string Loai { get; set; } // Phòng / Khoa
+        public int TamNgung { get; set; }
+
+        public ICollection<KhoaPhongViTri> KhoaPhongViTris { get; set; }
     }
 
 }

@@ -9,6 +9,7 @@ namespace BVUB_WebTuyenDung.Models
 
         [Required]
         public string TenChucDanh { get; set; }
+        public int TamNgung { get; set; }
 
         public ICollection<DanhMucViTriDuTuyen> ViTriDuTuyens { get; set; }
     }

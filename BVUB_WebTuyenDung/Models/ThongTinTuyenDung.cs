@@ -14,7 +14,7 @@ namespace BVUB_WebTuyenDung.Models
         public DateTime HanNopHoSo { get; set; }
         public string LoaiTuyenDung { get; set; }
         public string FileDinhKem { get; set; }
-        public string TrangThai { get; set; }
+        public int TrangThai { get; set; }
     }
 
 }

@@ -1,7 +1,10 @@
-﻿namespace BVUB_WebTuyenDung.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BVUB_WebTuyenDung.Models
 {
     public class AuditTrail
     {
+        [Key]
         public int AuditTrailId { get; set; }
 
         public string LoaiDon { get; set; } // Viên chức hoặc Người lao động

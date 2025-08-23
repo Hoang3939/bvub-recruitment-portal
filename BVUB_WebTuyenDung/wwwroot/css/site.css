@@ -1,4 +1,4 @@
-html {
+﻿html {
   font-size: 14px;
 }
 
@@ -19,4 +19,170 @@ html {
 
 body {
   margin-bottom: 60px;
+}
+
+form {
+    max-width: 760px;
+    margin: 32px auto;
+    padding: 24px;
+    background: #fff;
+    border: 1px solid #e9eef5;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(10, 30, 66, .06);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+/* Section titles */
+h2, h4 {
+    font-weight: 650;
+    color: #1f2a44;
+    margin: 0 0 18px;
+}
+
+h4 {
+    margin-top: 28px;
+}
+
+hr {
+    border: 0;
+    border-top: 1px solid #eef2f7;
+    margin: 24px 0;
+}
+
+/* ===== Controls ===== */
+.form-group {
+    margin-bottom: 16px;
+}
+
+label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #27324a;
+    margin-bottom: 6px;
+}
+
+.form-control, select, input[type="text"], input[type="email"],
+input[type="tel"], input[type="number"], input[type="date"] {
+    display: block;
+    width: 100%;
+    height: 44px;
+    padding: 10px 12px;
+    border: 1px solid #cfd7e6;
+    border-radius: 8px;
+    background: #fff;
+    font-size: 15px;
+    line-height: 1.2;
+    box-sizing: border-box;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+    .form-control:focus, select:focus, input[type="date"]:focus {
+        outline: none;
+        border-color: #4d79c7;
+        box-shadow: 0 0 0 3px rgba(77, 121, 199, .15);
+    }
+
+/* Hiển thị lỗi từ MVC unobtrusive */
+.text-danger, .field-validation-error {
+    color: #c0392b;
+    font-size: 13px;
+}
+
+/* ===== Radios / checkboxes ===== */
+.form-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 14px 6px 0;
+}
+
+.d-flex.gap-3 {
+    gap: 14px !important;
+    flex-wrap: wrap;
+}
+
+.form-check-input {
+    width: 18px;
+    height: 18px;
+    margin: 0;
+    border: 2px solid #cfd7e6;
+    border-radius: 50%;
+    appearance: none;
+    cursor: pointer;
+    position: relative;
+}
+
+    .form-check-input:checked {
+        background: #4d79c7;
+        border-color: #4d79c7;
+    }
+
+        .form-check-input:checked::after {
+            content: "";
+            position: absolute;
+            inset: 4px;
+            border-radius: 50%;
+            background: #fff;
+        }
+
+/* ===== Văn bằng block ===== */
+.vanbang-block {
+    border: 1px solid #e6ebf4;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 16px;
+}
+
+    .vanbang-block h5 {
+        margin: 0 0 14px;
+        font-size: 15px;
+        font-weight: 700;
+        color: #2b5fb8;
+        background: #f3f7ff;
+        padding: 8px 12px;
+        border-radius: 8px;
+    }
+
+/* ===== Buttons ===== */
+.btn {
+    display: inline-block;
+    padding: 11px 22px;
+    border-radius: 10px;
+    border: 0;
+    font-weight: 650;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .05s ease, opacity .15s ease, box-shadow .15s ease;
+}
+
+    .btn:active {
+        transform: translateY(1px);
+    }
+
+.btn-primary {
+    background: #316bd6;
+    color: #fff;
+    box-shadow: 0 6px 12px rgba(49,107,214,.18);
+}
+
+    .btn-primary:hover {
+        opacity: .92;
+    }
+
+/* ===== Small helpers ===== */
+#txtKhac {
+    margin-top: 8px;
+}
+
+#vanbang-container {
+    margin-top: 18px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    form {
+        margin: 16px;
+        padding: 18px;
+    }
 }

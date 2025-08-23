@@ -1,0 +1,41 @@
+﻿@model BVUB_WebTuyenDung.Models.UngVien
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Ứng Viên";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Edit">
+    <input type="hidden" asp-for="UngVienId" />
+    <div class="form-group">
+        <label asp-for="HoTen"></label>
+        <input asp-for="HoTen" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="GioiTinh"></label>
+        <select asp-for="GioiTinh" class="form-control">
+            <option value="Nam">Nam</option>
+            <option value="Nữ">Nữ</option>
+            <option value="Khác">Khác</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label asp-for="NgaySinh"></label>
+        <input asp-for="NgaySinh" type="date" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" type="email" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="SoDienThoai"></label>
+        <input asp-for="SoDienThoai" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="DiaChiCuTru"></label>
+        <input asp-for="DiaChiCuTru" class="form-control" />
+    </div>
+    <button type="submit" class="btn btn-primary">Cập nhật</button>
+    <a asp-action="Index" class="btn btn-secondary">Huỷ</a>
+</form>

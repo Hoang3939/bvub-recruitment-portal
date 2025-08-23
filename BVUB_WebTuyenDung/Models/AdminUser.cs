@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BVUB_WebTuyenDung.Models
 {
@@ -7,11 +6,12 @@ namespace BVUB_WebTuyenDung.Models
     {
         [Key]
         public int AdminId { get; set; }
-
-        [Required]
         public string Username { get; set; }
         public string PasswordHash { get; set; }
         public string Role { get; set; }
+
+        [Required, EmailAddress, StringLength(255)]
+        public string Email { get; set; }
     }
 
 }

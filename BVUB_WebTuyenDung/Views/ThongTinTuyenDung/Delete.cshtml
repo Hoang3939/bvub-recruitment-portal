@@ -1,0 +1,26 @@
+﻿@model BVUB_WebTuyenDung.Models.ThongTinTuyenDung
+
+@{
+    ViewData["Title"] = "Xoá Thông Tin Tuyển Dụng";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<h4>Bạn có chắc chắn muốn xoá mục tuyển dụng này?</h4>
+<hr />
+<dl class="row">
+    <dt class="col-sm-3">Tiêu đề</dt>
+    <dd class="col-sm-9">@Model.TieuDe</dd>
+
+    <dt class="col-sm-3">Ngày đăng</dt>
+    <dd class="col-sm-9">@Model.NgayDang.ToString("dd/MM/yyyy")</dd>
+
+    <dt class="col-sm-3">Hạn nộp</dt>
+    <dd class="col-sm-9">@Model.HanNopHoSo.ToString("dd/MM/yyyy")</dd>
+</dl>
+
+<form asp-action="Delete">
+    <input type="hidden" asp-for="TuyenDungId" />
+    <button type="submit" class="btn btn-danger">Xoá</button>
+    <a asp-action="Index" class="btn btn-secondary">Huỷ</a>
+</form>

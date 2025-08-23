@@ -9,15 +9,33 @@ namespace BVUB_WebTuyenDung.Models
 
         [Required]
         public int DonVienChucId { get; set; }
-        public DonVienChuc DonVienChuc { get; set; }
 
+        [Required, StringLength(50)]
         public string TenCoSo { get; set; }
-        public DateTime? NgayCap { get; set; }
-        public string SoHieu { get; set; }
-        public string ChuyenNganhDaoTao { get; set; }
-        public string NganhDaoTao { get; set; }
-        public string HinhThucDaoTao { get; set; }
-        public string XepLoai { get; set; }
-    }
 
+        [Required]
+        [DataType(DataType.Date)]
+        public DateTime? NgayCap { get; set; }
+
+        [StringLength(20)]
+        public string SoHieu { get; set; }
+
+        [StringLength(50)]
+        public string ChuyenNganhDaoTao { get; set; }
+
+        [StringLength(50)]
+        public string NganhDaoTao { get; set; }
+
+        [StringLength(50)]
+        public string HinhThucDaoTao { get; set; }
+
+        [StringLength(50)]
+        public string XepLoai { get; set; }
+
+        [Required, StringLength(50)]
+        public string LoaiVanBang { get; set; }
+
+
+        public DonVienChuc? DonVienChuc { get; set; }
+    }
 }
