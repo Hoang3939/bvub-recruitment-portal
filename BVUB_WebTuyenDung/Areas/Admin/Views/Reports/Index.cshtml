@@ -1,0 +1,106 @@
+﻿@{
+    ViewData["Title"] = "Báo cáo thống kê";
+}
+
+<link rel="stylesheet" href="~/css/admin-reports-index.css" asp-append-version="true" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<div class="header-row"><h2>@ViewData["Title"]</h2></div>
+
+<div class="main-content">
+    <div class="actions">
+        <form id="filterForm" class="smart-filter" onsubmit="return false;">
+            <select id="rangeSelect" class="mini-select" aria-label="Chọn khoảng thời gian">
+                <option value="7">7 ngày</option>
+                <option value="30" selected>30 ngày</option>
+                <option value="quarter">Quý này</option>
+                <option value="year">Năm nay</option>
+                <option value="custom">Tùy chọn…</option>
+            </select>
+            <div id="customRange" class="range-inline" aria-hidden="true">
+                <input type="date" id="from" class="mini-search-input" style="width:170px" />
+                <input type="date" id="to" class="mini-search-input" style="width:170px" />
+            </div>
+            <button id="btnApply" class="btn btn-filter" type="button">Lọc</button>
+        </form>
+    </div>
+
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="kpi-title">Đơn ứng viên chờ duyệt</div>
+                <i class="fa-solid fa-hourglass-half kpi-icon" style="color:#f59e0b"></i>
+            </div>
+            <div class="kpi-num" id="c-pending">0</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="kpi-title">Tin tuyển dụng còn hạn</div>
+                <i class="fa-solid fa-briefcase kpi-icon" style="color:#22c55e"></i>
+            </div>
+            <div class="kpi-num" id="c-active">0</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="kpi-title">Tin sắp hết hạn (14 ngày)</div>
+                <i class="fa-solid fa-hourglass-end kpi-icon" style="color:#ef4444"></i>
+            </div>
+            <div class="kpi-num" id="c-soon">0</div>
+        </div>
+
+        <div class="kpi-card">
+            <div class="d-flex justify-content-between align-items-start">
+                <div class="kpi-title">Ứng viên mới (khoảng)</div>
+                <i class="fa-solid fa-user-plus kpi-icon" style="color:#3b82f6"></i>
+            </div>
+            <div class="kpi-num" id="c-new-cands">0</div>
+            <div class="text-muted small">Tổng tin TD: <span id="c-total-rec">0</span></div>
+        </div>
+    </div>
+
+    <div class="kpi-grid" style="margin-top:14px;">
+        <div class="kpi-card">
+            <div class="kpi-title">Cơ cấu loại tuyển dụng</div>
+            <div class="mt-2">Viên chức: <b id="c-vc">0</b> • HĐ lao động: <b id="c-hd">0</b></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-title">Top tin sắp hết hạn</div>
+            <div id="top-exp" class="small mt-2"></div>
+        </div>
+    </div>
+
+    <div class="chart-box mt-3">
+        <div class="fw-bold mb-2">Tin tuyển dụng theo ngày</div>
+        <canvas id="recChart" height="90" aria-label="Biểu đồ tin tuyển dụng theo ngày"></canvas>
+    </div>
+
+    <div class="chart-box mt-3">
+        <div class="fw-bold mb-2">Tuyển dụng theo tháng (VC / HĐLĐ)</div>
+        <canvas id="recTypeChart" height="90" aria-label="Biểu đồ tuyển dụng theo tháng phân loại"></canvas>
+    </div>
+
+    <div class="chart-box mt-3">
+        <div class="fw-bold mb-2">Ứng viên theo ngày</div>
+        <canvas id="candChart" height="90" aria-label="Biểu đồ ứng viên theo ngày"></canvas>
+    </div>
+
+    <div class="chart-box mt-3">
+        <div class="fw-bold mb-2">Cơ cấu trạng thái ứng viên</div>
+        <canvas id="candBreakdown" height="90" aria-label="Biểu đồ cơ cấu trạng thái ứng viên"></canvas>
+    </div>
+</div>
+
+<!-- Config endpoints cho JS -->
+<div id="reports-config"
+     data-summary-url='@Url.Action("Summary")'
+     data-rec-series-url='@Url.Action("RecruitmentSeries")'
+     data-rec-type-monthly-url='@Url.Action("RecruitmentByTypeMonthly")'
+     data-cand-series-url='@Url.Action("CandidateSeries")'
+     data-cand-breakdown-url='@Url.Action("CandidateBreakdown")'>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/admin.reports.js" asp-append-version="true"></script>
+}

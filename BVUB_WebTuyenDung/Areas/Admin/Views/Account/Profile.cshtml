@@ -1,0 +1,22 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.Models.AdminUser
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+}
+
+<div class="profile-container">
+    <h2 class="profile-title">Thông tin cá nhân</h2>
+
+<div class="profile-field">
+    <label>Tên tài khoản</label>
+    <div class="readonly-text">@Model.Username</div>
+</div>
+
+<div class="profile-field">
+     <label>Email</label>
+     <div class="readonly-text">@Model.Email</div>
+</div>
+
+<div class="profile-field">
+    <label>Chức vụ</label>
+    <div class="readonly-text">@Model.Role</div>
+</div>

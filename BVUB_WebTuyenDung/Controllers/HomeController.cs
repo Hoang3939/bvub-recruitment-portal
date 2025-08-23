@@ -22,6 +22,10 @@ namespace BVUB_WebTuyenDung.Controllers
         {
             return View();
         }
+        public IActionResult Apply()
+        {
+            return View();
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

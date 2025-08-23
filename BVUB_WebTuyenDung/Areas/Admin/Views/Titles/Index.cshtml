@@ -1,0 +1,130 @@
+﻿@model IEnumerable<BVUB_WebTuyenDung.Areas.Admin.Models.DanhMucChucDanhDuTuyen>
+@using System.Security.Claims
+@{
+    ViewData["Title"] = "Chức danh dự tuyển";
+
+    bool isAdmin =
+        User.IsInRole("1") ||
+        User.IsInRole("Admin") ||
+        User.Claims.Any(c => c.Type == ClaimTypes.Role &&
+                             (string.Equals(c.Value, "1") ||
+                              string.Equals(c.Value, "Admin", StringComparison.OrdinalIgnoreCase)));
+}
+<link rel="stylesheet" href="~/css/admin-titles-index.css" asp-append-version="true" />
+
+<div class="header-row">
+    <h2>@ViewData["Title"]</h2>
+</div>
+
+<div class="main-content">
+    <div class="actions">
+        <!-- 1 ô lọc: mã hoặc tên -->
+        <form method="get" asp-area="Admin" asp-controller="Titles" asp-action="Index"
+              class="filter-form" role="search">
+            <input type="text" name="q" class="mini-search-input"
+                   placeholder="Nhập: mã hoặc tên chức danh"
+                   value="@(ViewBag.q ?? "")" />
+            <button type="submit" class="btn btn-filter">Lọc</button>
+        </form>
+
+        <a asp-area="Admin" asp-controller="Titles" asp-action="Create" class="btn btn-success">
+            <i class="fa fa-plus me-1"></i> Thêm
+        </a>
+    </div>
+
+    <!-- Toast thông báo (TempData) -->
+    @if (TempData["ToastSuccess"] != null || TempData["ToastError"] != null)
+    {
+        <div id="toast" class="toast-mini @(TempData["ToastError"]!=null?"error":"")">
+            @((TempData["ToastSuccess"] ?? TempData["ToastError"]) as string)
+        </div>
+    }
+
+    <div class="table-wrap">
+        <table class="titles-table" aria-label="Danh mục chức danh dự tuyển">
+            <thead>
+                <tr>
+                    <th style="min-width:100px">Mã</th>
+                    <th style="min-width:320px">Tên chức danh</th>
+                    <th style="min-width:160px">Trạng thái</th>
+                    <th class="col-actions" style="text-align:center;">Hoạt động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var x in Model)
+                {
+                    var suspended = x.TamNgung == 1;
+                    <tr class="row-click" data-id="@x.ChucDanhId">
+                        <td>@x.ChucDanhId</td>
+                        <td>@x.TenChucDanh</td>
+                        <td>
+                            <span class="status @(suspended ? "cancelled" : "approved")">
+                                @(suspended ? "Tạm ngưng" : "Sử dụng")
+                            </span>
+                        </td>
+                        <td class="cell-actions" style="text-align:center;">
+                            <a asp-area="Admin" asp-controller="Titles" asp-action="Edit"
+                               asp-route-id="@x.ChucDanhId" class="btn btn-primary">
+                                Sửa
+                            </a>
+
+                            @if (isAdmin)
+                            {
+                                <form id="del-@x.ChucDanhId"
+                                      asp-area="Admin" asp-controller="Titles" asp-action="Delete"
+                                      asp-route-id="@x.ChucDanhId" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="button" class="btn-icon btn-delete"
+                                            data-form="#del-@x.ChucDanhId" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===== Modal chi tiết ===== -->
+<div id="titleDetailModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="titleModalTitle">
+        <div class="modal-header">
+            <h3 id="titleModalTitle" class="modal-title">Thông tin chức danh</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div id="titleDetailContainer" class="modal-body">Đang tải...</div>
+    </div>
+</div>
+
+<!-- ===== Modal confirm xóa ===== -->
+<div id="confirmDelete" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card modal-sm" role="dialog" aria-modal="true" aria-labelledby="confirmDelTitle">
+        <div class="modal-header">
+            <h3 id="confirmDelTitle" class="modal-title">Xóa chức danh</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0">Bạn có chắc chắn muốn xóa mục này?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnDelCancel" class="btn btn-export">Thoát</button>
+            <button type="button" id="btnDelYes" class="btn btn-danger">Xóa</button>
+        </div>
+    </div>
+</div>
+
+<form id="af-titles" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<!-- Cầu hình cho JS ngoài -->
+<div id="admin-titles-index-config"
+     data-details-url='@Url.Action("DetailsPartial", "Titles", new { area = "Admin" })'>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/admin.titles.index.js" asp-append-version="true"></script>
+}

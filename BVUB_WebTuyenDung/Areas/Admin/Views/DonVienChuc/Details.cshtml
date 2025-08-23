@@ -1,0 +1,242 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.DonVienChucDetailsVm
+@using System.Reflection
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Chi tiết Đơn viên chức";
+
+    var uvLabel = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["UngVienId"] = "Mã ứng viên",
+                ["HoTen"] = "Họ và tên",
+                ["NgaySinh"] = "Ngày sinh",
+                ["GioiTinh"] = "Giới tính",
+                ["SoDienThoai"] = "Số điện thoại",
+                ["Email"] = "Email",
+                ["CCCD"] = "CCCD",
+                ["NgayCapCCCD"] = "Ngày cấp CCCD",
+                ["NoiCapCCCD"] = "Nơi cấp CCCD",
+                ["DiaChiThuongTru"] = "Địa chỉ thường trú",
+                ["DiaChiCuTru"] = "Địa chỉ cư trú",
+                ["MaSoThue"] = "Mã số thuế",
+                ["SoTaiKhoan"] = "Số tài khoản",
+                ["TinhTrangSucKhoe"] = "Tình trạng sức khỏe",
+                ["TrinhDoChuyenMon"] = "Trình độ chuyên môn",
+                ["NgayUngTuyen"] = "Ngày ứng tuyển"
+            };
+
+    var donLabel = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["VienChucId"] = "Mã đơn (Viên chức)",
+                ["UngVienId"] = "Mã ứng viên",
+                ["ViTriDuTuyenId"] = "Vị trí dự tuyển",
+                ["ChucDanhDuTuyenId"] = "Chức danh dự tuyển",
+                ["KhoaPhongId"] = "Khoa/Phòng",
+                ["DanToc"] = "Dân tộc",
+                ["TonGiao"] = "Tôn giáo",
+                ["QueQuan"] = "Quê quán",
+                ["HoKhau"] = "Hộ khẩu",
+                ["ChieuCao"] = "Chiều cao (cm)",
+                ["CanNang"] = "Cân nặng (kg)",
+                ["TrinhDoVanHoa"] = "Trình độ văn hóa",
+                ["LoaiHinhDaoTao"] = "Loại hình đào tạo",
+                ["DoiTuongUuTien"] = "Đối tượng ưu tiên",
+                ["NgayNop"] = "Ngày nộp",
+                ["MaTraCuu"] = "Mã tra cứu"
+            };
+
+    string Fmt(object? v)
+    {
+        if (v == null) return "";
+        if (v is DateTime dt) return dt.ToString("dd/MM/yyyy");
+        if (v is DateTimeOffset dto) return dto.ToString("dd/MM/yyyy");
+        return v.ToString() ?? "";
+    }
+
+    IEnumerable<(string Label, string Name, object? Val)> SimpleProps(object obj, IDictionary<string, string> map)
+    {
+        foreach (var p in obj.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance))
+        {
+            if (p.GetIndexParameters().Length > 0) continue;
+            var pt = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+            var isSimple = pt.IsPrimitive || pt.IsEnum || pt == typeof(string) || pt == typeof(decimal) || pt == typeof(DateTime) || pt == typeof(DateTimeOffset) || pt == typeof(Guid);
+            if (!isSimple) continue;
+
+            var displayAttr = p.GetCustomAttributes(typeof(DisplayAttribute), true).OfType<DisplayAttribute>().FirstOrDefault()?.Name;
+            var label = !string.IsNullOrWhiteSpace(displayAttr) ? displayAttr! : (map.TryGetValue(p.Name, out var lbl) ? lbl : p.Name);
+            yield return (label, p.Name, p.GetValue(obj));
+        }
+    }
+
+    string Pretty(string name, string label, object? val)
+    {
+        if (val == null) return "";
+        if (string.Equals(name, "GioiTinh", StringComparison.OrdinalIgnoreCase) || label.Trim().Equals("Giới tính", StringComparison.OrdinalIgnoreCase))
+        {
+            if (val is int gi) return gi == 1 ? "Nữ" : gi == 0 ? "Nam" : gi.ToString();
+        }
+        if (string.Equals(name, "ViTriDuTuyenId", StringComparison.OrdinalIgnoreCase))
+            return Model?.Don?.ViTriDuTuyen?.TenViTri ?? "";
+        if (string.Equals(name, "ChucDanhDuTuyenId", StringComparison.OrdinalIgnoreCase))
+            return Model?.Don?.ChucDanhDuTuyen?.TenChucDanh ?? "";
+        if (string.Equals(name, "KhoaPhongId", StringComparison.OrdinalIgnoreCase))
+        {
+            var kp = Model?.Don?.KhoaPhong;
+            return kp == null ? "" : $"{kp.Ten} ({kp.Loai})";
+        }
+        return Fmt(val);
+    }
+
+    bool isAdmin = User.IsInRole("1") || User.IsInRole("Admin")
+                   || User.Claims.Any(c => c.Type == ClaimTypes.Role && (string.Equals(c.Value, "1") || string.Equals(c.Value, "Admin", StringComparison.OrdinalIgnoreCase)));
+    bool isPending = string.Equals(Model.TrangThaiClass, "pending", StringComparison.OrdinalIgnoreCase);
+}
+
+<link rel="stylesheet" href="~/css/admin-donvienchuc-details.css" asp-append-version="true" />
+
+<div class="page">
+    <div class="header">
+        <div class="actions">
+            <a class="btn btn-back"
+               href="@Url.Action("Index","Candidates", new { area = "Admin"})#uv-@Model.UngVien.UngVienId">← Quay lại</a>
+
+            @if (isPending)
+            {
+                if (isAdmin)
+                {
+                    <button id="btnDuyetVC" class="btn btn-approve" type="button">Duyệt</button>
+                }
+            }
+            else
+            {
+                <a class="btn btn-primary"
+                   href="@Url.Action("Edit","DonVienChuc", new { area="Admin", id=Model.Don.VienChucId })">Sửa</a>
+            }
+
+            <a class="btn btn-export-word"
+               href="@Url.Action("ExportWord","DonVienChuc", new { area="Admin", id=Model.Don.VienChucId })">Xuất Word</a>
+        </div>
+    </div>
+
+    <h1 class="form-title">ĐƠN VIÊN CHỨC</h1>
+    <div class="meta">
+        Mã đơn: #@Model.Don.VienChucId
+        · Ứng viên: @Model.UngVien.HoTen
+        · Ngày nộp: @Fmt(Model.Don.NgayNop)
+        · Trạng thái: <span class="badge @Model.TrangThaiClass">@Model.TrangThaiLabel</span>
+    </div>
+
+    <div class="section">
+        <h3>I. Thông tin ứng viên</h3>
+        <table class="detail">
+            @foreach (var row in SimpleProps(Model.UngVien, uvLabel))
+            {
+                <tr>
+                    <td class="label">@row.Label</td>
+                    <td>@Pretty(row.Name, row.Label, row.Val)</td>
+                </tr>
+            }
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>II. Thông tin đơn viên chức</h3>
+        <table class="detail">
+            @foreach (var row in SimpleProps(Model.Don, donLabel))
+            {
+                if (row.Name.Equals("TrangThai", StringComparison.OrdinalIgnoreCase)) { continue; }
+                <tr>
+                    <td class="label">@row.Label</td>
+                    <td>@Pretty(row.Name, row.Label, row.Val)</td>
+                </tr>
+            }
+            <tr>
+                <td class="label">Trạng thái</td>
+                <td><span class="badge @Model.TrangThaiClass">@Model.TrangThaiLabel</span></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h3>III. Văn bằng</h3>
+
+        @if (Model?.Don?.VanBangs != null && Model.Don.VanBangs.Any())
+        {
+            <table class="vb-table">
+                <thead>
+                    <tr>
+                        <td>#</td>
+                        <td>Loại văn bằng</td>
+                        <td>Cơ sở đào tạo</td>
+                        <td>Ngành đào tạo</td>
+                        <td>Chuyên ngành</td>
+                        <td>Hình thức đào tạo</td>
+                        <td>Xếp loại</td>
+                        <td>Số hiệu</td>
+                        <td>Ngày cấp</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var idx = 0;
+                        foreach (var vb in Model.Don.VanBangs
+                        .OrderByDescending(v => v.NgayCap ?? DateTime.MinValue)
+                        .ThenBy(v => v.VanBangId))
+                        {
+                            idx++;
+                            <tr>
+                                <td>@idx</td>
+                                <td>@vb.LoaiVanBang</td>
+                                <td>@vb.TenCoSo</td>
+                                <td>@vb.NganhDaoTao</td>
+                                <td>@vb.ChuyenNganhDaoTao</td>
+                                <td>@vb.HinhThucDaoTao</td>
+                                <td>@vb.XepLoai</td>
+                                <td>@vb.SoHieu</td>
+                                <td>@(vb.NgayCap.HasValue ? vb.NgayCap.Value.ToString("dd/MM/yyyy") : "")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div style="padding:10px 0; color:#64748b">Chưa có văn bằng.</div>
+        }
+    </div>
+</div>
+
+<!-- Anti-forgery -->
+<form id="af-vc" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<!-- Modal xác nhận duyệt -->
+<div id="confirmApproveVC" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card confirm" role="dialog" aria-modal="true" aria-labelledby="approveTitleVC">
+        <div class="modal-header">
+            <h3 id="approveTitleVC" class="modal-title">Duyệt hồ sơ?</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">×</button>
+        </div>
+        <div class="modal-body">
+            <p>Hồ sơ sẽ chuyển sang trạng thái <b>Đã duyệt</b>. Bạn có chắc chắn?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline modal-close">Để sau</button>
+            <button type="button" id="doApproveVC" class="btn btn-approve">Duyệt ngay</button>
+        </div>
+    </div>
+</div>
+
+<!-- Config cho JS -->
+<div id="admin-vc-details-config"
+     data-approve-url='@Url.Action("ApproveNow", "Candidates", new { area = "Admin" })'
+     data-edit-url='@Url.Action("Edit", "DonVienChuc", new { area = "Admin", id = Model.Don.VienChucId })'
+     data-don-id='@Model.Don.VienChucId'>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/admin.donvienchuc.details.js" asp-append-version="true"></script>
+}

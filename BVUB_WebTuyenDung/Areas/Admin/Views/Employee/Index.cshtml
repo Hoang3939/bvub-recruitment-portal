@@ -1,0 +1,107 @@
+﻿@model IEnumerable<BVUB_WebTuyenDung.Areas.Admin.Models.AdminUser>
+@{
+    ViewData["Title"] = "Danh sách nhân viên";
+    Func<int, string> renderRole = r => r == 1 ? "Quản trị viên" : "Nhân viên";
+}
+
+<link rel="stylesheet" href="~/css/admin-employees-index.css" asp-append-version="true" />
+
+<!-- TIÊU ĐỀ để ngoài khung -->
+<div class="header-row">
+    <h2>Danh sách nhân viên</h2>
+</div>
+
+<!-- KHUNG main-content bọc ô nhập + bảng -->
+<div class="main-content">
+    <div class="actions">
+        <form method="get" asp-area="Admin" asp-controller="Employee" asp-action="Index" class="filter-form" role="search">
+            <input type="text" name="q" class="mini-search-input"
+                   placeholder="Nhập: Mã NV / Username / Email"
+                   value="@ViewBag.q" />
+            <button type="submit" class="btn btn-filter">Lọc</button>
+        </form>
+
+        <a class="btn btn-export"
+           asp-area="Admin" asp-controller="Employee" asp-action="ExportCsv"
+           asp-route-q="@(Context.Request.Query["q"].ToString())">
+            Xuất danh sách (Excel)
+        </a>
+
+        <a class="btn btn-success"
+           asp-area="Admin" asp-controller="Employee" asp-action="Create">
+            + Thêm mới
+        </a>
+    </div>
+
+    <div class="table-wrap">
+        <table class="candidate-table" aria-label="Danh sách nhân viên">
+            <thead>
+                <tr>
+                    <th class="col-id">Mã nhân viên</th>
+                    <th class="col-username">Tên đăng nhập</th>
+                    <th class="col-email">Email</th>
+                    <th class="col-role">Role</th>
+                    <th class="col-actions" style="text-align:center;">Hoạt động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    if (u.Role == 1) { continue; } // không render admin
+
+                    <tr data-id="@u.AdminId"
+                        data-editurl="@Url.Action("Edit", "Employee", new { area = "Admin", id = u.AdminId })">
+                        <td>@u.AdminId</td>
+                        <td>@u.Username</td>
+                        <td>@u.Email</td>
+                        <td>@(u.Role == 1 ? "Quản trị viên" : "Nhân viên")</td>
+                        <td class="cell-actions" style="text-align:center; white-space:nowrap;">
+                            <a class="btn btn-primary"
+                               asp-area="Admin" asp-controller="Employee" asp-action="Edit"
+                               asp-route-id="@u.AdminId">Sửa</a>
+
+                            <button type="button" class="btn-icon btn-delete" title="Xóa" aria-label="Xóa nhân viên">🗑</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal xem chi tiết nhân viên -->
+<div id="empDetailModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="empModalTitle">
+        <div class="modal-header">
+            <h3 id="empModalTitle" class="modal-title">Thông tin nhân viên</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div id="empDetailContainer" class="modal-body">Đang tải...</div>
+        <div class="modal-footer">
+            <a id="empEditBtn" class="btn btn-primary" href="#">Sửa</a>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="niceToast" class="toast-nice" role="status" aria-live="polite">
+    <span id="niceToastMsg">...</span>
+    <button type="button" class="close" aria-label="Đóng">&times;</button>
+</div>
+
+<!-- Form ẩn để lấy Anti-forgery token -->
+<form id="af-emp-index" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<!-- Config cho JS -->
+<div id="admin-emp-index-config"
+     data-details-url='@Url.Action("DetailsPartial", "Employee", new { area = "Admin" })'
+     data-delete-url='@Url.Action("Delete", "Employee", new { area = "Admin" })'
+     data-toast-msg='@((TempData["ToastMsg"] ?? "").ToString())'
+     data-toast-type='@((TempData["ToastType"] ?? "").ToString())'>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/admin.employee.index.js" asp-append-version="true"></script>
+}

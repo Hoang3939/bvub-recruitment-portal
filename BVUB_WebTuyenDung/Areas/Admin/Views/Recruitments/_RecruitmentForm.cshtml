@@ -1,0 +1,56 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.Models.ThongTinTuyenDung
+
+<link rel="stylesheet" href="~/css/admin-recruitments-index.css" asp-append-version="true" />
+
+<div class="rec-form-grid">
+    <div class="full">
+        <label asp-for="TieuDe" class="form-label">Tiêu đề</label>
+        <input asp-for="TieuDe" class="form-control" />
+        <span asp-validation-for="TieuDe" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="LoaiTuyenDung" class="form-label">Loại tuyển dụng</label>
+        <input asp-for="LoaiTuyenDung" class="form-control" />
+        <span asp-validation-for="LoaiTuyenDung" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="TrangThai" class="form-label">Trạng thái</label>
+        <select asp-for="TrangThai" class="form-select"
+                asp-items="Html.GetEnumSelectList<TrangThaiTuyenDung>()"></select>
+        <span asp-validation-for="TrangThai" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="NgayDang" class="form-label">Ngày đăng</label>
+        <input asp-for="NgayDang" type="date" class="form-control" />
+        <span asp-validation-for="NgayDang" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label asp-for="HanNopHoSo" class="form-label">Hạn nộp hồ sơ</label>
+        <input asp-for="HanNopHoSo" type="date" class="form-control" />
+        <span asp-validation-for="HanNopHoSo" class="text-danger"></span>
+    </div>
+
+    <div class="full">
+        <label asp-for="NoiDung" class="form-label">Nội dung</label>
+        <textarea asp-for="NoiDung" class="form-control"></textarea>
+        <span asp-validation-for="NoiDung" class="text-danger"></span>
+    </div>
+
+    <div class="full">
+        <label class="form-label">File đính kèm</label>
+        <input type="file" name="file" class="form-control" />
+        @if (!string.IsNullOrWhiteSpace(Model?.FileDinhKem))
+        {
+            <div class="form-text">
+                Tệp hiện tại:
+                <a href="@Model.FileDinhKem" target="_blank" rel="noopener">
+                    @System.IO.Path.GetFileName(Model.FileDinhKem)
+                </a> — Chọn tệp mới để thay thế.
+            </div>
+        }
+    </div>
+</div>

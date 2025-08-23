@@ -6,6 +6,8 @@ namespace BVUB_WebTuyenDung.Models
     {
         [Key]
         public int ChucDanhId { get; set; }
+
+        [Required]
         public string TenChucDanh { get; set; }
         public int TamNgung { get; set; }
 

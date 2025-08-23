@@ -1,0 +1,14 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.Models.DanhMucViTriDuTuyen
+
+<div style="display:flex; flex-direction:column; gap:8px;">
+    <div><strong>Mã:</strong> @Model.ViTriId</div>
+    <div><strong>Tên vị trí:</strong> @Model.TenViTri</div>
+    <div><strong>Chức danh:</strong> @Model.ChucDanh?.TenChucDanh</div>
+    <div><strong>Trạng thái:</strong> @(Model.TamNgung == 1 ? "Tạm ngưng" : "Sử dụng")</div>
+</div>
+
+<div style="display:flex; justify-content:flex-end; gap:10px; margin-top:12px;">
+    <a class="btn btn-primary"
+       asp-area="Admin" asp-controller="Positions" asp-action="Edit"
+       asp-route-id="@Model.ViTriId">Sửa</a>
+</div>

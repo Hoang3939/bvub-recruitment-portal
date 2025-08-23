@@ -1,0 +1,31 @@
+﻿@{
+    Layout = null;
+    var title = ViewData["Title"] ?? "Quản trị";
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@title - Quản trị</title>
+
+    <!-- CSS dùng chung cho Login/Forgot/Reset -->
+    <link rel="stylesheet" href="~/css/admin-login.css" asp-append-version="true" />
+
+    @RenderSection("Head", required: false)
+</head>
+<body>
+    @RenderBody()
+
+    <!-- jQuery (cần cho _ValidationScriptsPartial) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/…"
+            crossorigin="anonymous"></script>
+
+    <!-- Bootstrap -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            crossorigin="anonymous"></script>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

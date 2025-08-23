@@ -1,0 +1,26 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.Models.ThongTinTuyenDung
+@{
+    ViewData["Title"] = "Thêm thông tin tuyển dụng";
+}
+<div class="header-row"><h2>@ViewData["Title"]</h2></div>
+
+<div class="main-content">
+    <form asp-area="Admin" asp-controller="Recruitments" asp-action="Create"
+          method="post" enctype="multipart/form-data" id="recFormCreate">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        @await Html.PartialAsync("_RecruitmentForm", Model)
+
+        <div class="actions" style="margin-top:14px;">
+            <button type="submit" class="btn btn-success">Lưu</button>
+            <a asp-area="Admin" asp-controller="Recruitments" asp-action="Index" class="btn btn-export">Hủy</a>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/pages/admin.recruitments.form.js" asp-append-version="true"></script>
+}

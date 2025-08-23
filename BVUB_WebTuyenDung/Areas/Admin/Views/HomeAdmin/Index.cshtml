@@ -1,0 +1,93 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.DashboardVm
+@using System.Text.Json
+
+@{
+    ViewBag.Title = "Bảng điều khiển";
+}
+
+<link rel="stylesheet" href="~/css/admin-homeindex.css" asp-append-version="true" />
+
+<h1 style="font-size: 24px; margin-bottom: 20px;">Bảng điều khiển</h1>
+
+<div class="overview">
+    <div class="card">
+        <p>Tổng ứng viên</p>
+        <h2>@Model.TotalCandidates</h2>
+        <span class="@(Model.MoMNewCandidatesPct >= 0 ? "up" : "down")">
+            @(Model.MoMNewCandidatesPct >= 0 ? "↑" : "↓") @Model.MoMNewCandidatesPct% so với tháng trước
+        </span>
+    </div>
+    <div class="card">
+        <p>Ứng viên mới hôm nay</p>
+        <h2>@Model.NewCandidatesToday</h2>
+        <span class="@(Model.DoDNewCandidatesPct >= 0 ? "up" : "down")">
+            @(Model.DoDNewCandidatesPct >= 0 ? "↑" : "↓") @Model.DoDNewCandidatesPct% so với hôm qua
+        </span>
+    </div>
+    <div class="card">
+        <p>Ứng viên mới trong tháng</p>
+        <h2>@Model.NewCandidatesThisMonth</h2>
+        <span class="up">Cập nhật theo ngày</span>
+    </div>
+</div>
+
+<div class="chart-section">
+    <h3>Ứng viên 30 ngày gần nhất</h3>
+    <canvas id="line30"></canvas>
+</div>
+
+<div class="chart-section" style="margin-top:20px;">
+    <h3>Giới tính</h3>
+    <div style="max-width:520px;">
+        <canvas id="genderPie"></canvas>
+    </div>
+</div>
+
+<div class="chart-section" style="margin-top:20px;">
+    <h3>Nhóm tuổi</h3>
+    <canvas id="ageBar"></canvas>
+</div>
+
+<div class="deals-section" style="margin-top:30px;">
+    <h3>Hoạt động gần đây</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Mã UV</th>
+                <th>Họ tên</th>
+                <th>Email</th>
+                <th>Ngày ứng tuyển</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model.RecentCandidates)
+            {
+                <tr>
+                    <td>@r.UngVienId</td>
+                    <td>@r.HoTen</td>
+                    <td>@r.Email</td>
+                    <td>@r.NgayUngTuyen.ToString("dd/MM/yyyy")</td>
+                    <td>
+                        <a class="btn btn-sm btn-primary"
+                           asp-area="Admin" asp-controller="Candidates" asp-action="Index"
+                           asp-route-id="@r.UngVienId">Xem</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Config cho JS -->
+<div id="admin-home-index-config"
+     data-series='@Html.Raw(JsonSerializer.Serialize(Model.Last30DaysSeries))'
+     data-female='@Model.FemaleCount'
+     data-male='@Model.MaleCount'
+     data-buckets='@Html.Raw(JsonSerializer.Serialize(Model.AgeBuckets))'>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <script src="~/js/pages/admin.home.index.js" asp-append-version="true"></script>
+}

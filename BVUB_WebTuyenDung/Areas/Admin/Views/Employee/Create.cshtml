@@ -1,0 +1,96 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.AdminUserCreateVm
+@{
+    ViewData["Title"] = "Thêm nhân viên"; var permOpts = (ValueTuple<int, string>[])ViewBag.PermOptions;
+}
+
+<link rel="stylesheet" href="~/css/admin-employees-create.css" asp-append-version="true" />
+
+<div class="header-row"><h2>Thêm nhân viên</h2></div>
+
+<div class="main-content">
+    <form asp-area="Admin" asp-controller="Employee" asp-action="Create" method="post" id="empCreateForm" novalidate class="form-card">
+        @Html.AntiForgeryToken()
+
+        <div class="grid-2">
+            <div>
+                <label asp-for="Username" class="form-label"></label>
+                <input asp-for="Username" class="form-control" />
+                <span class="text-danger" asp-validation-for="Username"></span>
+            </div>
+            <div>
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span class="text-danger" asp-validation-for="Email"></span>
+            </div>
+            <div>
+                <label asp-for="Password" class="form-label"></label>
+                <input asp-for="Password" class="form-control" />
+                <span class="text-danger" asp-validation-for="Password"></span>
+            </div>
+            <div>
+                <label asp-for="ConfirmPassword" class="form-label"></label>
+                <input asp-for="ConfirmPassword" class="form-control" />
+                <span class="text-danger" asp-validation-for="ConfirmPassword"></span>
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <label class="form-label">Phân quyền</label>
+            <div class="perm-grid">
+                @foreach (var (val, text) in permOpts)
+                {
+                    <label class="perm-item">
+                        <input type="checkbox" name="SelectedPerms" value="@val" />
+                        <span>@text</span>
+                    </label>
+                }
+            </div>
+            <div class="form-text mt-2">Nếu không chọn gì → mặc định chỉ có “Bảng điều khiển”.</div>
+        </div>
+
+        <!-- Hidden để nhận mật khẩu xác nhận quản trị sau popup -->
+        <input type="password" asp-for="AdminPassword" id="AdminPasswordHidden" hidden />
+        <span class="text-danger" asp-validation-for="AdminPassword"></span>
+
+        <div class="mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-success">Lưu</button>
+            <a asp-area="Admin" asp-controller="Employee" asp-action="Index" class="btn btn-export">Hủy</a>
+        </div>
+    </form>
+</div>
+
+<!-- Popup xác nhận mật khẩu quản trị -->
+<div id="confirmPwdModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true">
+        <div class="modal-header">
+            <h3 class="modal-title">Xác nhận lưu</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Nhập <b>mật khẩu quản trị</b> để xác nhận thêm nhân viên.</p>
+            <input type="password" id="adminPwdInput" class="form-control" placeholder="Mật khẩu quản trị" />
+            <div id="adminPwdErr" class="text-danger mt-2" style="display:none;">Hãy nhập mật khẩu.</div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-export modal-close">Hủy</button>
+            <button type="button" class="btn btn-success" id="btnConfirmSave">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="niceToast" class="toast-nice" role="status" aria-live="polite">
+    <span id="niceToastMsg">...</span>
+    <button type="button" class="close" aria-label="Đóng">&times;</button>
+</div>
+
+<!-- Config cho JS -->
+<div id="admin-emp-create-config"
+     data-server-error="@((ViewBag.ToastError ?? "").ToString())"
+     data-first-error="@((ViewData.ModelState.Values.SelectMany(v => v.Errors).FirstOrDefault()?.ErrorMessage ?? ""))">
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/pages/admin.employee.create.js" asp-append-version="true"></script>
+}

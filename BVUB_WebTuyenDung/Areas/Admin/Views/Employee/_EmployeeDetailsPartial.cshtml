@@ -1,0 +1,50 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.Models.AdminUser
+
+@functions {
+    public string RenderRole(int r) => r == 1 ? "Quản trị viên" : "Nhân viên";
+    public string Mask(string s) => string.IsNullOrWhiteSpace(s) ? "(trống)" : new string('•', 12);
+}
+
+<div class="emp-detail">
+    <div class="emp-head">
+        <div class="emp-avatar" aria-hidden="true">👤</div>
+        <div>
+            <div class="emp-name">@Model.Username</div>
+            <div class="emp-sub">
+                Mã NV: <b>@Model.AdminId</b> • Vai trò: <b>@RenderRole(Model.Role)</b>
+            </div>
+        </div>
+    </div>
+
+    <div class="emp-grid">
+        <div class="emp-item">
+            <div class="emp-label">Tên đăng nhập</div>
+            <div class="emp-value">@Model.Username</div>
+        </div>
+
+        <div class="emp-item">
+            <div class="emp-label">Email</div>
+            <div class="emp-value">@Model.Email</div>
+        </div>
+
+        <div class="emp-item">
+            <div class="emp-label">Role</div>
+            <div class="emp-value">@RenderRole(Model.Role)</div>
+        </div>
+
+        <div class="emp-item">
+            <div class="emp-label">Mã nhân viên</div>
+            <div class="emp-value">@Model.AdminId</div>
+        </div>
+
+        <div class="emp-item">
+            <div class="emp-label">Mật khẩu</div>
+            <div class="emp-value secret-mono">
+                <span class="pwd-mask" data-full="@Model.PasswordHash" data-shown="0">••••••••••••</span>
+                <button type="button" class="icon-btn toggle-pwd" aria-label="Hiện/Ẩn">
+                    <i class="fa-solid fa-eye-slash"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

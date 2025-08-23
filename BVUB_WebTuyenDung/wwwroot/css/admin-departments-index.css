@@ -1,0 +1,358 @@
+﻿/* ====== Layout khung ====== */
+.main-content {
+    max-width: 1100px;
+    margin: 8px auto 30px;
+    padding: 25px 30px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0,0,0,.1)
+}
+
+.header-row {
+    max-width: 1100px;
+    margin: 18px auto 6px;
+    padding: 0 30px
+}
+
+    .header-row h2 {
+        font-size: 2rem;
+        font-weight: 800;
+        margin: 0
+    }
+
+/* ====== Thanh hành động ====== */
+.actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap
+}
+
+.main-content .actions, .main-content .actions form, .main-content .filter-form,
+.filter-card, .filter-box, .filter-wrapper {
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important
+}
+
+/* Form lọc gọn */
+.filter-form {
+    display: flex;
+    align-items: center;
+    gap: 10px
+}
+
+.mini-search-input, .mini-select {
+    height: 40px;
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    outline: none
+}
+
+.mini-select {
+    width: 180px;
+    max-width: 220px
+}
+
+    .mini-select:focus, .mini-search-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 3px rgba(13,110,253,.15)
+    }
+
+/* ====== Nút ====== */
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 3px 6px rgba(0,0,0,.12);
+    min-height: 40px
+}
+
+    .btn:hover {
+        filter: brightness(.97)
+    }
+
+.btn-filter {
+    background: #0d6efd;
+    color: #fff
+}
+
+.btn-export {
+    background: #6c757d;
+    color: #fff
+}
+
+.btn-success {
+    background: #28a745;
+    color: #fff
+}
+
+.btn-primary {
+    background: #0d6efd;
+    color: #fff
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: #fff
+}
+
+.btn-icon {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    padding: 4px 6px;
+    margin: 0 4px;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px ;
+    color: #bb0000;
+}
+
+    .btn-icon:hover {
+        background: rgba(0,0,0,.04)
+    }
+
+/* ====== Bảng ====== */
+.table-wrap {
+    position: relative;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px;
+    margin-top: 12px
+}
+
+.departments-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: max-content;
+    min-width: 100%
+}
+
+    .departments-table thead th {
+        background: #f6f7f9 !important;
+        padding: 12px 14px;
+        text-align: left;
+        font-weight: 700;
+        position: sticky;
+        top: 0;
+        z-index: 5
+    }
+
+    .departments-table tbody td {
+        background: #fff;
+        padding: 12px 14px
+    }
+
+    .departments-table tbody tr:hover td {
+        background: #f7fbff
+    }
+    /* Cột hoạt động dính phải */
+    .departments-table th:last-child, .departments-table td:last-child {
+        position: sticky;
+        right: 0;
+        background: #fff;
+        z-index: 6;
+        box-shadow: -8px 0 12px rgba(0,0,0,.06)
+    }
+
+/* Độ rộng cột */
+.col-name {
+    min-width: 220px
+}
+
+.col-type {
+    min-width: 140px
+}
+
+.col-attach {
+    min-width: 240px
+}
+
+.col-status {
+    min-width: 140px
+}
+
+.col-actions {
+    min-width: 220px
+}
+
+/* Cân nút hành động */
+.cell-actions .btn-primary, .cell-actions .btn-success {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 92px;
+    height: 40px
+}
+
+.cell-actions .btn-danger {
+    height: 40px
+}
+
+/* Badge trạng thái */
+.status {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 16px;
+    color: #fff;
+    font-weight: 700;
+    font-size: .9rem
+}
+
+    .status.approved {
+        background: #5cb85c
+    }
+
+    .status.cancelled {
+        background: #dc3545
+    }
+
+/* ===== Modal confirm nhỏ xinh ===== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.35);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 9999
+}
+
+    .modal-overlay.show {
+        display: flex
+    }
+
+.modal-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0,0,0,.12);
+    width: min(420px,92vw);
+    overflow: hidden
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid #eee
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700
+}
+
+.modal-close {
+    background: transparent;
+    border: 0;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer
+}
+
+.modal-body {
+    padding: 14px 16px
+}
+
+.modal-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end
+}
+
+/* Patch form trong ô hoạt động */
+.departments-table td:last-child form {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important
+}
+
+.departments-table .cell-actions .btn-icon.btn-delete {
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 !important;
+    margin: 0 6px !important;
+    line-height: 1;
+    min-height: 0 !important;
+    border-radius: 50%;
+    font-size: 18px
+}
+
+    .departments-table .cell-actions .btn-icon.btn-delete:hover {
+        background: rgba(0,0,0,.04) !important
+    }
+
+/* ===== Toast nổi góc phải ===== */
+.toast-mini {
+    position: fixed;
+    top: 86px;
+    right: 28px;
+    background: #22c55e;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 10px;
+    box-shadow: 0 8px 18px rgba(0,0,0,.18);
+    z-index: 2500;
+    opacity: 0;
+    transform: translateY(-6px);
+    transition: opacity .22s ease,transform .22s ease;
+    font-weight: 700
+}
+
+    .toast-mini.error {
+        background: #ef4444
+    }
+
+    .toast-mini.show {
+        opacity: 1;
+        transform: translateY(0)
+    }
+
+/* ======== Trang chi tiết =========*/
+.detail-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.detail-row {
+    display: flex;
+    gap: 10px;
+}
+
+    .detail-row .label {
+        min-width: 120px;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .detail-row .val {
+        flex: 1;
+    }
+

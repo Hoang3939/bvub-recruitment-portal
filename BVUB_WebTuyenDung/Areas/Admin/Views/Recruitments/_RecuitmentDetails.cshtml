@@ -1,0 +1,32 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.Models.ThongTinTuyenDung
+
+<div>
+    <div style="margin-bottom:10px;">
+        <span class="status @(Model.TrangThaiClass)">@Model.TrangThaiLabel</span>
+    </div>
+
+    <h4 style="margin:0 0 8px 0; font-weight:800;">@Model.TieuDe</h4>
+
+    <div style="color:#475569; margin-bottom:12px;">
+        <b>Loại tuyển dụng:</b> @Model.LoaiTuyenDung
+        <br />
+        <b>Thời gian:</b>
+        @Model.NgayDang.ToString("dd/MM/yyyy")
+        -
+        @Model.HanNopHoSo.ToString("dd/MM/yyyy")
+    </div>
+
+    <div style="font-weight:700; margin:6px 0 6px;">Nội dung:</div>
+    <textarea class="form-control" rows="8" readonly
+              style="background:#f8fafc; color:#334155; white-space:pre-wrap;">@Model.NoiDung</textarea>
+
+    @if (!string.IsNullOrWhiteSpace(Model.FileDinhKem))
+    {
+        <div style="margin-top:12px;">
+            <b>Đính kèm:</b>
+            <a href="@Model.FileDinhKem" target="_blank" rel="noopener">
+                @System.IO.Path.GetFileName(Model.FileDinhKem)
+            </a>
+        </div>
+    }
+</div>

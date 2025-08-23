@@ -1,0 +1,38 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.Models.DanhMucKhoaPhong
+
+<link rel="stylesheet" href="~/css/admin-departments-index.css" asp-append-version="true" />
+
+<div class="detail-wrap">
+    <div class="detail-row"><span class="label">Mã:</span><span class="val">#@Model.KhoaPhongId</span></div>
+    <div class="detail-row"><span class="label">Tên:</span><span class="val">@Model.Ten</span></div>
+    <div class="detail-row"><span class="label">Loại:</span><span class="val">@Model.Loai</span></div>
+    <div class="detail-row">
+        <span class="label">Trạng thái:</span>
+        <span class="val">
+            @(Model.TamNgung == 1 ? "Tạm ngưng" : "Sử dụng")
+        </span>
+    </div>
+
+    <div class="detail-row" style="align-items:flex-start">
+        <span class="label" style="margin-top:2px;">Vị trí:</span>
+        <div class="val">
+            @if (Model.KhoaPhongViTris?.Any() == true)
+            {
+                <ul style="margin:0; padding-left:18px;">
+                    @foreach (var v in Model.KhoaPhongViTris)
+                    {
+                        <li>@v.ViTri?.TenViTri</li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <span>—</span>
+            }
+        </div>
+    </div>
+
+    <div class="detail-actions" style="margin-top:10px;">
+        <a class="btn btn-primary" asp-area="Admin" asp-controller="Departments" asp-action="Edit" asp-route-id="@Model.KhoaPhongId">Sửa</a>
+    </div>
+</div>

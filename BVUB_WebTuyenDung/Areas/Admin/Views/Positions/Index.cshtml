@@ -1,0 +1,112 @@
+﻿@model IEnumerable<BVUB_WebTuyenDung.Areas.Admin.Models.DanhMucViTriDuTuyen>
+@{
+    ViewData["Title"] = "Vị trí dự tuyển";
+}
+<link rel="stylesheet" href="~/css/admin-positions-index.css" asp-append-version="true" />
+
+<div class="header-row">
+    <h2>@ViewData["Title"]</h2>
+</div>
+
+<div class="main-content">
+    <div class="actions">
+        <form method="get" asp-action="Index" class="filter-form" role="search">
+            <input type="text" name="q" class="mini-search-input"
+                   placeholder="Nhập: tên vị trí / tên chức danh"
+                   value="@(ViewBag.q ?? Context?.Request?.Query["q"].ToString())" />
+            <button type="submit" class="btn btn-filter">Lọc</button>
+        </form>
+
+        <a asp-action="Create" class="btn btn-success">
+            <i class="fa fa-plus me-1"></i> Thêm
+        </a>
+    </div>
+
+    @* Toast thông báo (TempData) *@
+    @if (TempData["ToastSuccess"] != null || TempData["ToastError"] != null)
+    {
+        <div id="toast" class="toast-mini @(TempData["ToastError"] != null ? "error" : "")" role="status" aria-live="polite">
+            @((TempData["ToastSuccess"] ?? TempData["ToastError"]) as string)
+        </div>
+        <script>
+            setTimeout(() => {
+                const t = document.getElementById('toast');
+                if (!t) return;
+                t.classList.add('show');
+                setTimeout(() => t.classList.remove('show'), 2300);
+            }, 50);
+        </script>
+    }
+
+    <div class="table-wrap">
+        <table class="positions-table" aria-label="Danh sách vị trí dự tuyển">
+            <thead>
+                <tr>
+                    <th class="col-name">Tên vị trí</th>
+                    <th class="col-type">Chức danh</th>
+                    <th class="col-status">Trạng thái</th>
+                    <th class="col-actions" style="text-align:center;">Hoạt động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var x in Model)
+                {
+                    var suspended = x.TamNgung == 1;
+                    <tr class="row-click" data-id="@x.ViTriId">
+                        <td>@x.TenViTri</td>
+                        <td>@x.ChucDanh?.TenChucDanh</td>
+                        <td>
+                            <span class="status @(suspended ? "cancelled" : "approved")">
+                                @(suspended ? "Tạm ngưng" : "Sử dụng")
+                            </span>
+                        </td>
+                        <td class="cell-actions" style="text-align:center;">
+                            <a asp-action="Edit" asp-route-id="@x.ViTriId" class="btn btn-primary">Sửa</a>
+                            <form id="del-@x.ViTriId" asp-action="Delete" asp-route-id="@x.ViTriId" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="button" class="btn-icon btn-delete" data-form="#del-@x.ViTriId" title="Xóa"><i class="fas fa-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal CHI TIẾT -->
+<div id="posDetailModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card modal-lg" role="dialog" aria-modal="true" aria-labelledby="posModalTitle">
+        <div class="modal-header">
+            <h3 id="posModalTitle" class="modal-title">Thông tin vị trí</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div id="posDetailContainer" class="modal-body">Đang tải...</div>
+    </div>
+</div>
+
+<!-- Modal confirm XÓA -->
+<div id="confirmDelete" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmDelTitle">
+        <div class="modal-header">
+            <h3 id="confirmDelTitle" class="modal-title">Xóa vị trí</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0">Bạn có chắc chắn muốn xóa mục này?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnDelCancel" class="btn btn-export">Thoát</button>
+            <button type="button" id="btnDelYes" class="btn btn-danger">Xóa</button>
+        </div>
+    </div>
+</div>
+
+@* Config để JS lấy URL *@
+<div id="pos-index-config"
+     data-details-url='@Url.Action("DetailsPartial", "Positions", new { area = "Admin" })'>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/admin.positions.index.js" asp-append-version="true"></script>
+}

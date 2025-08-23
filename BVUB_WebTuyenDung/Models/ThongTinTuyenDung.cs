@@ -6,6 +6,8 @@ namespace BVUB_WebTuyenDung.Models
     {
         [Key]
         public int TuyenDungId { get; set; }
+
+        [Required]
         public string TieuDe { get; set; }
         public string NoiDung { get; set; }
         public DateTime NgayDang { get; set; }

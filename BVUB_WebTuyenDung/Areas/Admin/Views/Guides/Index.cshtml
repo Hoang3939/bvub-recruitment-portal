@@ -1,0 +1,86 @@
+﻿@model IEnumerable<BVUB_WebTuyenDung.Areas.Admin.Models.HuongDanDangKy>
+
+@{
+    ViewData["Title"] = "Hướng dẫn đăng ký";
+    string loai = Context.Request.Query["loai"].ToString();
+    string q = Context.Request.Query["q"].ToString();
+
+    Func<string, string> guideIcon = _ => "fa-book-open";
+}
+
+<link rel="stylesheet" href="~/css/admin-guides-index.css" asp-append-version="true" />
+
+<div class="header-row"><h2>@ViewData["Title"]</h2></div>
+
+<div class="main-content">
+    <div class="actions">
+        <form method="get" class="filter-form" role="search">
+            <select name="loai" class="mini-select">
+                <option value="">Tất cả loại</option>
+                <option value="Người lao động" selected="@(loai=="Người lao động")">Người lao động</option>
+                <option value="Viên chức" selected="@(loai=="Viên chức")">Viên chức</option>
+            </select>
+
+            <input type="text" name="q" class="mini-search-input" placeholder="Tìm tiêu đề / nội dung" value="@q" />
+            <button type="submit" class="btn btn-filter">Lọc</button>
+        </form>
+
+        <a asp-action="Create" class="btn btn-add">+ Thêm</a>
+    </div>
+
+    <div class="rec-list">
+        @if (Model == null || !Model.Any())
+        {
+            <div style="color:#6b7280">Chưa có hướng dẫn nào.</div>
+        }
+        else
+        {
+            @foreach (var x in Model)
+            {
+                var icon = guideIcon(x.LoaiHuongDan);
+
+                <article class="rec-card" data-id="@x.HuongDanId">
+                    <div class="rec-icon"><i class="fa-solid @icon" aria-hidden="true"></i></div>
+                    <div class="rec-body">
+                        <h3 class="rec-title"><span>@x.TieuDe?.ToUpper()</span></h3>
+                        <div class="rec-meta">
+                            <span class="pill">Loại: @x.LoaiHuongDan</span>
+                            <span class="pill">Cập nhật: @x.NgayCapNhat.ToString("dd/MM/yyyy")</span>
+                        </div>
+                    </div>
+                </article>
+            }
+        }
+    </div>
+</div>
+
+<!-- Modal chi tiết -->
+<div id="guideDetailModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="guideModalTitle">
+        <div class="modal-header">
+            <h3 id="guideModalTitle" class="modal-title">Chi tiết hướng dẫn</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div id="guideDetailContainer" class="modal-body">Đang tải...</div>
+        <div class="modal-footer" style="justify-content:flex-end">
+            <a id="guideEditBtn" class="btn btn-primary">Sửa</a>
+            <button id="guideDeleteBtn" type="button" class="btn btn-danger">Xóa</button>
+        </div>
+    </div>
+</div>
+
+<!-- Anti-forgery cho AJAX -->
+<form id="af-guides" method="post" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
+
+<!-- Config cho JS -->
+<div id="admin-guides-index-config"
+     data-partial-url='@Url.Action("DetailsPartial")'
+     data-edit-url-tpl='@Url.Action("Edit", new { id = "__ID__" })'
+     data-delete-url='@Url.Action("DeleteAjax")'>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/admin.guides.index.js" asp-append-version="true"></script>
+}
