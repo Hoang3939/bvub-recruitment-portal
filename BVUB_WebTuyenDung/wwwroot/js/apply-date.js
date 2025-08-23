@@ -1,54 +1,55 @@
-﻿(function () {
-    function parseISO(dateStr) {
-        // kỳ vọng "yyyy-MM-dd"
-        if (!dateStr || typeof dateStr !== "string") return null;
-        const m = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+﻿// wwwroot/js/apply-date.js
+(function () {
+    function normalizeIso(iso) {
+        if (!iso) return "";
+        const m = String(iso).match(/^(\d{4}-\d{2}-\d{2})/);
+        return m ? m[1] : "";
+    }
+
+    // Parse an toàn theo local: new Date(y, m-1, d)
+    function safeDateFromIso(val) {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(val || ""));
         if (!m) return null;
-        const d = new Date(+m[1], +m[2] - 1, +m[3]);
-        return Number.isNaN(d.getTime()) ? null : d;
+        return new Date(+m[1], +m[2] - 1, +m[3]); // tránh lệch năm/tháng
     }
 
-    // Giá trị hôm nay (00:00)
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const today = parseISO(todayStr);
+    function setDateInput(selector, iso) {
+        const $el = window.jQuery ? jQuery(selector) : null;
+        const el = $el && $el.length ? $el[0] : document.querySelector(selector);
+        if (!el) return;
 
-    // 1) Nếu bạn dùng jQuery UI datepicker:
-    if (window.jQuery && jQuery.fn.datepicker) {
-        // đặt maxDate = 0 cho mọi .js-date
-        jQuery(function ($) {
-            $(".js-date").each(function () {
-                try { $(this).datepicker("option", "maxDate", 0); } catch (_) { }
-            });
-        });
-    }
+        const val = normalizeIso(iso);
+        const safe = val ? safeDateFromIso(val) : null;
 
-    // 2) Nếu bạn dùng bootstrap-datepicker:
-    if (window.jQuery && jQuery.fn.datepicker && jQuery.fn.datepicker.Constructor && jQuery.fn.datepicker.Constructor.VERSION) {
-        jQuery(function ($) {
-            $(".js-date").each(function () {
-                try { $(this).datepicker("setEndDate", new Date()); } catch (_) { }
-            });
-        });
-    }
-
-    // 3) Nếu bạn có hook initDatepickers(container), cố gắng gọi lại với cấu hình max:
-    if (typeof window.initDatepickers === "function") {
-        try { window.initDatepickers(document, { max: new Date() }); } catch (_) { }
-    }
-
-    // 4) Dù dùng datepicker gì, vẫn thêm lớp phòng thủ khi user gõ tay:
-    document.addEventListener("change", function (e) {
-        const el = e.target;
-        if (!el.classList || !el.classList.contains("js-date")) return;
-        const val = (el.value || "").trim();
-        const d = parseISO(val);
-        if (!d) return; // không phải định dạng ISO, tùy bạn đổi parse nếu cần
-
-        if (d > today) {
-            alert("Ngày không được lớn hơn ngày hiện tại.");
-            // reset về hôm nay hoặc xóa:
-            el.value = todayStr; // hoặc: el.value = "";
-            el.dispatchEvent(new Event("input", { bubbles: true }));
+        // 1) flatpickr
+        if (el._flatpickr) {
+            if (safe) el._flatpickr.setDate(safe, true);
+            else el._flatpickr.clear();
+            return;
         }
-    });
+
+        // 2) bootstrap-datepicker (eternicode)
+        if ($el && typeof $el.datepicker === "function" && $el.data("datepicker")) {
+            if (safe) $el.datepicker("setDate", safe);
+            else $el.datepicker("clearDates");
+            $el.trigger("change");
+            return;
+        }
+
+        // 3) jQuery UI datepicker
+        if ($el && typeof $el.datepicker === "function" && $el.datepicker("widget")) {
+            if (safe) $el.datepicker("setDate", safe);
+            else $el.val("");
+            $el.trigger("change");
+            return;
+        }
+
+        // 4) plain input
+        el.value = val || "";
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+        el.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+
+    // expose ra window để các file khác gọi
+    window.setDateInput = setDateInput;
 })();

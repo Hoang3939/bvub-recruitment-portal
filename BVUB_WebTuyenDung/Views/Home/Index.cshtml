@@ -8,60 +8,6 @@
     <meta charset="utf-8" />
     <title>Trang tuyển dụng - BV Ung Bướu</title>
     <link rel="stylesheet" href="~/css/site.css" />
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        .main {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 40px 60px;
-            gap: 20px;
-        }
-
-        .left-content {
-            flex: 1;
-            max-width: 45%;
-        }
-
-            .left-content h2 {
-                color: #4475B9;
-                font-size: 36px;
-                margin-bottom: 20px;
-            }
-
-        .apply-button {
-            background-color: #4475B9;
-            color: white;
-            padding: 15px 30px;
-            font-size: 18px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-        }
-
-            .apply-button img {
-                height: 24px;
-            }
-
-        .right-image {
-            flex: 1;
-            max-width: 50%;
-            text-align: right;
-        }
-
-            .right-image img {
-                max-width: 80%;
-                height: auto;
-            }
-    </style>
 </head>
 <body>
     <div class="main">
@@ -79,3 +25,7 @@
     </div>
 </body>
 </html>
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/main.css" asp-append-version="true" />
+}

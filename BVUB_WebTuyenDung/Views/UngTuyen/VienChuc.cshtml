@@ -19,7 +19,7 @@
     <div class="form-group">
         <label asp-for="UngVien.Email" class="form-label">Email</label>
         <div class="inline-row">
-            <input asp-for="UngVien.Email" type="text" class="form-control" id="txtEmail placeholder="Ví dụ: abc@gmail.com" />
+            <input asp-for="UngVien.Email" type="text" class="form-control" id="txtEmail" placeholder="Ví dụ: abc@gmail.com" />
             <button type="button" id="btnCheckEmail" class="btn btn-secondary">Kiểm tra</button>
         </div>
         <span asp-validation-for="UngVien.Email" class="text-danger"></span>
@@ -277,16 +277,16 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
-    <script src="~/js/apply-macdinh.js" asp-append-version="true"></script>
+    <script src="~/js/apply-date.js" asp-append-version="true"></script>
     <script src="~/js/apply-email.js" asp-append-version="true"></script>
+    <script src="~/js/apply-macdinh.js" asp-append-version="true"></script>
+    <script src="~/js/apply-init.js" asp-append-version="true"></script>
     <script src="~/js/apply-suckhoe.js" asp-append-version="true"></script>
     <script src="~/js/apply-trinhdovanhoa.js" asp-append-version="true"></script>
-    <script src="~/js/apply-vanbang.js" asp-append-version="true"></script>
-    <script src="~/js/apply-cascade.js" asp-append-version="true"></script>
-    <script src="~/js/apply-init.js" asp-append-version="true"></script>
     <script src="~/js/apply-uutien.js" asp-append-version="true"></script>
     <script src="~/js/apply-loaihinhdaotao.js" asp-append-version="true"></script>
-    <script src="~/js/apply-date.js" asp-append-version="true"></script>
+    <script src="~/js/apply-vanbang.js" asp-append-version="true"></script>
+    <script src="~/js/apply-cascade.js" asp-append-version="true"></script>
 }
 
 @section Styles {

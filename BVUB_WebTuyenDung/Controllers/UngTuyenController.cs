@@ -3,14 +3,23 @@ using BVUB_WebTuyenDung.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using BVUB_WebTuyenDung.Infrastructure.Email;
 
 namespace BVUB_WebTuyenDung.Controllers
 {
     public class UngTuyenController : Controller
     {
         private readonly ApplicationDbContext _context;
-        public UngTuyenController(ApplicationDbContext context) => _context = context;
+        private readonly IEmailSender _email;
+        private readonly ILogger<UngTuyenController> _logger;
         private static readonly char[] _maChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".ToCharArray();
+
+        public UngTuyenController(ApplicationDbContext context, IEmailSender email, ILogger<UngTuyenController> logger)
+        {
+            _context = context;
+            _email = email;
+            _logger = logger;
+        }
 
         private string NewMa(int len = 6)
         {
@@ -22,16 +31,19 @@ namespace BVUB_WebTuyenDung.Controllers
 
         private async Task<string> GenerateUniqueMaTraCuuAsync(int len = 6)
         {
-            // Giới hạn vòng lặp để tránh đợi vô hạn; xác suất trùng rất thấp
             for (int i = 0; i < 50; i++)
             {
                 var code = NewMa(len);
-                var exists = await _context.DonVienChuc.AnyAsync(d => d.MaTraCuu == code);
-                if (!exists) return code;
+
+                var existsVC = await _context.DonVienChuc.AnyAsync(d => d.MaTraCuu == code);
+                var existsNLD = await _context.HopDongNguoiLaoDong.AnyAsync(h => h.MaTraCuu == code);
+
+                if (!existsVC && !existsNLD)
+                    return code;
             }
-            // fallback – gần như không bao giờ tới
             return Guid.NewGuid().ToString("N")[..len].ToUpperInvariant();
         }
+
 
         public IActionResult Index()
         {
@@ -128,6 +140,26 @@ namespace BVUB_WebTuyenDung.Controllers
 
                 _context.HopDongNguoiLaoDong.Add(hd);
                 await _context.SaveChangesAsync();
+
+                try
+                {
+                    var to = ungVien.Email;
+                    var subject = "Xác nhận nộp hồ sơ Người lao động - BV Ung Bướu TP.HCM";
+                    var html = $@"
+                        <p>Chào <b>{System.Net.WebUtility.HtmlEncode(ungVien.HoTen)}</b>,</p>
+                        <p>Anh/Chị đã nộp <b>Hồ sơ Người lao động</b> thành công.</p>
+                        <p>Mã tra cứu hồ sơ của Anh/Chị là: <b style=""font-size:18px"">{hd.MaTraCuu}</b></p>
+                        <p>Vui lòng lưu lại mã này để tra cứu tình trạng xử lý.</p>
+                        <p>Mọi thắc mắc hay chỉnh sửa hồ sơ vui lòng liên hệ số điện thoại ... phòng nhân sự.</p>
+                        <hr/>
+                        <p>Trân trọng,<br/>Bệnh viện Ung Bướu TP.HCM - cơ sở 2</p>";
+                    await _email.SendAsync(to, subject, html);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Gửi email NLD thất bại cho {Email}", ungVien.Email);
+                    // Không throw để tránh chặn user – chỉ log
+                }
 
                 return RedirectToAction("ThanhCong");
             }
@@ -251,6 +283,24 @@ namespace BVUB_WebTuyenDung.Controllers
                     _context.VanBang.AddRange(danhSachVanBang);
                     await _context.SaveChangesAsync();
                 }
+                try
+                {
+                    var to = model.UngVien.Email;
+                    var subject = "Xác nhận nộp Đơn ứng tuyển Viên chức - BV Ung Bướu TP.HCM";
+                    var html = $@"
+                        <p>Chào <b>{System.Net.WebUtility.HtmlEncode(model.UngVien.HoTen)}</b>,</p>
+                        <p>Anh/Chị đã nộp <b>Đơn ứng tuyển Viên chức</b> thành công.</p>
+                        <p>Mã tra cứu hồ sơ của Anh/Chị là: <b style=""font-size:18px"">{model.DonVienChuc.MaTraCuu}</b></p>
+                        <p>Vui lòng lưu lại mã này để tra cứu tình trạng xử lý.</p>
+                        <p>Mọi thắc mắc hay chỉnh sửa hồ sơ vui lòng liên hệ số điện thoại ... phòng nhân sự.</p>
+                        <hr/>
+                        <p>Trân trọng,<br/>Bệnh viện Ung Bướu TP.HCM</p>";
+                    await _email.SendAsync(to, subject, html);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Gửi email VC thất bại cho {Email}", model.UngVien.Email);
+                }
 
                 return RedirectToAction("ThanhCong");
             }
@@ -368,8 +418,8 @@ namespace BVUB_WebTuyenDung.Controllers
 
         private async Task<UngVien> GetOrCreateUngVienByEmailAsync(UngVien posted)
         {
-            var email = (posted.Email ?? "").Trim();
-            var existing = await _context.UngVien.FirstOrDefaultAsync(u => u.Email == email);
+            var email = (posted.Email ?? "").Trim().ToLowerInvariant();
+            var existing = await _context.UngVien.FirstOrDefaultAsync(u => u.Email.ToLower() == email);
 
             if (existing != null)
             {

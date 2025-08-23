@@ -1,81 +1,92 @@
-﻿// Kiểm tra email + chặn submit (dùng chung 2 view)
-(function (ns) {
+﻿// DÙNG CHUNG CHO NLD & VC
+(function () {
     const $email = $("#txtEmail");
     const $hint = $("#emailHint");
     const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
-    const mode = ns.detectMode(); // "vc" hoặc "nld"
+
+    const mode = ($('form[data-mode]').data('mode') || '').toLowerCase(); // 'nld' | 'vc'
+    let lastCheckedEmail = null;
+    let canSubmit = false;
+
+    function setHint(msg, isErr) {
+        $hint.text(msg || "")
+            .toggleClass("text-danger", !!isErr)
+            .toggleClass("text-muted", !isErr);
+    }
+
+    // 💡 Không còn hàm fillUngVien nội bộ
 
     $email.on("input", function () {
-        ns.state.lastCheckedEmail = null;
-        ns.state.canSubmit = false;
-        ns.setHint($hint, "");
+        lastCheckedEmail = null;
+        canSubmit = false;
+        setHint("");
     });
 
     $("#btnCheckEmail").on("click", function () {
         const email = ($email.val() || "").trim();
-        if (!email) { ns.setHint($hint, "Vui lòng nhập Email trước.", true); return; }
-        if (!emailRegex.test(email)) { ns.setHint($hint, "Sai định dạng Email. Chỉ chấp nhận @gmail.com", true); return; }
+        if (!email) { setHint("Vui lòng nhập Email trước.", true); return; }
+        if (!emailRegex.test(email)) { setHint("Sai định dạng Email. Chỉ chấp nhận @gmail.com", true); return; }
 
-        ns.setHint($hint, "Đang kiểm tra...");
-
+        setHint("Đang kiểm tra...");
         $.getJSON("/UngTuyen/CheckEmail", { email })
             .done(function (res) {
-                ns.state.lastCheckedEmail = email;
+                lastCheckedEmail = email;
 
                 if (!res || !res.ok) {
-                    ns.setHint($hint, res?.message || "Không kiểm tra được Email.", true);
-                    ns.state.canSubmit = false;
+                    setHint(res?.message || "Không kiểm tra được Email.", true);
+                    canSubmit = false;
                     return;
                 }
 
+                // Chưa có ai dùng
                 if (!res.exists) {
-                    ns.setHint($hint, "Email chưa tồn tại trong hệ thống. Bạn có thể nhập mới và nộp đơn.", false);
-                    ns.state.canSubmit = true;
+                    setHint("Email hợp lệ và chưa tồn tại. Bạn có thể nộp đơn.", false);
+                    canSubmit = true;
                     return;
                 }
 
-                // đã tồn tại
-                if (res.ungVien) ns.fillUngVien(res.ungVien);
+                // ĐÃ có ứng viên -> dùng helper đã chuẩn hóa (điền cả ngày)
+                if (res.ungVien && window.Apply && typeof Apply.fillUngVien === "function") {
+                    Apply.fillUngVien(res.ungVien);
+                }
 
-                if (mode === "vc") {
-                    if (res.hasDonVienChuc) {
-                        ns.setHint($hint, "Email này đã có ĐƠN VIÊN CHỨC. Bạn không thể nộp thêm.", true);
-                        ns.state.canSubmit = false;
-                    } else {
-                        ns.setHint($hint, "Đã tìm thấy hồ sơ ứng viên. Bạn có thể nộp đơn viên chức.", false);
-                        ns.state.canSubmit = true;
-                    }
-                } else { // nld
+                // Quy tắc submit theo mode
+                if (mode === "nld") {
                     if (res.hasHopDong) {
-                        ns.setHint($hint, "Email này đã có hồ sơ NGƯỜI LAO ĐỘNG. Không thể nộp thêm.", true);
-                        ns.state.canSubmit = false;
+                        setHint("Email này đã có hồ sơ NGƯỜI LAO ĐỘNG. Không thể nộp thêm.", true);
+                        canSubmit = false;
                     } else {
-                        ns.setHint($hint, "Đã tìm thấy hồ sơ. Bạn có thể nộp đơn.", false);
-                        ns.state.canSubmit = true;
+                        setHint("Đã tìm thấy hồ sơ. Thông tin Ứng viên đã được điền sẵn, bạn có thể nộp đơn.", false);
+                        canSubmit = true;
+                    }
+                } else { // vc
+                    if (res.hasDonVienChuc) {
+                        setHint("Email này đã có ĐƠN VIÊN CHỨC. Bạn không thể nộp thêm.", true);
+                        canSubmit = false;
+                    } else {
+                        setHint("Đã tìm thấy hồ sơ. Thông tin Ứng viên đã được điền sẵn, bạn có thể nộp đơn.", false);
+                        canSubmit = true;
                     }
                 }
             })
             .fail(function () {
-                ns.setHint($hint, "Lỗi kết nối. Vui lòng thử lại.", true);
-                ns.state.canSubmit = false;
-                ns.state.lastCheckedEmail = email;
+                setHint("Lỗi kết nối. Vui lòng thử lại.", true);
+                canSubmit = false;
             });
     });
 
-    // Chặn submit nếu chưa kiểm tra / không đủ điều kiện
     $("form").on("submit", function (e) {
         const email = ($email.val() || "").trim();
-        if (!ns.state.lastCheckedEmail || email !== ns.state.lastCheckedEmail) {
+        if (!lastCheckedEmail || email !== lastCheckedEmail) {
             e.preventDefault();
-            ns.setHint($hint, 'Vui lòng nhập Email và bấm "Kiểm tra" trước khi nộp.', true);
+            setHint('Vui lòng nhập Email và bấm "Kiểm tra" trước khi nộp.', true);
             alert("Vui lòng kiểm tra Email trước khi nộp đơn.");
             return;
         }
-        if (!ns.state.canSubmit) {
+        if (!canSubmit) {
             e.preventDefault();
-            ns.setHint($hint, "Bạn không đủ điều kiện nộp đơn với Email này.", true);
+            setHint("Bạn không đủ điều kiện nộp đơn với Email này.", true);
             alert("Bạn không đủ điều kiện nộp đơn với Email này.");
         }
     });
-
-})(window.Apply);
+})();

@@ -3,10 +3,15 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
 using BVUB_WebTuyenDung.Data;
 using Microsoft.EntityFrameworkCore;
+using BVUB_WebTuyenDung.Infrastructure.Email;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+
+builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
