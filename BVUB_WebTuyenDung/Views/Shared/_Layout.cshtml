@@ -1,93 +1,27 @@
-﻿<!DOCTYPE html>
+﻿@* Views/Shared/_Layout.cshtml *@
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="utf-8" />
     <title>@ViewData["Title"] - BV Ung Bướu</title>
+
+    <!-- CSS chung của site -->
     <link rel="stylesheet" href="~/css/site.css" />
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
 
-        .header {
-            background-color: #4475B9;
-            color: white;
-            padding: 10px 20px;
-            display: flex;
-            align-items: center;
-        }
+    <!-- CSS của layout (đã tách) -->
+    <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
 
-        .header img {
-            height: 40px;
-            margin-right: 10px;
-        }
+    @* CSS riêng từng trang (ví dụ: apply-forms.css chỉ cho 2 form) *@
+    @RenderSection("Styles", required: false)
 
-        .header h1 {
-            font-size: 20px;
-            margin: 0;
-        }
-
-        .nav {
-            display: flex;
-            justify-content: space-around;
-            background-color: white;
-            padding: 15px 0;
-            font-weight: bold;
-            color: #000;
-            border-bottom: 2px solid #eee;
-        }
-
-        footer {
-            background-color: #f7f7f7;
-            padding: 30px 60px;
-        }
-
-        .info {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 40px;
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .info .info-block {
-            flex: 1;
-            min-width: 300px;
-            max-width: 600px;
-        }
-
-        .info .info-line {
-            display: flex;
-            gap: 5px;
-        }
-
-        .info .info-line strong {
-            white-space: nowrap;
-        }
-
-        html, body {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }
-
-        .page-wrapper {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .content-wrapper {
-            flex: 1;
-        }
-
-    </style>
+    @* Flatpickr CSS (nếu dùng datepicker dd/MM/yyyy) *@
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 </head>
 <body>
     <div class="header">
-        <img src="~/images/logo.png" alt="Logo" />
+        <a asp-controller="Home" asp-action="Index">
+            <img src="~/images/logo.png" alt="Logo" />
+        </a>
         <h1>Bệnh viện Ung Bướu<br /><small>Thành phố Hồ Chí Minh</small></h1>
     </div>
 
@@ -96,10 +30,12 @@
         <div>Hướng dẫn đăng ký</div>
         <div>Tra cứu thông tin</div>
     </div>
+
     <div class="page-wrapper">
         <div class="content-wrapper">
             @RenderBody()
         </div>
+
         @{
             var currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
             var hideFooterActions = new[] { "VienChuc", "NguoiLaoDong" };
@@ -128,10 +64,18 @@
                 </div>
             </footer>
         }
-        
     </div>
+
+    <!-- JS chung -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" crossorigin="anonymous"></script>
+
+    @* Flatpickr JS + locale Việt (nếu dùng datepicker dd/MM/yyyy trong layout.js) *@
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/vn.js"></script>
+
+    <!-- JS của layout (đã tách) -->
+    <script src="~/js/layout.js" asp-append-version="true"></script>
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>
-
