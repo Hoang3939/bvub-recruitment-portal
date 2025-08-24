@@ -38,8 +38,9 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// Email Sender qua SendGrid 
-builder.Services.AddSingleton<IEmailSender, SendGridEmailSender>();
+// Đăng ký cấu hình Gmail + EmailSender duy nhất
+builder.Services.Configure<GmailOptions>(builder.Configuration.GetSection("Email:Gmail"));
+builder.Services.AddSingleton<IEmailSender, GmailSmtpEmailSender>();
 
 var app = builder.Build();
 
