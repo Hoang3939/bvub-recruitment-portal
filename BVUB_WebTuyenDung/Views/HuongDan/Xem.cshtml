@@ -1,0 +1,50 @@
+﻿@model BVUB_WebTuyenDung.Models.HuongDanDangKy
+@{
+    ViewData["Title"] = "Hướng dẫn đăng ký";
+
+    string? fileUrl = null;
+    if (!string.IsNullOrWhiteSpace(Model?.FileHuongDan))
+    {
+        var raw = Model.FileHuongDan!.Trim();
+        fileUrl = raw.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+            ? raw
+            : Url.Content(raw.StartsWith("/") ? raw : "~/uploads/huongdan/" + raw);
+    }
+}
+@section Styles{
+  <link rel="stylesheet" href="~/css/huongdan.css" asp-append-version="true" />
+}
+
+@if (Model is null)
+{
+  <div class="hd-detail">
+    <h1 class="hd-detail__title">Chưa có nội dung hướng dẫn</h1>
+    <p>Hiện chưa có hướng dẫn cho mục này.</p>
+    <a asp-action="Index" class="hd-btn">← Quay lại</a>
+  </div>
+}
+else
+{
+  <div class="hd-detail">
+    <h1 class="hd-detail__title">@Model.TieuDe</h1>
+    <div class="hd-detail__meta">
+      <span class="hd-badge">@Model.LoaiHuongDan</span>
+      <span>Cập nhật: @Model.NgayCapNhat.ToString("dd/MM/yyyy")</span>
+    </div>
+
+    <div class="hd-detail__content">
+      @Html.Raw(Model.NoiDung)
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(fileUrl))
+    {
+      <div class="hd-detail__files">
+        <a href="@fileUrl" target="_blank" rel="noopener" class="hd-btn hd-btn--primary">Tải tệp đính kèm</a>
+      </div>
+    }
+
+    <div class="hd-actions">
+      <a asp-action="Index" class="hd-btn">← Quay lại</a>
+    </div>
+  </div>
+}

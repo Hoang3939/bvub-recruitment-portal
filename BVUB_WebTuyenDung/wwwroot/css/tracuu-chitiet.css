@@ -1,0 +1,161 @@
+﻿.detail-page {
+    max-width: 980px; /* vừa mắt khi đọc dọc */
+    margin: 28px auto;
+    padding: 24px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(18,38,63,.06);
+}
+
+/* Header + trạng thái */
+.detail-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.badge {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: .9rem
+}
+
+.badge-ok {
+    background: #e6f6ee;
+    color: #1e7d4f;
+    border: 1px solid #b6e3c8
+}
+
+.badge-warn {
+    background: #fff7e6;
+    color: #9a6a00;
+    border: 1px solid #ffe1a6
+}
+
+.badge-danger {
+    background: #fdeaea;
+    color: #b21e1e;
+    border: 1px solid #f5b5b5
+}
+
+.badge-muted {
+    background: #f1f3f5;
+    color: #555;
+    border: 1px solid #e5e7ea
+}
+
+/* Các section xếp DỌC */
+.section-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+
+/* Card trắng */
+.card {
+    border: 1px solid #e8e8ef;
+    border-radius: 12px;
+    background: #fff;
+    padding: 18px 16px;
+}
+
+.card h5 {
+    margin: 0 0 12px;
+    font-weight: 700
+}
+
+/* Cặp Nhãn–Giá trị: 1 cặp / 1 hàng */
+.kv {
+    --label-w: 240px; /* dễ chỉnh độ rộng nhãn */
+    display: grid;
+    grid-template-columns: var(--label-w) 1fr;
+    column-gap: 18px;
+    row-gap: 12px;
+    align-items: start;
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.kv dt {
+    margin: 0;
+    color: #22324d;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.kv dd {
+    margin: 0;
+    color: #222;
+    overflow-wrap: anywhere;
+}
+
+/* Màn nhỏ: thu hẹp nhãn để không vỡ hàng */
+@media (max-width: 640px) {
+    .kv {
+        --label-w: 160px;
+    }
+}
+
+/* Bảng văn bằng */
+.tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.tbl th, .tbl td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #eef0f3;
+    vertical-align: top;
+}
+
+.tbl thead th {
+    background: #fafbfc;
+    font-weight: 700;
+}
+
+/* Nút (fallback nếu không dùng bootstrap) */
+.btn {
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer
+}
+
+.btn-primary {
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: none;
+    background: #2f6fed;
+    color: #fff;
+}
+
+.btn-outline {
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid #2f6fed;
+    color: #2f6fed;
+    background: #fff;
+}
+
+/* Văn bằng đọc dọc */
+.vb-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+.vb-card {
+    border: 1px solid #eef0f3;
+    border-radius: 10px;
+    background: #fafbff;
+    padding: 14px 16px;
+}
+
+.vb-card h6 {
+    margin: 0 0 10px;
+    font-weight: 700;
+}

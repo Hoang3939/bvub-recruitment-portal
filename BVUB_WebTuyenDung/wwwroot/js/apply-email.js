@@ -2,7 +2,7 @@
 (function () {
     const $email = $("#txtEmail");
     const $hint = $("#emailHint");
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@gmail\.com$/i;
+    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/i;
 
     const mode = ($('form[data-mode]').data('mode') || '').toLowerCase(); // 'nld' | 'vc'
     let lastCheckedEmail = null;
@@ -25,7 +25,7 @@
     $("#btnCheckEmail").on("click", function () {
         const email = ($email.val() || "").trim();
         if (!email) { setHint("Vui lòng nhập Email trước.", true); return; }
-        if (!emailRegex.test(email)) { setHint("Sai định dạng Email. Chỉ chấp nhận @gmail.com", true); return; }
+        if (!emailRegex.test(email)) { setHint("Sai định dạng Email.", true); return; }
 
         setHint("Đang kiểm tra...");
         $.getJSON("/UngTuyen/CheckEmail", { email })
@@ -40,7 +40,7 @@
 
                 // Chưa có ai dùng
                 if (!res.exists) {
-                    setHint("Email hợp lệ và chưa tồn tại. Bạn có thể nộp đơn.", false);
+                    setHint("Email hợp lệ và chưa tồn tại đơn. Bạn có thể nộp đơn.", false);
                     canSubmit = true;
                     return;
                 }

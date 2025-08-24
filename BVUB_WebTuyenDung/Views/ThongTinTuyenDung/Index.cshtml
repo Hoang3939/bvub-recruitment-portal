@@ -1,0 +1,91 @@
+﻿@model BVUB_WebTuyenDung.Models.TuyenDungListViewModel
+@{
+    ViewData["Title"] = "Thông tin tuyển dụng";
+    string Active(string key) => string.Equals(Model.Loai, key, StringComparison.OrdinalIgnoreCase) ? "is-active" : "";
+    string LabelLoai(string? loai) => loai?.ToUpperInvariant() switch { "VC" => "Viên chức", "NLD" => "Người lao động", _ => "Khác" };
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/tuyendung.css" asp-append-version="true" />
+}
+
+<h1 class="td-title">Thông tin tuyển dụng</h1>
+
+<form method="get" class="td-toolbar">
+    <div class="td-filters">
+        <a asp-action="Index" asp-route-loai="" asp-route-q="@Model.Q" asp-route-sort="@Model.Sort"
+           class="td-chip @(string.IsNullOrEmpty(Model.Loai) ? "is-active" : "")">Tất cả</a>
+        <a asp-action="Index" asp-route-loai="VC" asp-route-q="@Model.Q" asp-route-sort="@Model.Sort"
+           class="td-chip @Active("VC")">Viên chức</a>
+        <a asp-action="Index" asp-route-loai="NLD" asp-route-q="@Model.Q" asp-route-sort="@Model.Sort"
+           class="td-chip @Active("NLD")">Người lao động</a>
+    </div>
+
+    <div class="td-search-sort">
+        <input type="hidden" name="loai" value="@Model.Loai" />
+        <input type="text" name="q" value="@Model.Q" placeholder="Tìm theo tiêu đề, nội dung..." class="td-search" />
+        @{
+            var s = (Model.Sort ?? "moi-nhat").ToLower();
+        }
+        <select name="sort" class="td-sort">
+            <option value="moi-nhat" selected="@(s == "moi-nhat")">Mới đăng</option>
+            <option value="sap-het-han" selected="@(s == "sap-het-han")">Sắp hết hạn</option>
+        </select>
+        <button type="submit" class="td-btn td-btn--primary">Lọc</button>
+    </div>
+</form>
+
+@if (Model.Items.Count == 0)
+{
+    <div class="td-empty">Chưa có thông tin tuyển dụng phù hợp.</div>
+}
+else
+{
+    <div class="td-list">
+        @foreach (var item in Model.Items)
+        {
+            var img = string.IsNullOrWhiteSpace(item.FileDinhKem)
+            ? Url.Content("~/uploads/job-placeholder.png")
+            : Url.Content(item.FileDinhKem.StartsWith("/")
+            ? item.FileDinhKem
+            : "~/uploads/" + item.FileDinhKem);
+
+            var days = (item.HanNopHoSo.Date - DateTime.Today).TotalDays;
+            var daysText = days < 0 ? "Đã hết hạn" : (days == 0 ? "Hạn nộp hôm nay" : $"Còn {Math.Ceiling(days)} ngày");
+
+            <article class="td-card">
+                <div class="td-card__body">
+                    <h3 class="td-card__title">
+                        <a asp-action="Detail" asp-route-id="@item.TuyenDungId" class="td-card__title-link">@item.TieuDe</a>
+                    </h3>
+                    <div class="td-card__meta">
+                        <span class="td-badge">@LabelLoai(item.LoaiTuyenDung)</span>
+                        <span>Ngày đăng: @item.NgayDang.ToString("dd/MM/yyyy")</span>
+                        <span>Hạn nộp: @item.HanNopHoSo.ToString("dd/MM/yyyy")</span>
+                        <span class="td-remain @((days <= 3 && days >= 0) ? "is-hot" : "")">@daysText</span>
+                    </div>
+
+                    <a asp-action="Detail" asp-route-id="@item.TuyenDungId" class="td-btn">Xem chi tiết →</a>
+                </div>
+
+                <div class="td-card__thumb">
+                    <img src="@img" alt="Hình tuyển dụng">
+                </div>
+            </article>
+        }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav class="td-pager" aria-label="Pagination">
+            @for (int p = 1; p <= Model.TotalPages; p++)
+            {
+                <a class="td-page @(p==Model.Page ? "is-active" : "")"
+                   asp-action="Index"
+                   asp-route-loai="@Model.Loai"
+                   asp-route-q="@Model.Q"
+                   asp-route-sort="@Model.Sort"
+                   asp-route-page="@p">@p</a>
+            }
+        </nav>
+    }
+}

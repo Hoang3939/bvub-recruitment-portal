@@ -2,10 +2,19 @@
     ViewData["Title"] = "Nộp đơn thành công";
 }
 
-<h2>@ViewData["Title"]</h2>
-
-<div class="alert alert-success">
-    <p>Đơn ứng tuyển của bạn đã được nộp thành công. Chúng tôi sẽ liên hệ trong thời gian sớm nhất.</p>
+<div class="content-centered">
+    <div class="success-box">
+        <h2>@ViewData["Title"]</h2>
+        <div class="alert alert-success">
+            <p>Đơn ứng tuyển của bạn đã được nộp thành công. Chúng tôi sẽ liên hệ trong thời gian sớm nhất.</p>
+            <p>Chúng tôi cũng đã gửi email xác nhận đến bạn.</p>
+        </div>
+        <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+            Quay lại trang đầu
+        </a>
+    </div>
 </div>
 
-<a asp-action="Index" class="btn btn-primary">Quay lại trang đầu</a>
+@section Styles {
+    <link rel="stylesheet" href="~/css/thanhcong.css" asp-append-version="true" />
+}

@@ -1,6 +1,7 @@
 ﻿using BVUB_WebTuyenDung.Models;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace BVUB_WebTuyenDung.Data
 {
     public class ApplicationDbContext : DbContext
@@ -15,28 +16,14 @@ namespace BVUB_WebTuyenDung.Data
         public DbSet<DonVienChuc> DonVienChuc { get; set; }
         public DbSet<VanBang> VanBang { get; set; }
         public DbSet<HopDongNguoiLaoDong> HopDongNguoiLaoDong { get; set; }
-        public DbSet<AdminUser> AdminUser { get; set; }
-        public DbSet<AuditTrail> AuditTrail { get; set; }
         public DbSet<ThongTinTuyenDung> ThongTinTuyenDung { get; set; }
         public DbSet<KhoaPhongViTri> KhoaPhongViTri { get; set; }
+        public DbSet<HuongDanDangKy> HuongDanDangKy { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            // ===== AuditTrail =====
-            modelBuilder.Entity<AuditTrail>()
-                .Property(a => a.LoaiDon).IsRequired();
-
-            modelBuilder.Entity<AuditTrail>()
-                .HasOne(a => a.AdminCapNhat)
-                .WithMany()
-                .HasForeignKey(a => a.AdminCapNhatId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<AuditTrail>()
-                .HasCheckConstraint("CK_AuditTrail_LoaiDon",
-                    "[LoaiDon] IN ('VienChuc','NguoiLaoDong')");
 
             // ===== Quan hệ 1-1: UngVien ↔ DonVienChuc =====
             modelBuilder.Entity<UngVien>()
@@ -64,11 +51,6 @@ namespace BVUB_WebTuyenDung.Data
             // UngVien.Email unique (thay cho Gmail)
             modelBuilder.Entity<UngVien>()
                 .HasIndex(u => u.Email)
-                .IsUnique();
-
-            // AdminUser.Email unique
-            modelBuilder.Entity<AdminUser>()
-                .HasIndex(a => a.Email)
                 .IsUnique();
 
             // ===== Quan hệ 1-n: DonVienChuc ↔ VanBang =====
@@ -108,20 +90,44 @@ namespace BVUB_WebTuyenDung.Data
             modelBuilder.Entity<DanhMucKhoaPhong>()
                 .Property(x => x.Ten).HasMaxLength(70).IsRequired();
 
-            // Username unique
-            modelBuilder.Entity<AdminUser>()
-                .HasIndex(a => a.Username)
-                .IsUnique();
-
             // Trạng thái tuyển dụng (0..3)
             modelBuilder.Entity<ThongTinTuyenDung>()
                 .HasCheckConstraint("CK_ThongTinTuyenDung_TrangThai",
-                    "[TrangThai] IN (0,1,2,3)");
+                    "[TrangThai] IN (1,2,3)");
 
             // Mã tra cứu duy nhất
             modelBuilder.Entity<DonVienChuc>()
                 .HasIndex(d => d.MaTraCuu)
                 .IsUnique();
+
+            // DonVienChuc ↔ DanhMucChucDanhDuTuyen
+            modelBuilder.Entity<DonVienChuc>()
+                .HasOne(d => d.ChucDanhDuTuyen)
+                .WithMany()
+                .HasForeignKey(d => d.ChucDanhDuTuyenId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // DonVienChuc ↔ DanhMucViTriDuTuyen
+            modelBuilder.Entity<DonVienChuc>()
+                .HasOne(d => d.ViTriDuTuyen)
+                .WithMany()
+                .HasForeignKey(d => d.ViTriDuTuyenId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // DonVienChuc ↔ DanhMucKhoaPhong
+            modelBuilder.Entity<DonVienChuc>()
+                .HasOne(d => d.KhoaPhong)
+                .WithMany()
+                .HasForeignKey(d => d.KhoaPhongId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // HopDongNguoiLaoDong ↔ DanhMucKhoaPhong (công tác)
+            modelBuilder.Entity<HopDongNguoiLaoDong>()
+                .HasOne(h => h.KhoaPhongCongTac)
+                .WithMany()
+                .HasForeignKey(h => h.KhoaPhongCongTacId)
+                .OnDelete(DeleteBehavior.Restrict);
+
         }
     }
 }

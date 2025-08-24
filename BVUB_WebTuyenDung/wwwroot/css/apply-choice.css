@@ -51,3 +51,19 @@
     border: none;
     color: white;
 }
+
+.apply-choice .big-title {
+    margin-top: 1rem;
+    line-height: 0.5;
+}
+
+.apply-choice .big-subtitle {
+    margin-top: 1rem;
+}
+
+
+@media (min-width: 992px) {
+    .apply-choice {
+        padding-top: 2rem;
+    }
+}

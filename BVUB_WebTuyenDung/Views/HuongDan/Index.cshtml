@@ -1,0 +1,26 @@
+﻿@{
+    ViewData["Title"] = "Hướng dẫn đăng ký";
+}
+@section Styles {
+    <link rel="stylesheet" href="~/css/huongdan.css" asp-append-version="true" />
+}
+
+<h1 class="hd-title">Hướng dẫn đăng ký</h1>
+
+<div class="hd-grid">
+    <a class="hd-card" asp-action="Xem" asp-route-loai="VC">
+        <div class="hd-card__icon"></div>
+        <div class="hd-card__text">
+            <div class="hd-card__title">Hướng dẫn dành cho <b>Viên chức</b></div>
+            <div class="hd-card__desc">Quy trình, hồ sơ, cách nộp…</div>
+        </div>
+    </a>
+
+    <a class="hd-card" asp-action="Xem" asp-route-loai="NLD">
+        <div class="hd-card__icon"></div>
+        <div class="hd-card__text">
+            <div class="hd-card__title">Hướng dẫn dành cho <b>Người lao động</b></div>
+            <div class="hd-card__desc">Quy trình, hồ sơ, cách nộp…</div>
+        </div>
+    </a>
+</div>

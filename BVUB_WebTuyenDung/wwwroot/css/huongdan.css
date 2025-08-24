@@ -1,0 +1,130 @@
+﻿/* chọn loại */
+.hd-title {
+    max-width: 960px;
+    margin: 22px auto 12px;
+    font: 800 28px/1.2 system-ui;
+    color: #0f1f4b;
+    text-align: center;
+}
+
+.hd-grid {
+    max-width: 960px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 16px
+}
+
+.hd-card {
+    text-decoration: none;
+    border: 1px solid #e6eaf5;
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    box-shadow: 0 8px 22px rgba(18,38,63,.05);
+    transition: transform .12s,box-shadow .12s
+}
+
+.hd-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(18,38,63,.09)
+}
+
+.hd-card__icon {
+    font-size: 28px
+}
+
+.hd-card__title {
+    color: #0f1f4b;
+    font-weight: 800;
+    margin-bottom: 4px
+}
+
+.hd-card__desc {
+    color: #4a5876
+}
+
+@media(max-width:700px) {
+    .hd-grid {
+        grid-template-columns: 1fr
+    }
+}
+
+/* chi tiết */
+.hd-detail {
+    max-width: 960px;
+    margin: 24px auto;
+    background: #fff;
+    border: 1px solid #e6eaf5;
+    border-radius: 16px;
+    padding: 22px 24px;
+    box-shadow: 0 10px 28px rgba(16,37,63,.06)
+}
+
+.hd-detail__title {
+    margin: 0 0 10px;
+    font: 800 32px/1.2 system-ui;
+    color: #0f1f4b
+}
+
+.hd-detail__meta {
+    display: flex;
+    gap: 12px 16px;
+    flex-wrap: wrap;
+    color: #4a5876;
+    margin-bottom: 12px
+}
+
+.hd-badge {
+    background: #eef6ff;
+    color: #2056b8;
+    border: 1px solid #d4e6ff;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px
+}
+
+.hd-detail__content {
+    line-height: 1.75;
+    color: #1a2747;
+    font-size: 16.5px
+}
+
+.hd-detail__content p {
+    margin: 0 0 12px
+}
+
+.hd-detail__files {
+    margin-top: 12px
+}
+
+.hd-actions {
+    margin-top: 14px
+}
+
+/* nút */
+.hd-btn {
+    display: inline-block;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid #2f6fed;
+    color: #2f6fed;
+    background: #fff;
+    font-weight: 600;
+    text-decoration: none
+}
+
+.hd-btn:hover {
+    background: #2f6fed;
+    color: #fff
+}
+
+.hd-btn--primary {
+    background: #2f6fed;
+    color: #fff;
+    border-color: #2f6fed
+}

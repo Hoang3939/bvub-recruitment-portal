@@ -56,5 +56,7 @@ namespace BVUB_WebTuyenDung.Models
         public string MaTraCuu { get; set; }
 
         public virtual UngVien? UngVien { get; set; }
+
+        public DanhMucKhoaPhong? KhoaPhongCongTac { get; set; }
     }
 }

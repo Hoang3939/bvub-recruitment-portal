@@ -1,0 +1,383 @@
+﻿/* ======= TIÊU ĐỀ ======= */
+.td-title {
+    margin: 18px auto 8px;
+    max-width: 1100px;
+    font-size: 28px;
+    font-weight: 800;
+    color: #1b2a57;
+}
+
+/* ======= TOOLBAR: LỌC + TÌM + SẮP XẾP ======= */
+.td-toolbar {
+    max-width: 1100px;
+    margin: 8px auto 16px;
+}
+
+.td-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+}
+
+.td-chip,
+.td-chip:visited {
+    text-decoration: none;
+    color: #2d4ea4;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid #cdd8ff;
+    background: #f6f8ff;
+    transition: all .15s;
+}
+
+.td-chip:hover {
+    background: #e9efff;
+}
+
+.td-chip.is-active {
+    background: #2f6fed;
+    color: #fff;
+    border-color: #2f6fed;
+}
+
+.td-search-sort {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.td-search {
+    flex: 1 1 320px;
+    min-width: 260px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #d8def0;
+}
+
+.td-sort {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #d8def0;
+    background: #fff;
+}
+
+.td-btn {
+    display: inline-block;
+    text-decoration: none;
+    cursor: pointer;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid #2f6fed;
+    color: #2f6fed;
+    background: #fff;
+    font-weight: 600;
+    transition: all .15s;
+}
+
+.td-btn:hover {
+    background: #2f6fed;
+    color: #fff;
+}
+
+.td-btn--primary {
+    background: #2f6fed;
+    color: #fff;
+    border-color: #2f6fed;
+}
+
+/* ======= DANH SÁCH ======= */
+.td-list {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    gap: 12px;
+}
+
+.td-card {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #e8ebf5;
+    background: #fff;
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 6px 18px rgba(18,38,63,.04);
+}
+
+.td-card__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.td-card__title {
+    margin: 0 0 6px;
+}
+
+.td-card__title-link {
+    text-decoration: none;
+    color: #0f1f4b;
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.td-card__title-link:hover {
+    color: #214ad8;
+}
+
+.td-card__meta {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    color: #4a5876;
+    font-size: 14px;
+}
+
+.td-badge {
+    background: #eef6ff;
+    color: #2056b8;
+    border: 1px solid #d4e6ff;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.td-remain {
+    font-weight: 700;
+}
+
+.td-remain.is-hot {
+    color: #b33a00;
+}
+
+/* Ảnh vuông bên phải */
+.td-card__thumb {
+    flex: 0 0 auto;
+    width: 96px;
+    height: 96px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #e4e7f1;
+    background: #f8f9fc;
+}
+
+.td-card__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* RỖNG + PHÂN TRANG */
+.td-empty {
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 18px;
+    border-radius: 10px;
+    background: #f7f9ff;
+    border: 1px dashed #cfd6f3;
+    color: #2a3a77;
+}
+
+.td-pager {
+    max-width: 1100px;
+    margin: 18px auto 0;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.td-page,
+.td-page:visited {
+    text-decoration: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #d8def0;
+    color: #1f2f6d;
+    background: #fff;
+}
+
+.td-page:hover {
+    background: #eef3ff;
+}
+
+.td-page.is-active {
+    background: #2f6fed;
+    color: #fff;
+    border-color: #2f6fed;
+}
+
+@media (max-width: 680px) {
+    .td-card {
+        align-items: flex-start;
+    }
+}
+
+/* ========== DETAIL PAGE ========== */
+.td-detail {
+    max-width: 960px;
+    margin: 32px auto;
+    background: #fff;
+    border: 1px solid #e8ebf5;
+    border-radius: 16px;
+    padding: 24px 28px;
+    box-shadow: 0 10px 28px rgba(16, 37, 63, .06);
+}
+
+.td-detail__title {
+    margin: 0 0 10px;
+    font-size: 34px;
+    line-height: 1.2;
+    font-weight: 800;
+    color: #0f1f4b;
+}
+
+/* meta bar: chips + ngày đăng + hạn nộp + còn X ngày */
+.td-detail__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px 18px;
+    align-items: center;
+    color: #4a5876;
+    margin-bottom: 14px;
+    font-size: 15px;
+}
+
+.td-badge {
+    background: #eef6ff;
+    color: #2056b8;
+    border: 1px solid #d4e6ff;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.td-remain {
+    font-weight: 800;
+    color: #263a8a;
+}
+
+.td-remain.is-hot {
+    color: #c35000;
+}
+/* còn <= 3 ngày */
+.td-remain.is-expired {
+    color: #b91c1c;
+}
+
+.td-detail__cover {
+    margin: 6px 0 16px;
+    border: 1px solid #e4e7f1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f8f9fc;
+}
+
+.td-detail__cover img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* nội dung bài */
+.td-detail__content {
+    color: #1a2747;
+    line-height: 1.75;
+    font-size: 16.5px;
+}
+
+.td-detail__content p {
+    margin: 0 0 14px;
+}
+
+.td-detail__content h2 {
+    font-size: 22px;
+    margin: 18px 0 10px;
+}
+
+.td-detail__content h3 {
+    font-size: 19px;
+    margin: 16px 0 8px;
+}
+
+.td-detail__content ul, .td-detail__content ol {
+    padding-left: 22px;
+    margin: 8px 0 14px;
+}
+
+.td-detail__content a {
+    color: #2f6fed;
+    text-decoration: none;
+}
+
+.td-detail__content a:hover {
+    text-decoration: underline;
+}
+
+/* khu nút */
+.td-detail__files {
+    margin-top: 14px;
+}
+
+.td-actions {
+    margin-top: 16px;
+}
+
+.td-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid #2f6fed;
+    background: #fff;
+    color: #2f6fed;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all .15s ease;
+}
+
+.td-btn:hover {
+    background: #2f6fed;
+    color: #fff;
+}
+
+.td-btn--primary {
+    background: #2f6fed;
+    color: #fff;
+    border-color: #2f6fed;
+}
+
+.td-btn--ghost {
+    background: #fff;
+    color: #2f6fed;
+    border-color: #cfe0ff;
+}
+
+.td-btn--ghost:hover {
+    border-color: #2f6fed;
+    background: #eef4ff;
+}
+
+/* responsive */
+@media (max-width: 720px) {
+    .td-detail {
+        padding: 18px 16px;
+        margin: 18px auto;
+    }
+
+    .td-detail__title {
+        font-size: 26px;
+    }
+
+    .td-detail__meta {
+        gap: 10px 12px;
+        font-size: 14px;
+    }
+}

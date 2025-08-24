@@ -10,11 +10,11 @@ namespace BVUB_WebTuyenDung.Controllers
     public class UngTuyenController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IEmailSender _email;
+        private readonly InfrastructureEmailSender _email;
         private readonly ILogger<UngTuyenController> _logger;
         private static readonly char[] _maChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".ToCharArray();
 
-        public UngTuyenController(ApplicationDbContext context, IEmailSender email, ILogger<UngTuyenController> logger)
+        public UngTuyenController(ApplicationDbContext context, InfrastructureEmailSender email, ILogger<UngTuyenController> logger)
         {
             _context = context;
             _email = email;
@@ -376,9 +376,9 @@ namespace BVUB_WebTuyenDung.Controllers
                 return Json(new { ok = false, message = "Vui lòng nhập Email." });
 
             email = email.Trim();
-            var pattern = @"^[^@\s]+@gmail\.com$";
+            var pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
             if (!System.Text.RegularExpressions.Regex.IsMatch(email, pattern, System.Text.RegularExpressions.RegexOptions.IgnoreCase))
-                return Json(new { ok = false, message = "Sai định dạng (chỉ chấp nhận @gmail.com)." });
+                return Json(new { ok = false, message = "Sai định dạng Email." });
 
             var ungVien = await _context.UngVien
                 .Include(u => u.HopDongNguoiLaoDong)

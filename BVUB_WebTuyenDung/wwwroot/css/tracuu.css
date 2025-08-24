@@ -1,0 +1,155 @@
+﻿/* Khung trắng gọn giữa trang */
+.tracuu-wrap {
+    max-width: 720px;
+    margin: 32px auto;
+    padding: 24px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(18,38,63,.06);
+}
+
+/* Hàng: select + input định danh */
+.tracuu-inline {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.tracuu-inline .tracuu-select {
+    flex: 0 0 180px;
+    min-width: 160px;
+    height: 40px;
+    border: 1px solid #dfe3ea;
+    border-radius: 8px;
+    padding: 0 10px;
+    background: #fff;
+}
+
+.tracuu-inline .tracuu-input {
+    flex: 1 1 auto;
+    height: 40px;
+    border: 1px solid #dfe3ea;
+    border-radius: 8px;
+    padding: 0 12px;
+}
+
+/* Hàng: input captcha + ảnh + nút đổi mã */
+.captcha-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.captcha-line .captcha-input {
+    flex: 1 1 auto;
+    height: 40px;
+    border: 1px solid #dfe3ea;
+    border-radius: 8px;
+    padding: 0 12px;
+}
+
+.captcha-line .captcha-img {
+    height: 44px;
+    display: block;
+    border-radius: 6px;
+    border: 1px solid #e5e5e5;
+    background: #fff;
+}
+
+.captcha-line .btn-refresh {
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1px solid #dfe3ea;
+    background: #f6f7fb;
+}
+
+/* Nút tra cứu */
+.tracuu-actions {
+    text-align: center;
+    margin-top: 14px;
+}
+
+.tracuu-actions .btn-primary {
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: none;
+    background: #2f6fed;
+    color: #fff;
+    cursor: pointer;
+}
+
+/* Card kết quả */
+.tracuu-result {
+    max-width: 720px;
+    margin: 18px auto 28px;
+}
+
+.tracuu-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid #e8e8ef;
+    border-radius: 12px;
+    background: #fff;
+    padding: 18px 20px;
+    box-shadow: 0 6px 18px rgba(18,38,63,.05);
+    margin-top: 12px;
+}
+
+.tracuu-card h5 {
+    margin: 0 0 4px;
+    font-weight: 700;
+}
+
+.tracuu-card p {
+    margin: 0;
+    color: #555;
+}
+
+.tracuu-card .btn-detail {
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: #fff;
+    border: 1px solid #2f6fed;
+    color: #2f6fed;
+    cursor: pointer;
+}
+
+/* Nút xem chi tiết */
+.btn-detail,
+.btn-detail:link,
+.btn-detail:visited {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid #2f6fed;
+    background: #fff;
+    color: #2f6fed;
+    text-decoration: none; /* bỏ gạch chân */
+    font-weight: 600;
+    transition: all .18s ease;
+}
+
+.btn-detail:hover {
+    background: #2f6fed;
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(47,111,237,.18);
+}
+
+.btn-detail:active {
+    transform: translateY(1px);
+}
+
+.btn-detail:focus {
+    outline: 2px solid rgba(47,111,237,.35);
+    outline-offset: 2px;
+}
+
+/* Nếu nút nằm trong card kết quả, căn cho gọn */
+.tracuu-card .btn-detail {
+    white-space: nowrap;
+}

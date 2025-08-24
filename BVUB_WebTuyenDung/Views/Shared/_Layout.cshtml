@@ -24,11 +24,22 @@
         </a>
         <h1>Bệnh viện Ung Bướu<br /><small>Thành phố Hồ Chí Minh</small></h1>
     </div>
-
+    @{
+        var ctrl = ViewContext.RouteData.Values["Controller"]?.ToString();
+    }
     <div class="nav">
-        <div>Thông tin tuyển dụng</div>
-        <div>Hướng dẫn đăng ký</div>
-        <div>Tra cứu thông tin</div>
+        <a asp-controller="ThongTinTuyenDung" asp-action="Index"
+           class="nav-link @(ctrl == "TuyenDung" ? "is-active" : "")">
+            Thông tin tuyển dụng
+        </a>
+        <a asp-controller="HuongDan" asp-action="Index"
+           class="nav-link @(ctrl == "HuongDan" ? "is-active" : "")">
+            Hướng dẫn đăng ký
+        </a>
+        <a asp-controller="TraCuu" asp-action="Index"
+           class="nav-link @(ctrl == "TraCuu" ? "is-active" : "")">
+            Tra cứu thông tin
+        </a>
     </div>
 
     <div class="page-wrapper">

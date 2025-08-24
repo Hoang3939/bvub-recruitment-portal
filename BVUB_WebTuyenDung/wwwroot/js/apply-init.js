@@ -1,15 +1,13 @@
-﻿// Khởi tạo datepicker cho các ô .js-date khi mới load
+﻿// wwwroot/js/apply-init.js
 (function () {
     if (window.initDatepickers) {
         window.initDatepickers(document);
     }
 })();
 
-// Expose để tương thích onchange="renderVBFields()" trong View
+// Giữ tương thích onchange="renderVBFields()"
 (function (ns) {
     window.renderVBFields = function () {
-        if (ns && typeof ns.renderVBFields === "function") {
-            ns.renderVBFields();
-        }
+        if (ns && typeof ns.renderVBFields === "function") ns.renderVBFields();
     };
 })(window.Apply);

@@ -21,16 +21,6 @@
     margin: 0;
 }
 
-.nav {
-    display: flex;
-    justify-content: space-around;
-    background-color: white;
-    padding: 15px 0;
-    font-weight: bold;
-    color: #000;
-    border-bottom: 2px solid #eee;
-}
-
 footer {
     background-color: #f7f7f7;
     padding: 30px 60px;
@@ -74,4 +64,97 @@ html, body {
 
 .content-wrapper {
     flex: 1;
+}
+
+/* Giúp dropdown tháng/năm rộng hơn, không che nhau */
+.flatpickr-monthDropdown-months {
+    min-width: 9rem;
+}
+
+.flatpickr-current-month .numInputWrapper {
+    min-width: 5rem;
+}
+
+/* Nếu popup bị che vì z-index layout */
+.flatpickr-calendar {
+    z-index: 1050;
+}
+
+/* mở rộng lịch một chút để đủ chỗ cho "Tháng mười" + năm */
+.flatpickr-calendar.fp-wide {
+    min-width: 340px;
+}
+
+/* header dùng flex cho tháng + năm */
+.flatpickr-calendar .flatpickr-current-month {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+}
+
+/* đảm bảo ô năm không bị ẩn (một số theme ẩn numInputWrapper) */
+.flatpickr-calendar .flatpickr-current-month .numInputWrapper {
+    display: inline-flex;
+}
+
+/* chiều rộng tối thiểu cho năm để không bị co */
+.flatpickr-calendar .flatpickr-current-month .cur-year {
+    min-width: 5ch;
+}
+
+/* ===== NAV: chia 3 phần và căn giữa từng phần ===== */
+.nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 cột bằng nhau */
+    align-items: center; /* căn giữa theo trục dọc */
+    justify-items: center; /* căn giữa nội dung trong từng ô */
+    padding: 18px 24px;
+    background: #fff;
+    border-bottom: 2px solid #eef1f6;
+    gap: 0; /* không cần khoảng cách giữa 3 ô */
+}
+
+/* Link trong ô – bỏ gạch chân, chữ to hơn, hover/active đẹp */
+.nav .nav-link,
+.nav .nav-link:visited {
+    text-decoration: none;
+    color: #2d4ea4;
+    font-weight: 600;
+    font-size: 18px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    transition: all .18s ease;
+    display: inline-flex; /* căn giữa chữ/icon trong link */
+    align-items: center;
+    justify-content: center;
+}
+
+.nav .nav-link:hover {
+    background: #eef3ff;
+    color: #203b98;
+    box-shadow: 0 3px 10px rgba(47,111,237,.08) inset;
+}
+
+.nav .nav-link.is-active {
+    background: #2f6fed;
+    color: #fff !important;
+    border-color: #2f6fed;
+    box-shadow: 0 4px 14px rgba(47,111,237,.18);
+}
+
+/* Mobile: xếp dọc, mỗi mục chiếm full chiều ngang */
+@media (max-width: 720px) {
+    .nav {
+        grid-template-columns: 1fr;
+        row-gap: 10px;
+        padding: 12px;
+    }
+
+    .nav .nav-link {
+        width: 100%;
+        font-size: 16px;
+        padding: 12px;
+    }
 }

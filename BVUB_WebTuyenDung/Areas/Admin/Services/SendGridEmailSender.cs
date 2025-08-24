@@ -1,9 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SendGrid;
 using SendGrid.Helpers.Mail;
+using System;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Services
 {
@@ -18,20 +19,18 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Services
             _logger = logger;
         }
 
-        public async Task SendAsync(string toEmail, string toName, string subject, string plainTextBody)
+        public async Task SendAsync(string toEmail, string toName, string subject, string body, bool isHtml = false)
         {
-            // ĐỌC & TRIM cấu hình để tránh lỗi copy kèm dấu cách/ngoặc kép
             var apiKey = (_config["SendGrid:ApiKey"] ?? "").Trim();
             var from = (_config["SendGrid:From"] ?? "").Trim();
             var fromName = (_config["SendGrid:FromName"] ?? "Hệ thống").Trim();
-            var host = (_config["SendGrid:Host"] ?? "https://api.sendgrid.com").Trim(); // EU: https://api.eu.sendgrid.com
+            var host = (_config["SendGrid:Host"] ?? "https://api.sendgrid.com").Trim();
 
             if (string.IsNullOrWhiteSpace(apiKey))
                 throw new InvalidOperationException("Thiếu cấu hình SendGrid:ApiKey");
             if (string.IsNullOrWhiteSpace(from))
                 throw new InvalidOperationException("Thiếu cấu hình SendGrid:From (phải là Sender đã verify)");
 
-            // Cho phép chọn region (EU/US)
             var options = new SendGridClientOptions { ApiKey = apiKey, Host = host };
             var client = new SendGridClient(options);
 
@@ -39,21 +38,25 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Services
             {
                 From = new EmailAddress(from, fromName),
                 Subject = subject,
-                PlainTextContent = plainTextBody
+                PlainTextContent = isHtml ? StripHtml(body) : body,
+                HtmlContent = isHtml ? body : null
             };
             msg.AddTo(new EmailAddress(toEmail, toName));
 
             var resp = await client.SendEmailAsync(msg);
             if ((int)resp.StatusCode >= 400)
             {
-                var body = await resp.Body.ReadAsStringAsync();
-                // Log chẩn đoán nhưng KHÔNG lộ API key
+                var detail = await resp.Body.ReadAsStringAsync();
                 _logger.LogError("SendGrid failed {Status}. Host={Host}, From={From}, To={To}. Detail={Detail}",
-                    (int)resp.StatusCode, host, from, toEmail, body);
+                    (int)resp.StatusCode, host, from, toEmail, detail);
 
-                // Ném chi tiết để controller hiển thị ở Dev
-                throw new InvalidOperationException($"SendGrid {(int)resp.StatusCode}: {body}");
+                throw new InvalidOperationException($"SendGrid {(int)resp.StatusCode}: {detail}");
             }
+        }
+        private static string StripHtml(string html)
+        {
+            if (string.IsNullOrEmpty(html)) return string.Empty;
+            return Regex.Replace(html, "<.*?>", " ").Trim();
         }
     }
 }

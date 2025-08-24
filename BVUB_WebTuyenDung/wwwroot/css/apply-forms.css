@@ -248,9 +248,50 @@ input[type="number"], input[type="date"] {
     gap: 8px;
 }
 
+/* Tăng cỡ chữ tổng thể (đỡ cảm giác "nhỏ") */
 .flatpickr-calendar {
-    z-index: 9999;
+    font-size: 14px;
 }
+
+/* Header của lịch: luôn hiện tháng + năm trên một dòng đẹp */
+.flatpickr-months {
+    justify-content: space-between;
+}
+
+.flatpickr-current-month {
+    display: flex;
+    align-items: center;
+    gap: .5rem; /* khoảng cách giữa tháng & năm */
+}
+
+    /* BẮT BUỘC: không cho phần năm bị ẩn/thu nhỏ */
+    .flatpickr-current-month .numInputWrapper {
+        display: inline-flex !important;
+        visibility: visible !important;
+    }
+
+        /* Chiều rộng input năm (4 chữ số) */
+        .flatpickr-current-month .numInputWrapper input.cur-year {
+            width: 5.4ch; /* đủ cho "2025" */
+            min-width: 5ch;
+        }
+
+        /* Ẩn mũi tên tăng/giảm năm nếu bạn không thích */
+        .flatpickr-current-month .numInputWrapper span.arrowUp,
+        .flatpickr-current-month .numInputWrapper span.arrowDown {
+            display: none; /* tùy chọn */
+        }
+
+/* Dropdown tháng rộng hơn để không đè vào năm */
+.flatpickr-monthDropdown-months {
+    min-width: 9rem;
+}
+
+/* Nếu popup bị chèn dưới các phần tử khác */
+.flatpickr-calendar {
+    z-index: 10000;
+}
+
 
 /* Responsive */
 @media (max-width: 640px) {

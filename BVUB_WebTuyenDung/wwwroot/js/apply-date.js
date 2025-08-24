@@ -1,55 +1,29 @@
 ﻿// wwwroot/js/apply-date.js
 (function () {
-    function normalizeIso(iso) {
-        if (!iso) return "";
-        const m = String(iso).match(/^(\d{4}-\d{2}-\d{2})/);
+    // Cắt chuẩn về "yyyy-MM-dd"
+    function normalizeYmd(s) {
+        if (!s) return "";
+        const m = String(s).match(/^(\d{4}-\d{2}-\d{2})/);
         return m ? m[1] : "";
     }
 
-    // Parse an toàn theo local: new Date(y, m-1, d)
-    function safeDateFromIso(val) {
-        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(val || ""));
-        if (!m) return null;
-        return new Date(+m[1], +m[2] - 1, +m[3]); // tránh lệch năm/tháng
-    }
-
-    function setDateInput(selector, iso) {
-        const $el = window.jQuery ? jQuery(selector) : null;
-        const el = $el && $el.length ? $el[0] : document.querySelector(selector);
+    // API duy nhất: set giá trị ngày cho input
+    window.setDateInput = function (selector, iso) {
+        const el = document.querySelector(selector);
         if (!el) return;
 
-        const val = normalizeIso(iso);
-        const safe = val ? safeDateFromIso(val) : null;
+        const ymd = normalizeYmd(iso);
 
-        // 1) flatpickr
+        // Nếu input đã được flatpickr khởi tạo
         if (el._flatpickr) {
-            if (safe) el._flatpickr.setDate(safe, true);
+            if (ymd) el._flatpickr.setDate(ymd, true);
             else el._flatpickr.clear();
             return;
         }
 
-        // 2) bootstrap-datepicker (eternicode)
-        if ($el && typeof $el.datepicker === "function" && $el.data("datepicker")) {
-            if (safe) $el.datepicker("setDate", safe);
-            else $el.datepicker("clearDates");
-            $el.trigger("change");
-            return;
-        }
-
-        // 3) jQuery UI datepicker
-        if ($el && typeof $el.datepicker === "function" && $el.datepicker("widget")) {
-            if (safe) $el.datepicker("setDate", safe);
-            else $el.val("");
-            $el.trigger("change");
-            return;
-        }
-
-        // 4) plain input
-        el.value = val || "";
+        // Input thường (chưa có flatpickr)
+        el.value = ymd || "";
         el.dispatchEvent(new Event("input", { bubbles: true }));
         el.dispatchEvent(new Event("change", { bubbles: true }));
-    }
-
-    // expose ra window để các file khác gọi
-    window.setDateInput = setDateInput;
+    };
 })();

@@ -1,45 +1,60 @@
-﻿function initDatepickers(scope) {
-    if (typeof flatpickr === "undefined") return;
-
-    const vi = {
-        weekdays: {
-            shorthand: ["CN", "T2", "T3", "T4", "T5", "T6", "T7"],
-            longhand: ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"]
-        },
-        months: {
-            shorthand: ["Thg 1", "Thg 2", "Thg 3", "Thg 4", "Thg 5", "Thg 6", "Thg 7", "Thg 8", "Thg 9", "Thg 10", "Thg 11", "Thg 12"],
-            longhand: ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7",
-                "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"]
-        },
-        firstDayOfWeek: 1
-    };
-    flatpickr.localize(vi);
-
-    const root = scope || document;
-
-    root.querySelectorAll(".js-date").forEach(el => {
-        if (el._flatpickr) return;
-
-        flatpickr(el, {
-            dateFormat: "Y-m-d",
-            altInput: true,
-            altFormat: "d/m/Y",
-            allowInput: true,
-            disableMobile: true,
-            monthSelectorType: "static",
-            appendTo: document.body
-        });
-    });
-}
-
-window.setDateInput = function (selector, isoOrText) {
-    const el = document.querySelector(selector);
-    if (!el) return;
-    if (el._flatpickr) {
-        el._flatpickr.setDate(isoOrText, true);
-    } else {
-        el.value = isoOrText || "";
+﻿// wwwroot/js/layout.js
+(function () {
+    function getViLocale() {
+        return (window.flatpickr && flatpickr.l10ns && (flatpickr.l10ns.vn || flatpickr.l10ns.vi)) || {
+            firstDayOfWeek: 1,
+            rangeSeparator: " đến ",
+            weekAbbreviation: "Tu",
+            scrollTitle: "Cuộn để thay đổi",
+            toggleTitle: "Nhấn để đổi",
+            time_24hr: true,
+            weekdays: {
+                shorthand: ["CN", "T2", "T3", "T4", "T5", "T6", "T7"],
+                longhand: ["Chủ nhật", "Thứ hai", "Thứ ba", "Thứ tư", "Thứ năm", "Thứ sáu", "Thứ bảy"]
+            },
+            months: {
+                shorthand: ["Th 1", "Th 2", "Th 3", "Th 4", "Th 5", "Th 6", "Th 7", "Th 8", "Th 9", "Th 10", "Th 11", "Th 12"],
+                longhand: ["Tháng một", "Tháng hai", "Tháng ba", "Tháng tư", "Tháng năm", "Tháng sáu",
+                    "Tháng bảy", "Tháng tám", "Tháng chín", "Tháng mười", "Tháng mười một", "Tháng mười hai"]
+            }
+        };
     }
-};
 
-document.addEventListener("DOMContentLoaded", () => initDatepickers());
+    window.initDatepickers = function (scope) {
+        if (!window.flatpickr) return;
+        const root = scope || document;
+        const vi = getViLocale();
+
+        // Đảm bảo global là tiếng Việt (phòng trường hợp lib nào đó gọi trước)
+        if (flatpickr.localize) flatpickr.localize(vi);
+
+        root.querySelectorAll('.js-date').forEach(el => {
+            // Nếu đã có instance với locale default → hủy để tạo lại đúng cấu hình
+            if (el._flatpickr) {
+                try { el._flatpickr.destroy(); } catch { }
+            }
+
+            flatpickr(el, {
+                dateFormat: "Y-m-d",
+                altInput: true,
+                altFormat: "d/m/Y",
+                altInputClass: "form-control",     // <— làm ô giống các ô khác
+                allowInput: true,
+                disableMobile: true,
+
+                monthSelectorType: "dropdown",
+                static: true,
+                locale: vi,
+
+                onReady: (sel, str, inst) => {
+                    // gắn class để tăng chiều rộng header tránh che phần năm
+                    inst.calendarContainer.classList.add("fp-wide");
+                }
+            });
+        });
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        window.initDatepickers(document);
+    });
+})();

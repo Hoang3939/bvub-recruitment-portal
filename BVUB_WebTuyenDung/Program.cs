@@ -1,11 +1,18 @@
 ﻿using BVUB_WebTuyenDung.Areas.Admin.Data;
+using BVUB_WebTuyenDung.Areas.Admin.Services;
 using BVUB_WebTuyenDung.Data;
+using BVUB_WebTuyenDung.Infrastructure.Email;
 using BVUB_WebTuyenDung.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
-using BVUB_WebTuyenDung.Areas.Admin.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("StaffAndAdmin", policy => policy.RequireRole("Admin", "Staff"));
+});
 
 // MVC
 builder.Services.AddControllersWithViews();
@@ -29,6 +36,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddDataProtection();
 
+builder.Services.AddDistributedMemoryCache();
+
 // Session (đếm đăng nhập sai 3 lần mới hiện “Quên mật khẩu”)
 builder.Services.AddSession(options =>
 {
@@ -38,9 +47,11 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// Đăng ký cấu hình Gmail + EmailSender duy nhất
 builder.Services.Configure<GmailOptions>(builder.Configuration.GetSection("Email:Gmail"));
 builder.Services.AddSingleton<IEmailSender, GmailSmtpEmailSender>();
+
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+builder.Services.AddSingleton<InfrastructureEmailSender, SmtpEmailSender>();
 
 var app = builder.Build();
 

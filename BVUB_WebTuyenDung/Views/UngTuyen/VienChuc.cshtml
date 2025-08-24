@@ -28,7 +28,7 @@
 
     <div class="form-group">
         <label asp-for="UngVien.HoTen" class="form-label">Họ tên</label>
-        <input asp-for="UngVien.HoTen" class="form-control placeholder="Ví dụ: Nguyễn Văn A" />
+        <input asp-for="UngVien.HoTen" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" />
         <span asp-validation-for="UngVien.HoTen" class="text-danger"></span>
     </div>
 
@@ -274,6 +274,10 @@
     <button type="submit" class="btn btn-primary">Nộp đơn</button>
 </form>
 
+@section Styles {
+    <link rel="stylesheet" href="~/css/apply-forms.css" asp-append-version="true" />
+}
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
@@ -289,6 +293,3 @@
     <script src="~/js/apply-cascade.js" asp-append-version="true"></script>
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/apply-forms.css" asp-append-version="true" />
-}

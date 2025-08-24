@@ -1,0 +1,76 @@
+﻿@model BVUB_WebTuyenDung.Models.NguoiLaoDongDetailsVM
+@{
+    ViewData["Title"] = "Chi tiết đơn người lao động";
+    string TrangThaiText(int s) => s switch { 1 => "Đang duyệt", 2 => "Đã duyệt", 3 => "Đã hủy", _ => "Không xác định" };
+    string TrangThaiClass(int s) => s switch { 1 => "badge-warn", 2 => "badge-ok", 3 => "badge-danger", _ => "badge-muted" };
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/tracuu-chitiet.css" />
+}
+
+<div class="detail-page">
+    <div class="detail-head">
+        <h2 style="margin:0;">Đơn ứng tuyển người lao động #@Model.HopDongId</h2>
+        <span class="badge @TrangThaiClass(Model.TrangThai)">@TrangThaiText(Model.TrangThai)</span>
+    </div>
+
+    <div class="section-list">
+
+        <!-- Ứng viên -->
+        <div class="card">
+            <h5>Thông tin ứng viên</h5>
+            <dl class="kv">
+                <dt>Họ tên</dt>
+                <dd>@Model.UngVien.HoTen</dd>
+                <dt>Ngày sinh</dt>
+                <dd>@Model.UngVien.NgaySinh?.ToString("dd/MM/yyyy")</dd>
+                <dt>Giới tính</dt>
+                <dd>@(Model.UngVien.GioiTinh == 1 ? "Nam" : Model.UngVien.GioiTinh == 2 ? "Nữ" : "Khác")</dd>
+                <dt>Số điện thoại</dt>
+                <dd>@Model.UngVien.SoDienThoai</dd>
+                <dt>Email</dt>
+                <dd>@Model.UngVien.Email</dd>
+                <dt>CCCD</dt>
+                <dd>@Model.UngVien.CCCD</dd>
+                <dt>Địa chỉ cư trú</dt>
+                <dd>@Model.UngVien.DiaChiCuTru</dd>
+                <dt>Tình trạng sức khỏe</dt>
+                <dd>@Model.UngVien.TinhTrangSucKhoe</dd>
+            </dl>
+        </div>
+
+        <!-- Đơn NLD -->
+        <div class="card">
+            <h5>Thông tin đơn</h5>
+            <dl class="kv">
+                <dt>Mã tra cứu</dt>
+                <dd>@Model.MaTraCuu</dd>
+                <dt>Ngày nộp</dt>
+                <dd>@Model.NgayNop.ToString("dd/MM/yyyy")</dd>
+                <dt>Loại hợp đồng</dt>
+                <dd>@Model.LoaiHopDong</dd>
+                <dt>Khoa/Phòng công tác</dt>
+                <dd>@Model.TenKhoaPhongCongTac</dd>
+                <dt>Chuyên ngành đào tạo</dt>
+                <dd>@Model.ChuyenNganhDaoTao</dd>
+                <dt>Năm tốt nghiệp</dt>
+                <dd>@Model.NamTotNghiep</dd>
+                <dt>Trình độ tin học</dt>
+                <dd>@Model.TrinhDoTinHoc</dd>
+                <dt>Trình độ ngoại ngữ</dt>
+                <dd>@Model.TrinhDoNgoaiNgu</dd>
+                <dt>Chứng chỉ hành nghề</dt>
+                <dd>@Model.ChungChiHanhNghe</dd>
+                <dt>Nghề nghiệp trước tuyển dụng</dt>
+                <dd>@Model.NgheNghiepTruocTuyenDung</dd>
+                <dt>Trạng thái</dt>
+                <dd>@TrangThaiText(Model.TrangThai)</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div style="margin-top:18px;">
+        <a asp-action="Index" class="btn btn-primary">Quay lại tra cứu</a>
+    </div>
+</div>

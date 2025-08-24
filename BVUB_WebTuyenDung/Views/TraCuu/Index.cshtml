@@ -1,0 +1,94 @@
+﻿@model BVUB_WebTuyenDung.Controllers.TraCuuViewModel
+@{
+    ViewData["Title"] = "Tra cứu thông tin";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/tracuu.css" />
+}
+
+<div class="tracuu-wrap">
+    <h2 style="text-align:center; margin:0 0 16px;">Tra cứu đơn ứng tuyển</h2>
+
+    <form asp-action="Index" method="post">
+        @Html.AntiForgeryToken()
+
+        <!-- Select + Input định danh (1 dòng) -->
+        <label class="form-label" style="display:block; font-weight:600; margin-bottom:6px;">Thông tin định danh</label>
+        <div class="tracuu-inline">
+            <select asp-for="DinhDanh" id="selectDinhDanh" class="tracuu-select">
+                <option value="CCCD">CCCD</option>
+                <option value="Gmail">Gmail</option>
+                <option value="SDT">Số điện thoại</option>
+            </select>
+            <input asp-for="GiaTri" id="inputGiaTri" class="tracuu-input" placeholder="Nhập CCCD" />
+        </div>
+        <span asp-validation-for="GiaTri" class="text-danger" style="display:block;"></span>
+
+        <!-- Mã tra cứu -->
+        <label asp-for="MaTraCuu" class="form-label" style="display:block; font-weight:600; margin-top:14px;">Mã tra cứu</label>
+        <input asp-for="MaTraCuu" class="tracuu-input" style="width:100%;" placeholder="Nhập mã tra cứu" />
+        <span asp-validation-for="MaTraCuu" class="text-danger" style="display:block;"></span>
+
+        <!-- Captcha: input + ảnh + nút đổi mã (1 dòng) -->
+        <label class="form-label" style="display:block; font-weight:600; margin-top:14px;">Mã Captcha</label>
+        <div class="captcha-line">
+            <input asp-for="CaptchaInput" class="captcha-input" placeholder="Nhập ký tự trong ảnh" />
+            <img id="captcha-img" class="captcha-img"
+                 src="@Url.Action("Captcha", "TraCuu")?ts=@DateTimeOffset.Now.ToUnixTimeSeconds()" alt="captcha" />
+            <button type="button" id="btn-refresh" class="btn-refresh">Đổi mã</button>
+        </div>
+        <span asp-validation-for="CaptchaInput" class="text-danger" style="display:block;"></span>
+
+        <!-- Nút tra cứu -->
+        <div class="tracuu-actions">
+            <button type="submit" class="btn-primary">Tra cứu</button>
+        </div>
+    </form>
+</div>
+
+<!-- Kết quả -->
+@if (Model?.KetQua != null && Model.KetQua.Count > 0)
+{
+    <div class="tracuu-result">
+        @foreach (var r in Model.KetQua)
+        {
+            <div class="tracuu-card">
+                <div>
+                    <h5>@r.TenDon</h5>
+                    <p><strong>Trạng thái:</strong> @r.TrangThai</p>
+                </div>
+                <div>
+                    <a asp-action="Details" asp-route-loai="@r.Loai" asp-route-id="@r.Id" class="btn-detail">Xem chi tiết</a>
+                </div>
+            </div>
+        }
+    </div>
+}
+else if (Context.Request.Method == "POST" && ViewData.ModelState.ErrorCount == 0)
+{
+    <div class="tracuu-result">
+        <div class="tracuu-card"><div>Không tìm thấy kết quả phù hợp.</div></div>
+    </div>
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function(){
+            const sel = document.getElementById('selectDinhDanh');
+            const input = document.getElementById('inputGiaTri');
+            function sync(){
+                if (sel.value === 'CCCD') { input.placeholder = 'Nhập CCCD'; input.type='text'; }
+                else if (sel.value === 'Gmail') { input.placeholder = 'Nhập Gmail'; input.type='email'; }
+                else { input.placeholder = 'Nhập số điện thoại'; input.type='tel'; }
+            }
+            sel.addEventListener('change', sync); sync();
+
+            document.getElementById('btn-refresh').addEventListener('click', function(){
+                const img = document.getElementById('captcha-img');
+                img.src = '@Url.Action("Captcha", "TraCuu")' + '?ts=' + Date.now();
+            });
+        })();
+    </script>
+}

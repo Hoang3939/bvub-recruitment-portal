@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace BVUB_WebTuyenDung.Infrastructure.Email
 {
-    public class SmtpEmailSender : IEmailSender
+    public class SmtpEmailSender : InfrastructureEmailSender
     {
         private readonly EmailSettings _settings;
 
