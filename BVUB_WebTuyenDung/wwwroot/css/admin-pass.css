@@ -1,0 +1,27 @@
+﻿.login-card .title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 6px;
+}
+
+.login-card .desc {
+    font-size: 13px;
+    text-align: center;
+    opacity: .8;
+    margin-bottom: 18px;
+}
+
+.login-card .note {
+    font-size: 12px;
+    opacity: .7;
+    margin-top: 8px;
+}
+
+.login-card .actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
