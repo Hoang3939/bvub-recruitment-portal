@@ -1,6 +1,9 @@
-﻿using BVUB_WebTuyenDung.Data;
+﻿using BVUB_WebTuyenDung.Areas.Admin.Data;
+using BVUB_WebTuyenDung.Data;
 using BVUB_WebTuyenDung.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using BVUB_WebTuyenDung.Areas.Admin.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
