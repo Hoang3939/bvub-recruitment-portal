@@ -1,26 +1,21 @@
 ﻿@model IEnumerable<BVUB_WebTuyenDung.Areas.Admin.Models.DanhMucKhoaPhong>
 @{
     ViewData["Title"] = "Khoa / Phòng";
+    var q = (ViewBag.q ?? Context?.Request?.Query["q"].ToString()) as string;
+    int? st = null;
+    if (int.TryParse((ViewBag.st ?? Context?.Request?.Query["st"].ToString()) as string, out var stVal)) st = stVal;
+    var hasFilter = !string.IsNullOrWhiteSpace(q) || st.HasValue;
+    var tab = (Context?.Request?.Query["tab"].ToString() ?? "").ToLower() == "map" ? "map" : "manage";
 }
 <link rel="stylesheet" href="~/css/admin-departments-index.css" asp-append-version="true" />
 
-<!-- TIÊU ĐỀ -->
-<div class="header-row">
-    <h2>@ViewData["Title"]</h2>
-</div>
+<div class="header-row"><h2>@ViewData["Title"]</h2></div>
 
 <div class="main-content">
-    <div class="actions">
-        <form method="get" asp-action="Index" class="filter-form" role="search">
-            <input type="text" name="q" class="mini-search-input"
-                   placeholder="Nhập: tên / loại"
-                   value="@(ViewBag.q ?? Context?.Request?.Query["q"].ToString())" />
-            <button type="submit" class="btn btn-filter">Lọc</button>
-        </form>
-
-        <a asp-action="Create" class="btn btn-success">
-            <i class="fa fa-plus me-1"></i> Thêm
-        </a>
+    <!-- Tabs -->
+    <div class="tabs">
+        <button type="button" class="tab-btn @(tab=="manage"?"active":"")" data-tab="tab-manage">Danh mục khoa/phòng</button>
+        <button type="button" class="tab-btn @(tab=="map"?"active":"")" data-tab="tab-map">Gắn vị trí</button>
     </div>
 
     @if (TempData["ToastSuccess"] != null || TempData["ToastError"] != null)
@@ -30,51 +25,158 @@
         </div>
     }
 
-    <div class="table-wrap">
-        <table class="departments-table" aria-label="Danh sách khoa/phòng">
-            <thead>
-                <tr>
-                    <th class="col-name">Tên</th>
-                    <th class="col-type">Loại</th>
-                    <th class="col-attach">Vị trí gắn</th>
-                    <th class="col-status">Trạng thái</th>
-                    <th class="col-actions" style="text-align:center;">Hoạt động</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var k in Model)
+    <!-- TAB 1 -->
+    <div id="tab-manage" class="tab-panel @(tab=="manage"?"show":"")">
+        <div class="actions actions-manage no-box">
+            <form method="get" asp-action="Index" class="filter-form" role="search">
+                <select name="st" class="mini-select" title="Trạng thái">
+                    @if (st == null)
+                    {
+                        <option value="" selected>Tất cả trạng thái</option>
+                    }
+                    else
+                    {
+                        <option value="">Tất cả trạng thái</option>
+                    }
+                    @if (st == 0)
+                    {
+                        <option value="0" selected>Sử dụng</option>
+                    }
+                    else
+                    {
+                        <option value="0">Sử dụng</option>
+                    }
+                    @if (st == 1)
+                    {
+                        <option value="1" selected>Tạm ngưng</option>
+                    }
+                    else
+                    {
+                        <option value="1">Tạm ngưng</option>
+                    }
+                </select>
+                <input type="text" name="q" class="mini-search-input" placeholder="Nhập: tên / loại" value="@q" />
+                <input type="hidden" name="tab" value="manage" />
+                @if (!hasFilter || tab == "map")
                 {
-                    var suspended = k.TamNgung == 1;
-                    <tr class="row-click" data-id="@k.KhoaPhongId">
-                        <td>@k.Ten</td>
-                        <td>@k.Loai</td>
-                        <td>
-                            @if (k.KhoaPhongViTris?.Any() == true)
-                            {
-                                @string.Join(", ", k.KhoaPhongViTris.Select(x => x.ViTri?.TenViTri))
-                            }
-                        </td>
-                        <td>
-                            <span class="status @(suspended ? "cancelled" : "approved")">
-                                @(suspended ? "Tạm ngưng" : "Sử dụng")
-                            </span>
-                        </td>
-                        <td class="cell-actions" style="text-align:center;">
-                            <a asp-action="Edit" asp-route-id="@k.KhoaPhongId" class="btn btn-primary">Sửa</a>
-                            <form id="del-@k.KhoaPhongId" asp-action="Delete" asp-route-id="@k.KhoaPhongId"
-                                  method="post" class="d-inline">
-                                @Html.AntiForgeryToken()
-                                <button type="button" class="btn-icon btn-delete" data-form="#del-@k.KhoaPhongId" title="Xóa"><i class="fas fa-trash"></i></button>
-                            </form>
-                        </td>
-                    </tr>
+                    <button type="submit" class="btn btn-filter" id="btnFilterManage">Lọc</button>
                 }
-            </tbody>
-        </table>
+                else
+                {
+                    <a class="btn btn-clear" id="btnClearLinkManage"
+                       asp-action="Index" asp-route-tab="manage" title="Bỏ lọc" aria-label="Bỏ lọc">
+                        <i class="fas fa-times"></i>
+                    </a>
+                }
+            </form>
+
+            <a asp-action="Create" class="btn btn-success"><i class="fa fa-plus me-1"></i> Thêm</a>
+        </div>
+
+        <div class="table-wrap">
+            <table class="departments-table" aria-label="Danh sách khoa/phòng">
+                <thead>
+                    <tr>
+                        <th class="col-id">Mã</th>
+                        <th class="col-name">Tên</th>
+                        <th class="col-type">Loại</th>
+                        <th class="col-status">Trạng thái</th>
+                        <th class="col-actions" style="text-align:center;">Hoạt động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var k in Model)
+                    {
+                        var suspended = k.TamNgung == 1;
+                        <tr class="row-click" data-id="@k.KhoaPhongId">
+                            <td>@k.KhoaPhongId</td>
+                            <td class="wrap">@k.Ten</td>
+                            <td class="wrap">@k.Loai</td>
+                            <td>
+                                <span class="status @(suspended ? "cancelled" : "approved")">
+                                    @(suspended ? "Tạm ngưng" : "Sử dụng")
+                                </span>
+                            </td>
+                            <td class="cell-actions" style="text-align:center;">
+                                <a asp-action="EditInfo" asp-route-id="@k.KhoaPhongId" class="btn btn-primary">Sửa</a>
+                                <form id="del-@k.KhoaPhongId" asp-action="Delete" asp-route-id="@k.KhoaPhongId" method="post" class="d-inline no-box">
+                                    @Html.AntiForgeryToken()
+                                    <button type="button" class="btn-icon btn-delete" data-form="#del-@k.KhoaPhongId" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- TAB 2 -->
+    <div id="tab-map" class="tab-panel @(tab=="map"?"show":"")">
+        <div class="actions actions-map no-box">
+            <form method="get" asp-action="Index" class="filter-form" role="search">
+                <input type="text" name="q" class="mini-search-input" placeholder="Nhập: tên khoa/phòng hoặc vị trí" value="@q" />
+                <input type="hidden" name="tab" value="map" />
+                @if (string.IsNullOrWhiteSpace(q) || tab == "manage")
+                {
+                    <button type="submit" class="btn btn-filter" id="btnFilterMap">Lọc</button>
+                }
+                else
+                {
+                    <a class="btn btn-clear" id="btnClearLinkMap"
+                       asp-action="Index" asp-route-tab="map" title="Bỏ lọc" aria-label="Bỏ lọc">
+                        <i class="fas fa-times"></i>
+                    </a>
+                }
+            </form>
+        </div>
+
+        <div class="table-wrap">
+            <table class="departments-table" aria-label="Map vị trí cho khoa/phòng">
+                <thead>
+                    <tr>
+                        <th class="col-id">Mã</th>
+                        <th class="col-name">Tên khoa/phòng</th>
+                        <th class="col-attach">Vị trí đang gắn</th>
+                        <th class="col-actions" style="text-align:center;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var k in Model)
+                    {
+                        <tr>
+                            <td>@k.KhoaPhongId</td>
+                            <td class="wrap">@k.Ten</td>
+                            <td class="wrap">
+                                @if (k.KhoaPhongViTris?.Any() == true)
+                                {
+                                    <ul class="attach-list">
+                                        @foreach (var v in k.KhoaPhongViTris)
+                                        {
+                                            <li>@v.ViTri?.TenViTri</li>
+                                        }
+                                    </ul>
+                                }
+                                else
+                                {
+                                    <span>—</span>
+                                }
+                            </td>
+                            <!-- cell-actions => vertical-align: middle -->
+                            <td class="cell-actions" style="text-align:center;">
+                                <a asp-action="Edit" asp-route-id="@k.KhoaPhongId" class="btn btn-success">Gắn vị trí</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
-<!-- ===== Modal CHI TIẾT ===== -->
+<!-- Modals & scripts -->
 <div id="deptDetailModal" class="modal-overlay" aria-hidden="true">
     <div class="modal-card modal-lg" role="dialog" aria-modal="true" aria-labelledby="deptModalTitle">
         <div class="modal-header">
@@ -85,16 +187,13 @@
     </div>
 </div>
 
-<!-- ===== Modal confirm XÓA ===== -->
 <div id="confirmDelete" class="modal-overlay" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="confirmDelTitle">
         <div class="modal-header">
             <h3 id="confirmDelTitle" class="modal-title">Xóa khoa/phòng</h3>
             <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
         </div>
-        <div class="modal-body">
-            <p style="margin:0">Bạn có chắc chắn muốn xóa mục này?</p>
-        </div>
+        <div class="modal-body"><p style="margin:0">Bạn có chắc chắn muốn xóa mục này?</p></div>
         <div class="modal-footer">
             <button type="button" id="btnDelCancel" class="btn btn-export">Thoát</button>
             <button type="button" id="btnDelYes" class="btn btn-danger">Xóa</button>
@@ -102,14 +201,9 @@
     </div>
 </div>
 
-<form id="af-dept" method="post" style="display:none;">
-    @Html.AntiForgeryToken()
-</form>
+<form id="af-dept" method="post" style="display:none;">@Html.AntiForgeryToken()</form>
 
-<!-- Config cho JS -->
-<div id="admin-dept-index-config"
-     data-url-details='@Url.Action("DetailsPartial", "Departments", new { area = "Admin" })'>
-</div>
+<div id="admin-dept-index-config" data-url-details='@Url.Action("DetailsPartial", "Departments", new { area = "Admin" })'></div>
 
 @section Scripts {
     <script src="~/js/pages/admin.departments.index.js" asp-append-version="true"></script>

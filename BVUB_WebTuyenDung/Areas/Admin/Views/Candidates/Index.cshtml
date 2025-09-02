@@ -9,49 +9,61 @@
         User.Claims.Any(c => c.Type == ClaimTypes.Role &&
                              (string.Equals(c.Value, "1") ||
                               string.Equals(c.Value, "Admin", StringComparison.OrdinalIgnoreCase)));
-}
 
+    var hasFilter = (bool)(ViewBag.hasFilter ?? false);
+}
 <link rel="stylesheet" href="~/css/admin-candidates-index.css" asp-append-version="true" />
 
-<!-- TIÊU ĐỀ ĐỂ NGOÀI KHUNG -->
-<div class="header-row">
-    <h2>Danh sách ứng viên</h2>
-</div>
+<div class="header-row"><h2>Danh sách ứng viên</h2></div>
 
-<!-- KHUNG main-content BỌC CẢ CỤM LỌC + BẢNG -->
 <div class="main-content">
     <div class="actions">
-        <!-- Form lọc (GET) -->
-        <form method="get"
-              asp-area="Admin" asp-controller="Candidates" asp-action="Index"
-              class="filter-form" role="search">
+        <form method="get" asp-area="Admin" asp-controller="Candidates" asp-action="Index" class="filter-form" role="search">
             <select name="type" class="mini-select">
-                <option value="">Tất cả loại đơn</option>
-                <option value="VC" selected="@( (string)ViewBag.type=="VC" )">Viên chức</option>
-                <option value="HD" selected="@( (string)ViewBag.type=="HD" )">HĐ lao động</option>
+                <option value="">Tất cả loại nhân viên</option>
+                <option value="VC" selected="@(((string)ViewBag.type)=="VC")">Viên chức</option>
+                <option value="HD" selected="@(((string)ViewBag.type)=="HD")">HĐ lao động</option>
+            </select>
+
+            <select name="status" class="mini-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="pending" selected="@(((string)ViewBag.status)=="pending")">Chờ xử lý</option>
+                <option value="approved" selected="@(((string)ViewBag.status)=="approved")">Đã duyệt</option>
+                <option value="cancelled" selected="@(((string)ViewBag.status)=="cancelled")">Đã hủy</option>
             </select>
 
             <input type="text" name="q" class="mini-search-input"
-                   placeholder="Nhập: Mã UV / Tên / Email / Trạng thái / Ngày (dd/MM/yyyy)"
+                   placeholder="Mã UV / Tên / Ngày (dd/MM/yyyy)"
                    value="@ViewBag.q" />
             <button type="submit" class="btn btn-filter">Lọc</button>
         </form>
 
-        <a href="@Url.Action("ExportCsv","Candidates", new { area="Admin", q = Context.Request.Query["q"] })"
+        @if (hasFilter)
+        {
+            <a class="btn btn-clear" asp-area="Admin" asp-controller="Candidates" asp-action="Index" title="Bỏ lọc" aria-label="Bỏ lọc">
+                <i class="fa-solid fa-xmark"></i>
+            </a>
+        }
+        else
+        {
+            <button class="btn btn-clear" disabled title="Bỏ lọc" aria-label="Bỏ lọc"><i class="fa-solid fa-xmark"></i></button>
+        }
+
+        <a href="@Url.Action("ExportExcel","Candidates", new { area="Admin", q = Context.Request.Query["q"], type = Context.Request.Query["type"], status = Context.Request.Query["status"] })"
            class="btn btn-export">
             Xuất danh sách (Excel)
         </a>
     </div>
 
     <div class="table-wrap">
-        <table class="candidate-table" aria-label="Danh sách ứng viên">
+        <table class="candidate-table full" aria-label="Danh sách ứng viên">
             <thead>
                 <tr>
-                    <th class="col-id">Mã ứng viên</th>
+                    <th class="col-date">Ngày nộp</th>
+                    <th class="col-id">Mã</th>
                     <th class="col-name">Tên ứng viên</th>
-                    <th class="col-email">Email</th>
-                    <th class="col-type">Loại đơn</th>
-                    <th class="col-date">Ngày ứng tuyển</th>
+                    <th class="col-type">Loại nhân viên</th>
+                    <th class="col-birthday">Ngày sinh</th>
                     <th class="col-status">Trạng thái</th>
                     <th class="col-actions" style="text-align:center;">Hoạt động</th>
                 </tr>
@@ -59,58 +71,45 @@
             <tbody>
                 @foreach (var c in Model)
                 {
-                    var isVC = string.Equals(c.DonType, "VC", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(c.LoaiDon, "VienChuc", StringComparison.OrdinalIgnoreCase);
-
+                    var isVC = string.Equals(c.DonType, "VC", StringComparison.OrdinalIgnoreCase);
                     var editHref = isVC
                     ? Url.Action("Edit", "DonVienChuc", new { area = "Admin", id = c.DonId })
                     : Url.Action("Edit", "HopDongNguoiLaoDong", new { area = "Admin", id = c.DonId });
 
-                    <tr data-id="@c.UngVienId"
+                    <tr id="uv-@c.UngVienId"
+                        data-id="@c.UngVienId"
                         data-dontype="@c.DonType"
                         data-donid="@(c.DonId?.ToString() ?? "")"
-                        data-loaidon="@c.LoaiDon"
                         data-editurl="@editHref">
+                        <td>@c.NgayUngTuyen.ToString("dd/MM/yyyy HH:mm:ss")</td>
                         <td>@c.UngVienId</td>
                         <td>@c.HoTen</td>
-                        <td>@c.Email</td>
-                        <td>@c.LoaiDon</td>
-                        <td>@c.NgayUngTuyen.ToString("dd/MM/yyyy")</td>
+                        <td>@(isVC ? "Viên chức" : "HĐ lao động")</td>
+                        <td>@c.NgaySinh.ToString("dd/MM/yyyy")</td>
                         <td>
                             @if (!string.IsNullOrWhiteSpace(c.TrangThai))
                             {
                                 <span class="status @c.TrangThaiClass">@c.TrangThai</span>
                             }
                         </td>
-                        <td class="cell-actions">
+                        <td class="cell-actions" style="text-align:center; white-space:nowrap;">
+                            @* Theo quy tắc hành động *@
                             @if (c.TrangThaiClass == "pending")
                             {
-                                if (isAdmin)
-                                {
-                                    <button class="btn btn-success btn-approve" type="button">Duyệt</button>
-                                }
+                                <button class="btn btn-approve" type="button">Duyệt</button>
+                                <a class="btn btn-primary" href="@editHref">Sửa</a>
                                 <button class="btn btn-danger btn-cancel" type="button">Hủy</button>
-                                @if (isAdmin)
-                                {
-                                    <button class="btn-icon btn-delete" type="button" title="Xóa">🗑</button>
-                                }
                             }
                             else if (c.TrangThaiClass == "approved")
                             {
+                                <button class="btn btn-unapprove" type="button">Bỏ duyệt</button>
                                 <a class="btn btn-primary" href="@editHref">Sửa</a>
                                 <button class="btn btn-danger btn-cancel" type="button">Hủy</button>
-                                @if (isAdmin)
-                                {
-                                    <button class="btn-icon btn-delete" type="button" title="Xóa">🗑</button>
-                                }
                             }
                             else if (c.TrangThaiClass == "cancelled")
                             {
                                 <button class="btn btn-restore" type="button">Khôi phục</button>
-                                @if (isAdmin)
-                                {
-                                    <button class="btn-icon btn-delete" type="button" title="Xóa">🗑</button>
-                                }
+                                <a class="btn btn-primary" href="@editHref">Sửa</a>
                             }
                         </td>
                     </tr>
@@ -120,20 +119,18 @@
     </div>
 </div>
 
-<!-- Cấu hình URL cho JS -->
+<!-- Config cho JS -->
 <div id="candidates-index-config"
      data-url-details-partial="@Url.Action("DetailsPartial", "Candidates", new { area = "Admin" })"
-     data-url-export-word="@Url.Action("ExportWord", "Candidates", new { area = "Admin" })"
      data-url-approve="@Url.Action("ApproveNow", "Candidates", new { area = "Admin" })"
+     data-url-unapprove="@Url.Action("UnapproveNow", "Candidates", new { area = "Admin" })"
      data-url-cancel="@Url.Action("CancelNow", "Candidates", new { area = "Admin" })"
      data-url-restore="@Url.Action("RestoreNow", "Candidates", new { area = "Admin" })"
-     data-url-delete="@Url.Action("DeleteApplication", "Candidates", new { area = "Admin" })"
      data-url-vc-details-tmpl="@Url.Action("Details", "DonVienChuc", new { area = "Admin", id = "__ID__" })"
      data-url-hd-details-tmpl="@Url.Action("Details", "HopDongNguoiLaoDong", new { area = "Admin", id = "__ID__" })">
 </div>
 
-<!-- ==== Các modal giữ nguyên bên dưới ==== -->
-<!-- Modal xem chi tiết -->
+<!-- Modal chi tiết -->
 <div id="detailModal" class="modal-overlay" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
         <div class="modal-header">
@@ -142,84 +139,64 @@
         </div>
         <div id="detailContainer" class="modal-body">Đang tải...</div>
         <div class="modal-footer">
-            <a id="exportWordBtn" class="btn btn-primary" href="#" target="_blank" rel="noopener">Xuất Word</a>
             <a id="viewApplicationBtn" class="btn btn-export" href="#" rel="noopener" style="display:none">Xem đơn</a>
+            <a id="editBtnInModal" class="btn btn-primary" href="#" style="display:none">Sửa</a>
         </div>
     </div>
 </div>
 
-<!-- Popup xác nhận duyệt -->
+<!-- Popup DUYỆT -->
 <div id="approveConfirm" class="modal-overlay" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="approveTitle">
         <div class="modal-header">
-            <h3 id="approveTitle" class="modal-title">Xác nhận duyệt</h3>
+            <h3 id="approveTitle" class="modal-title">Duyệt đơn</h3>
             <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
         </div>
         <div class="modal-body">
-            <p style="margin:0 0 10px">Bạn có thể xem thông tin chi tiết ứng viên trước khi duyệt.</p>
+            <p style="margin:0 0 8px">Bạn có thể xem chi tiết đơn trước khi duyệt.</p>
         </div>
         <div class="modal-footer">
-            <button type="button" id="btnViewBeforeApprove" class="btn btn-export">Xem chi tiết</button>
+            <a id="approveViewBtn" class="btn btn-export" target="_blank" rel="noopener">Xem đơn</a>
             <button type="button" id="btnApproveNow" class="btn btn-success">Duyệt ngay</button>
         </div>
     </div>
 </div>
 
-<!-- Popup xác nhận hủy -->
+<!-- Popup BỎ DUYỆT -->
+<div id="unapproveConfirm" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="unapproveTitle">
+        <div class="modal-header">
+            <h3 id="unapproveTitle" class="modal-title">Bỏ duyệt</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0">Bạn chắc chắn muốn bỏ duyệt đơn này?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnUnapproveNow" class="btn btn-unapprove">Bỏ duyệt</button>
+        </div>
+    </div>
+</div>
+
+<!-- Popup HỦY -->
 <div id="cancelConfirm" class="modal-overlay" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="cancelTitle">
-        <div class="modal-header">
-            <h3 id="cancelTitle" class="modal-title">Xác nhận hủy đơn</h3>
-            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p style="margin:0">Nếu hủy, đơn sẽ <b>tạm dừng xử lý</b> và có thể khôi phục sau. Bạn có chắc chắn muốn hủy?</p>
-        </div>
-        <div class="modal-footer">
-            <button type="button" id="btnCancelClose" class="btn btn-export">Thoát</button>
-            <button type="button" id="btnCancelNow" class="btn btn-danger">Hủy đơn</button>
-        </div>
+        <div class="modal-header"><h3 id="cancelTitle" class="modal-title">Xác nhận hủy</h3><button type="button" class="modal-close" aria-label="Đóng">&times;</button></div>
+        <div class="modal-body"><p style="margin:0">Hủy đơn, có thể khôi phục sau.</p></div>
+        <div class="modal-footer"><button type="button" id="btnCancelNow" class="btn btn-danger">Hủy đơn</button></div>
     </div>
 </div>
 
-<!-- Popup xác nhận khôi phục -->
+<!-- Popup KHÔI PHỤC -->
 <div id="restoreConfirm" class="modal-overlay" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="restoreTitle">
-        <div class="modal-header">
-            <h3 id="restoreTitle" class="modal-title">Khôi phục đơn</h3>
-            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p style="margin:0">Khôi phục đơn về trạng thái <b>Đã duyệt</b>. Bạn có chắc muốn tiếp tục?</p>
-        </div>
-        <div class="modal-footer">
-            <button type="button" id="btnRestoreClose" class="btn btn-export">Thoát</button>
-            <button type="button" id="btnRestoreNow" class="btn btn-success">Khôi phục</button>
-        </div>
+        <div class="modal-header"><h3 id="restoreTitle" class="modal-title">Khôi phục</h3><button type="button" class="modal-close" aria-label="Đóng">&times;</button></div>
+        <div class="modal-body"><p style="margin:0">Khôi phục về trạng thái <b>Đã duyệt</b>.</p></div>
+        <div class="modal-footer"><button type="button" id="btnRestoreNow" class="btn btn-success">Khôi phục</button></div>
     </div>
 </div>
 
-<!-- Popup xác nhận XÓA -->
-<div id="deleteConfirm" class="modal-overlay" aria-hidden="true">
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="deleteTitle">
-        <div class="modal-header">
-            <h3 id="deleteTitle" class="modal-title">Xóa đơn</h3>
-            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
-        </div>
-        <div class="modal-body">
-            <p style="margin:0">Hành động này sẽ <b>xóa đơn này khỏi hệ thống</b>. Bạn có chắc chắn muốn xóa?</p>
-        </div>
-        <div class="modal-footer">
-            <button type="button" id="btnDeleteClose" class="btn btn-export">Thoát</button>
-            <button type="button" id="btnDeleteNow" class="btn btn-danger">Xóa</button>
-        </div>
-    </div>
-</div>
-
-<!-- Form ẩn để lấy Anti-forgery token -->
-<form id="af-index" method="post" style="display:none;">
-    @Html.AntiForgeryToken()
-</form>
+<form id="af-index" method="post" style="display:none;">@Html.AntiForgeryToken()</form>
 
 @section Scripts {
     <script src="~/js/pages/admin.candidates.index.js" asp-append-version="true"></script>

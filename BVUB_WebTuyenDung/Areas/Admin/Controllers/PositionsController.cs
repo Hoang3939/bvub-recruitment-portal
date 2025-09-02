@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
 using BVUB_WebTuyenDung.Areas.Admin.Data;
-using BVUB_WebTuyenDung.Areas.Admin.ViewModels;     
+using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
 using M = BVUB_WebTuyenDung.Areas.Admin.Models;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
@@ -18,9 +18,19 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         private readonly AdminDbContext _ctx;
         public PositionsController(AdminDbContext ctx) => _ctx = ctx;
 
-        public async Task<IActionResult> Index(string q)
+        // Index + filter trạng thái
+        public async Task<IActionResult> Index(string q, int? st)
         {
-            var query = _ctx.DanhMucViTriDuTuyens.Include(v => v.ChucDanh).AsQueryable();
+            var query = _ctx.DanhMucViTriDuTuyens
+                            .Include(v => v.ChucDanh)
+                            .AsQueryable();
+
+            // lọc trạng thái (0: sử dụng, 1: tạm ngưng)
+            if (st.HasValue && (st.Value == 0 || st.Value == 1))
+            {
+                query = query.Where(v => v.TamNgung == st.Value);
+            }
+
             if (!string.IsNullOrWhiteSpace(q))
             {
                 q = q.Trim();
@@ -28,8 +38,12 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     EF.Functions.Like(v.TenViTri, $"%{q}%") ||
                     EF.Functions.Like(v.ChucDanh.TenChucDanh, $"%{q}%"));
             }
+
             ViewBag.q = q;
-            var items = await query.OrderBy(v => v.TenViTri).ToListAsync();
+            ViewBag.st = st;
+
+            // Sort theo MÃ (ViTriId) tăng dần
+            var items = await query.OrderBy(v => v.ViTriId).ToListAsync();
             return View(items);
         }
 
@@ -109,7 +123,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             e.ChucDanhId = vm.ChucDanhId;
             e.TamNgung = vm.TamNgung;
 
-            // Mirror trạng thái lên chức danh nếu chức danh chỉ có 1 vị trí
+            // Mirror trạng thái
             var count = await _ctx.DanhMucViTriDuTuyens.CountAsync(x => x.ChucDanhId == e.ChucDanhId);
             if (count == 1)
             {

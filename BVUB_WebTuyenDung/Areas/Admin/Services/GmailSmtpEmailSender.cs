@@ -7,9 +7,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Services
 {
     public class GmailOptions
     {
-        public string User { get; set; } = "";       // Gmail dùng để gửi
-        public string AppPass { get; set; } = "";    // App Password 16 ký tự
-        public string? From { get; set; }            // Mặc định = User
+        public string User { get; set; } = "";      
+        public string AppPass { get; set; } = "";  
+        public string? From { get; set; }           
         public string FromName { get; set; } = "Hệ thống BVUB";
         public string Host { get; set; } = "smtp.gmail.com"; 
         public int Port { get; set; } = 587;         

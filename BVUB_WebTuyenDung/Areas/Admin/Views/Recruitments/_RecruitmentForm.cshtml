@@ -40,6 +40,7 @@
         <span asp-validation-for="NoiDung" class="text-danger"></span>
     </div>
 
+    <!-- Đính kèm -->
     <div class="full">
         <label class="form-label">File đính kèm</label>
         <input type="file" name="file" class="form-control" />
@@ -50,6 +51,20 @@
                 <a href="@Model.FileDinhKem" target="_blank" rel="noopener">
                     @System.IO.Path.GetFileName(Model.FileDinhKem)
                 </a> — Chọn tệp mới để thay thế.
+            </div>
+        }
+    </div>
+
+    <!-- Ảnh hiển thị -->
+    <div class="full">
+        <label class="form-label">Ảnh hiển thị</label>
+        <input type="file" name="image" accept="image/*" class="form-control" />
+        @if (!string.IsNullOrWhiteSpace(Model?.FileAnh))
+        {
+            <div class="form-text" style="display:flex;align-items:center;gap:12px;margin-top:6px;">
+                <span>Ảnh hiện tại:</span>
+                <img src="@Model.FileAnh" alt="Ảnh hiện tại" style="height:56px;border-radius:10px;border:1px solid #e5e7eb;object-fit:cover;" />
+                <span>(Chọn ảnh mới để thay thế)</span>
             </div>
         }
     </div>

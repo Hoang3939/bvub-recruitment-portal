@@ -5,6 +5,7 @@
         return { detailsUrl: el ? (el.dataset.urlDetails || '') : '' };
     }
 
+    // helper modal
     function modalApi(id) {
         const root = document.getElementById(id);
         const closeEls = root ? root.querySelectorAll('.modal-close') : [];
@@ -27,18 +28,40 @@
         }, 60);
     }
 
+    // chọn tab theo query ?tab=map|manage
+    function applyTabFromQuery() {
+        const usp = new URLSearchParams(location.search);
+        const want = (usp.get('tab') || 'manage').toLowerCase();
+        const btn = document.querySelector(`.tab-btn[data-tab=${want === 'map' ? 'tab-map' : 'tab-manage'}]`);
+        if (btn) btn.click();
+    }
+
+    // tabs
+    function initTabs() {
+        const buttons = document.querySelectorAll('.tab-btn');
+        const panels = document.querySelectorAll('.tab-panel');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                buttons.forEach(b => b.classList.remove('active'));
+                panels.forEach(p => p.classList.remove('show'));
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab)?.classList.add('show');
+            });
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         const C = cfg();
 
-        // Details modal
+        initTabs();
+        applyTabFromQuery();
+
+        // Details modal on row click (bỏ click trên nút/link/inputs)
         const detailM = modalApi('deptDetailModal');
         const detailBox = document.getElementById('deptDetailContainer');
-
         document.addEventListener('click', async e => {
-            // bỏ qua click vào nút/link/icon/inputs
-            const inter = e.target.closest('button, a, .btn-icon, svg, path, input, select');
+            const inter = e.target.closest('button, a, .btn-icon, svg, path, input, select, textarea');
             if (inter) return;
-
             const row = e.target.closest('tr.row-click[data-id]');
             if (!row) return;
 
@@ -77,7 +100,6 @@
             delM.close();
         });
 
-        // Toast
         showToastIfAny();
     });
 })();

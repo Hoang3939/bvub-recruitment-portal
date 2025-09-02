@@ -7,6 +7,14 @@
 
     <h4 style="margin:0 0 8px 0; font-weight:800;">@Model.TieuDe</h4>
 
+    @if (!string.IsNullOrWhiteSpace(Model.FileAnh))
+    {
+        <div style="margin:6px 0 12px;">
+            <img src="@Model.FileAnh" alt="Ảnh tuyển dụng"
+                 style="max-width:100%;border-radius:12px;border:1px solid #eef2f7;" />
+        </div>
+    }
+
     <div style="color:#475569; margin-bottom:12px;">
         <b>Loại tuyển dụng:</b> @Model.LoaiTuyenDung
         <br />

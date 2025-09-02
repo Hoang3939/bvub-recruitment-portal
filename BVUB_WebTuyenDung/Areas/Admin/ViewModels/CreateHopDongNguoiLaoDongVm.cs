@@ -21,6 +21,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.ViewModels
         [Required, MaxLength(100)] public string NgheNghiepTruocTuyenDung { get; set; }
 
         [Required, DataType(DataType.Date)]
-        public DateTime NgayNop { get; set; } = DateTime.Today;
+        public DateTime NgayNop { get; set; } = DateTime.Now;
     }
 }

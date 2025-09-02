@@ -1,15 +1,15 @@
-﻿// wwwroot/js/pages/admin.candidates.index.js
-(function () {
-    const $ = window.jQuery;
-
+﻿(function () {
     function cfg() {
         const el = document.getElementById('candidates-index-config'); if (!el) return {};
         const r = k => el.dataset[k] || '';
         return {
-            detailsPartial: r('urlDetailsPartial'), exportWord: r('urlExportWord'),
-            approveNow: r('urlApprove'), cancelNow: r('urlCancel'),
-            restoreNow: r('urlRestore'), deleteApp: r('urlDelete'),
-            vcDetailsTmpl: r('urlVcDetailsTmpl'), hdDetailsTmpl: r('urlHdDetailsTmpl')
+            detailsPartial: r('urlDetailsPartial'),
+            approveNow: r('urlApprove'),
+            unapproveNow: r('urlUnapprove'),
+            cancelNow: r('urlCancel'),
+            restoreNow: r('urlRestore'),
+            vcDetailsTmpl: r('urlVcDetailsTmpl'),
+            hdDetailsTmpl: r('urlHdDetailsTmpl')
         };
     }
     function getToken() {
@@ -22,11 +22,6 @@
         if (type === 'HD' && C.hdDetailsTmpl) return C.hdDetailsTmpl.replace('__ID__', id);
         return null;
     }
-    function toastMini(msg) {
-        const t = document.createElement('div'); t.className = 'toast-mini'; t.textContent = msg || 'Thao tác thành công.';
-        document.body.appendChild(t); requestAnimationFrame(() => t.classList.add('show'));
-        setTimeout(() => { t.classList.remove('show'); t.addEventListener('transitionend', () => t.remove(), { once: true }); }, 2200);
-    }
     function modalApi(rootId) {
         const root = document.getElementById(rootId), closeEls = root ? root.querySelectorAll('.modal-close') : [];
         function open() { if (root) { root.classList.add('show'); document.body.style.overflow = 'hidden'; } }
@@ -35,153 +30,237 @@
         root && root.addEventListener('click', e => { if (e.target === root) close(); });
         return { open, close, root };
     }
+    function toastMini(msg) {
+        const t = document.createElement('div');
+        t.className = 'toast-mini'; t.textContent = msg || 'OK';
+        Object.assign(t.style, { position: 'fixed', right: '16px', bottom: '16px', background: '#111', color: '#fff', padding: '8px 12px', borderRadius: '6px', opacity: '0', transition: 'opacity .2s' });
+        document.body.appendChild(t); requestAnimationFrame(() => t.style.opacity = '1');
+        setTimeout(() => { t.style.opacity = '0'; t.addEventListener('transitionend', () => t.remove(), { once: true }); }, 1500);
+    }
 
-    function initDetails(C) {
-        const M = modalApi('detailModal'), box = document.getElementById('detailContainer');
-        const exportBtn = document.getElementById('exportWordBtn'), viewBtn = document.getElementById('viewApplicationBtn');
-        async function loadDetails(uvId, donType, donId, label) {
-            if (box) { box.innerHTML = 'Đang tải...'; }
+    // ===== Modal chi tiết (click hàng để xem) =====
+    (function initDetails() {
+        const C = cfg();
+        const M = modalApi('detailModal');
+        const box = document.getElementById('detailContainer');
+        const viewBtn = document.getElementById('viewApplicationBtn');
+        const editBtn = document.getElementById('editBtnInModal');
+
+        async function loadDetails(row) {
+            const uvId = row.getAttribute('data-id');
+            const donType = row.getAttribute('data-dontype');
+            const donId = row.getAttribute('data-donid');
+            const editUrl = row.getAttribute('data-editurl');
+
+            if (box) box.innerHTML = 'Đang tải...';
+
             try {
                 const url = C.detailsPartial + '?id=' + encodeURIComponent(uvId);
                 const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                 box.innerHTML = resp.ok ? await resp.text() : 'Không tải được dữ liệu.';
             } catch { box.innerHTML = 'Có lỗi khi tải dữ liệu.'; }
-            if (exportBtn) exportBtn.href = C.exportWord + '?id=' + encodeURIComponent(uvId);
+
             const appUrl = buildAppUrl(donType, donId, C);
-            if (appUrl && viewBtn) { viewBtn.href = appUrl; viewBtn.textContent = label || (donType === 'VC' ? 'Đơn viên chức' : 'Hợp đồng lao động'); viewBtn.style.display = ''; }
-            else if (viewBtn) { viewBtn.style.display = 'none'; viewBtn.removeAttribute('href'); }
+            if (appUrl) { viewBtn.style.display = ''; viewBtn.href = appUrl; } else { viewBtn.style.display = 'none'; }
+
+            if (editUrl) { editBtn.style.display = ''; editBtn.href = editUrl; } else { editBtn.style.display = 'none'; }
+
             M.open();
         }
-        document.addEventListener('click', e => {
-            const interactive = e.target.closest('button, a, .btn-icon, svg, path'); if (interactive) return;
-            const row = e.target.closest('tr[data-id]'); if (!row) return;
-            loadDetails(row.getAttribute('data-id'), row.getAttribute('data-dontype'),
-                row.getAttribute('data-donid'), row.getAttribute('data-loaidon'));
-        });
-    }
 
-    function initApprove(C) {
-        const M = modalApi('approveConfirm'), btnView = document.getElementById('btnViewBeforeApprove');
-        const btnGo = document.getElementById('btnApproveNow'), ctx = { row: null, id: null, donType: null, donId: null };
-        document.addEventListener('click', e => {
+        document.addEventListener('click', function (e) {
+            const interactive = e.target.closest('button, a, .btn-icon, svg, path, input, select');
+            if (interactive) return;
+            const row = e.target.closest('tr[data-id]'); if (!row) return;
+            loadDetails(row);
+        });
+    })();
+
+    // ===== Duyệt / Bỏ duyệt (hai popup tách biệt) =====
+    (function initApproveFlows() {
+        const C = cfg();
+
+        const MApprove = modalApi('approveConfirm');
+        const MUnapprove = modalApi('unapproveConfirm');
+        const approveViewBtn = document.getElementById('approveViewBtn');
+
+        const ctx = { row: null, donType: null, donId: null };
+
+        // Mở popup DUYỆT
+        document.addEventListener('click', function (e) {
             const btn = e.target.closest('.btn-approve'); if (!btn) return;
             const row = btn.closest('tr[data-id]'); if (!row) return;
-            ctx.row = row; ctx.id = row.getAttribute('data-id');
-            ctx.donType = row.getAttribute('data-dontype'); ctx.donId = row.getAttribute('data-donid');
-            M.open();
+            ctx.row = row;
+            ctx.donType = row.getAttribute('data-dontype');
+            ctx.donId = row.getAttribute('data-donid');
+
+            // set link "Xem đơn"
+            const url = buildAppUrl(ctx.donType, ctx.donId, C);
+            if (url) { approveViewBtn.href = url; approveViewBtn.style.display = ''; } else { approveViewBtn.style.display = 'none'; }
+
+            MApprove.open();
         });
-        btnView && btnView.addEventListener('click', () => { const url = buildAppUrl(ctx.donType, ctx.donId, C); if (url) window.location.assign(url); });
-        btnGo && btnGo.addEventListener('click', async () => {
+
+        // DUYỆT NGAY
+        document.getElementById('btnApproveNow')?.addEventListener('click', async function () {
             try {
                 const resp = await fetch(C.approveNow, {
-                    method: 'POST', headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'RequestVerificationToken': getToken()
-                    }, body: new URLSearchParams({ donType: ctx.donType, id: ctx.donId })
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'RequestVerificationToken': getToken()
+                    },
+                    body: new URLSearchParams({ donType: ctx.donType, id: ctx.donId })
                 });
-                if (resp.status === 401 || resp.status === 403) return alert('Bạn không có quyền duyệt.');
-                const data = await resp.json(); if (!data.ok) return alert(data.message || 'Duyệt thất bại');
-                const badge = ctx.row.querySelector('.status');
-                if (badge) { badge.textContent = data.newStatusLabel || 'Đã duyệt'; badge.classList.remove('pending', 'cancelled'); badge.classList.add(data.newStatusClass || 'approved'); }
-                const cell = ctx.row.querySelector('td:last-child');
-                if (cell) {
-                    const approveBtn = cell.querySelector('.btn-approve');
-                    if (approveBtn) { const a = document.createElement('a'); a.className = 'btn btn-primary'; a.href = ctx.row.getAttribute('data-editurl') || '#'; a.textContent = 'Sửa'; approveBtn.replaceWith(a); }
-                }
-                M.close(); toastMini('Đã duyệt thành công.');
-            } catch { alert('Có lỗi khi duyệt.'); }
-        });
-    }
+                const data = await resp.json();
+                if (!data.ok) return alert(data.message || 'Thao tác thất bại');
 
-    function initCancel(C) {
-        const M = modalApi('cancelConfirm'), btnClose = document.getElementById('btnCancelClose');
-        const btnGo = document.getElementById('btnCancelNow'), ctx = { row: null, donType: null, donId: null };
-        document.addEventListener('click', e => {
-            const btn = e.target.closest('.btn-cancel'); if (!btn) return;
-            const row = btn.closest('tr[data-id]'); if (!row) return;
-            ctx.row = row; ctx.donType = row.getAttribute('data-dontype'); ctx.donId = row.getAttribute('data-donid');
-            if (!ctx.donType || !ctx.donId) return alert('Thiếu thông tin đơn.'); M.open();
+                const badge = ctx.row.querySelector('.status');
+                if (badge) {
+                    badge.textContent = data.newStatusLabel || 'Đã duyệt';
+                    badge.classList.remove('pending', 'cancelled'); badge.classList.add('approved');
+                }
+
+                // đổi bộ nút: approved => Bỏ duyệt + Sửa + Hủy
+                const cell = ctx.row.querySelector('td.cell-actions, td:last-child');
+                if (cell) {
+                    cell.innerHTML = `
+                        <button class="btn btn-unapprove" type="button">Bỏ duyệt</button>
+                        <a class="btn btn-primary" href="${ctx.row.getAttribute('data-editurl')}">Sửa</a>
+                        <button class="btn btn-danger btn-cancel" type="button">Hủy</button>
+                    `;
+                }
+
+                MApprove.close(); toastMini('Đã duyệt.');
+            } catch { alert('Có lỗi khi cập nhật.'); }
         });
-        btnClose && btnClose.addEventListener('click', M.close);
-        btnGo && btnGo.addEventListener('click', async () => {
+
+        // Mở popup BỎ DUYỆT
+        document.addEventListener('click', function (e) {
+            const btn = e.target.closest('.btn-unapprove'); if (!btn) return;
+            const row = btn.closest('tr[data-id]'); if (!row) return;
+            ctx.row = row;
+            ctx.donType = row.getAttribute('data-dontype');
+            ctx.donId = row.getAttribute('data-donid');
+            MUnapprove.open();
+        });
+
+        // BỎ DUYỆT
+        document.getElementById('btnUnapproveNow')?.addEventListener('click', async function () {
+            try {
+                const resp = await fetch(C.unapproveNow, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'RequestVerificationToken': getToken()
+                    },
+                    body: new URLSearchParams({ donType: ctx.donType, id: ctx.donId })
+                });
+                const data = await resp.json();
+                if (!data.ok) return alert(data.message || 'Thao tác thất bại');
+
+                const badge = ctx.row.querySelector('.status');
+                if (badge) {
+                    badge.textContent = data.newStatusLabel || 'Chờ xử lý';
+                    badge.classList.remove('approved', 'cancelled'); badge.classList.add('pending');
+                }
+
+                // đổi bộ nút: pending => Duyệt + Sửa + Hủy
+                const cell = ctx.row.querySelector('td.cell-actions, td:last-child');
+                if (cell) {
+                    cell.innerHTML = `
+                        <button class="btn btn-approve" type="button">Duyệt</button>
+                        <a class="btn btn-primary" href="${ctx.row.getAttribute('data-editurl')}">Sửa</a>
+                        <button class="btn btn-danger btn-cancel" type="button">Hủy</button>
+                    `;
+                }
+
+                MUnapprove.close(); toastMini('Đã bỏ duyệt.');
+            } catch { alert('Có lỗi khi cập nhật.'); }
+        });
+    })();
+
+    // ===== Hủy / Khôi phục =====
+    (function initCancelRestore() {
+        const C = cfg();
+
+        const Mc = modalApi('cancelConfirm');
+        const Mr = modalApi('restoreConfirm');
+        const ctx = { row: null, donType: null, donId: null };
+
+        document.addEventListener('click', function (e) {
+            const cancel = e.target.closest('.btn-cancel');
+            const restore = e.target.closest('.btn-restore');
+            const row = e.target.closest('tr[data-id]');
+            if (!row) return;
+
+            if (cancel) {
+                ctx.row = row; ctx.donType = row.getAttribute('data-dontype'); ctx.donId = row.getAttribute('data-donid'); Mc.open();
+            }
+            if (restore) {
+                ctx.row = row; ctx.donType = row.getAttribute('data-dontype'); ctx.donId = row.getAttribute('data-donid'); Mr.open();
+            }
+        });
+
+        document.getElementById('btnCancelNow')?.addEventListener('click', async function () {
             try {
                 const resp = await fetch(C.cancelNow, {
-                    method: 'POST', headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'RequestVerificationToken': getToken()
-                    }, body: new URLSearchParams({ donType: ctx.donType, id: ctx.donId })
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'RequestVerificationToken': getToken()
+                    },
+                    body: new URLSearchParams({ donType: ctx.donType, id: ctx.donId })
                 });
-                if (resp.status === 401 || resp.status === 403) return alert('Bạn không có quyền hủy.');
                 const data = await resp.json(); if (!data.ok) return alert(data.message || 'Hủy thất bại');
+
                 const badge = ctx.row.querySelector('.status');
-                if (badge) { badge.textContent = data.newStatusLabel || 'Đã hủy'; badge.classList.remove('pending', 'approved'); badge.classList.add(data.newStatusClass || 'cancelled'); }
-                const cell = ctx.row.querySelector('td:last-child');
-                cell && cell.querySelector('.btn-approve') && cell.querySelector('.btn-approve').remove();
-                cell && cell.querySelector('.btn-cancel') && cell.querySelector('.btn-cancel').remove();
-                cell && cell.querySelector('.btn.btn-primary') && cell.querySelector('.btn.btn-primary').remove();
-                if (cell && !cell.querySelector('.btn-restore')) {
-                    const r = document.createElement('button'); r.className = 'btn btn-restore'; r.type = 'button'; r.textContent = 'Khôi phục'; cell.insertBefore(r, cell.firstChild);
+                if (badge) {
+                    badge.textContent = data.newStatusLabel || 'Đã hủy';
+                    badge.classList.remove('pending', 'approved'); badge.classList.add('cancelled');
                 }
-                M.close();
+                // thay bộ nút: chỉ Khôi phục + Sửa
+                const cell = ctx.row.querySelector('td.cell-actions, td:last-child');
+                if (cell) {
+                    cell.innerHTML = `
+                        <button class="btn btn-restore" type="button">Khôi phục</button>
+                        <a class="btn btn-primary" href="${ctx.row.getAttribute('data-editurl')}">Sửa</a>
+                    `;
+                }
+
+                Mc.close(); toastMini('Đã hủy đơn.');
             } catch { alert('Có lỗi khi hủy.'); }
         });
-    }
 
-    function initRestore(C) {
-        const M = modalApi('restoreConfirm'), btnClose = document.getElementById('btnRestoreClose');
-        const btnGo = document.getElementById('btnRestoreNow'), ctx = { row: null, donType: null, donId: null };
-        document.addEventListener('click', e => {
-            const btn = e.target.closest('.btn-restore'); if (!btn) return;
-            const row = btn.closest('tr[data-id]'); if (!row) return;
-            ctx.row = row; ctx.donType = row.getAttribute('data-dontype'); ctx.donId = row.getAttribute('data-donid');
-            if (!ctx.donType || !ctx.donId) return alert('Thiếu thông tin đơn.'); M.open();
-        });
-        btnClose && btnClose.addEventListener('click', M.close);
-        btnGo && btnGo.addEventListener('click', async () => {
+        document.getElementById('btnRestoreNow')?.addEventListener('click', async function () {
             try {
                 const resp = await fetch(C.restoreNow, {
-                    method: 'POST', headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'RequestVerificationToken': getToken()
-                    }, body: new URLSearchParams({ donType: ctx.donType, id: ctx.donId })
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'RequestVerificationToken': getToken()
+                    },
+                    body: new URLSearchParams({ donType: ctx.donType, id: ctx.donId })
                 });
-                if (resp.status === 401 || resp.status === 403) return alert('Bạn không có quyền khôi phục.');
                 const data = await resp.json(); if (!data.ok) return alert(data.message || 'Khôi phục thất bại');
+
                 const badge = ctx.row.querySelector('.status');
-                if (badge) { badge.textContent = data.newStatusLabel || 'Đã duyệt'; badge.classList.remove('pending', 'cancelled'); badge.classList.add(data.newStatusClass || 'approved'); }
-                const cell = ctx.row.querySelector('td:last-child');
-                if (cell) {
-                    const r = cell.querySelector('.btn-restore'); if (r) r.remove();
-                    if (!cell.querySelector('.btn.btn-primary')) { const a = document.createElement('a'); a.className = 'btn btn-primary'; a.href = ctx.row.getAttribute('data-editurl') || '#'; a.textContent = 'Sửa'; cell.insertBefore(a, cell.firstChild); }
-                    if (!cell.querySelector('.btn-cancel')) { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn btn-danger btn-cancel'; b.textContent = 'Hủy'; cell.insertBefore(b, cell.querySelector('.btn.btn-primary')?.nextSibling || cell.firstChild); }
+                if (badge) {
+                    badge.textContent = data.newStatusLabel || 'Đã duyệt';
+                    badge.classList.remove('pending', 'cancelled'); badge.classList.add('approved');
                 }
-                M.close(); toastMini('Khôi phục thành công.');
+                // thay bộ nút: Bỏ duyệt + Sửa + Hủy (và ẩn nút khôi phục)
+                const cell = ctx.row.querySelector('td.cell-actions, td:last-child');
+                if (cell) {
+                    cell.innerHTML = `
+                        <button class="btn btn-unapprove" type="button">Bỏ duyệt</button>
+                        <a class="btn btn-primary" href="${ctx.row.getAttribute('data-editurl')}">Sửa</a>
+                        <button class="btn btn-danger btn-cancel" type="button">Hủy</button>
+                    `;
+                }
+
+                Mr.close(); toastMini('Đã khôi phục.');
             } catch { alert('Có lỗi khi khôi phục.'); }
         });
-    }
-
-    function initDelete(C) {
-        const M = modalApi('deleteConfirm'), btnClose = document.getElementById('btnDeleteClose');
-        const btnGo = document.getElementById('btnDeleteNow'), ctx = { row: null, donType: null, donId: null };
-        document.addEventListener('click', e => {
-            const btn = e.target.closest('.btn-delete'); if (!btn) return;
-            const row = btn.closest('tr[data-id]'); if (!row) return;
-            ctx.row = row; ctx.donType = row.getAttribute('data-dontype'); ctx.donId = row.getAttribute('data-donid');
-            if (!ctx.donType || !ctx.donId) return alert('Thiếu thông tin đơn.'); M.open();
-        });
-        btnClose && btnClose.addEventListener('click', M.close);
-        btnGo && btnGo.addEventListener('click', async () => {
-            try {
-                const resp = await fetch(C.deleteApp, {
-                    method: 'POST', headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8', 'RequestVerificationToken': getToken()
-                    }, body: new URLSearchParams({ donType: ctx.donType, id: ctx.donId })
-                });
-                if (resp.status === 401 || resp.status === 403) return alert('Bạn không có quyền xóa.');
-                const data = await resp.json(); if (!data.ok) return alert(data.message || 'Xóa thất bại');
-                ctx.row && ctx.row.remove(); M.close(); toastMini('Đã xóa đơn.');
-            } catch { alert('Có lỗi khi xóa.'); }
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-        const C = cfg(); initDetails(C); initApprove(C); initCancel(C); initRestore(C); initDelete(C);
-    });
+    })();
 })();

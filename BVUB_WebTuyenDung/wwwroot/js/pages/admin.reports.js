@@ -19,10 +19,7 @@
     const viDate = (d) => new Date(d).toLocaleDateString('vi-VN');
 
     function dateOnly(d) {
-        // local 00:00 for today if Date provided; else parse yyyy-MM-dd
-        if (d instanceof Date) {
-            return new Date(d.getFullYear(), d.getMonth(), d.getDate());
-        }
+        if (d instanceof Date) return new Date(d.getFullYear(), d.getMonth(), d.getDate());
         if (typeof d === 'string') {
             const [y, m, dd] = d.split('-').map(Number);
             return new Date(y, (m || 1) - 1, dd || 1);
@@ -39,7 +36,6 @@
     function setPreset(val) {
         const end = dateOnly(new Date());
         let start = null;
-
         switch (val) {
             case '7': start = new Date(end); start.setDate(end.getDate() - 6); break;
             case '30': start = new Date(end); start.setDate(end.getDate() - 29); break;
@@ -67,27 +63,15 @@
 
     fromInp?.addEventListener('change', () => { if (toInp && fromInp) toInp.min = fromInp.value; });
     toInp?.addEventListener('change', () => { if (toInp && fromInp) fromInp.max = toInp.value; });
-
     sel?.addEventListener('change', onRangeChange);
     onRangeChange(); // init default
 
     // ===== Charts =====
-    let recChart, recTypeChart, candChart, candDonut;
+    let recChart, recTypeChart, candChart, candDonut, candTypeDonut;
 
-    function destroyChart(c) {
-        if (c && typeof c.destroy === 'function') try { c.destroy(); } catch { }
-    }
-
-    async function safeJson(url) {
-        const resp = await fetch(url);
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        return await resp.json();
-    }
-
-    function qs() {
-        const p = new URLSearchParams({ from: fromInp.value, to: toInp.value });
-        return '?' + p.toString();
-    }
+    function destroyChart(c) { if (c && typeof c.destroy === 'function') try { c.destroy(); } catch { } }
+    async function safeJson(url) { const r = await fetch(url); if (!r.ok) throw new Error(`HTTP ${r.status}`); return await r.json(); }
+    function qs() { const p = new URLSearchParams({ from: fromInp.value, to: toInp.value }); return '?' + p.toString(); }
 
     // KPI Summary
     async function loadSummary() {
@@ -106,13 +90,13 @@
             d.className = 'd-flex justify-content-between align-items-center border-bottom py-1';
             const han = x.han ? viDate(x.han) : '';
             d.innerHTML = `
-        <div>
-          <div class="fw-semibold">${x.tieuDe}</div>
-          <div class="text-muted">Loại: ${x.loai || ''}</div>
-        </div>
-        <div class="text-end small">
-          Hạn: ${han}<br/>còn <b>${x.daysLeft}</b> ngày
-        </div>`;
+                <div>
+                    <div class="fw-semibold">${x.tieuDe}</div>
+                    <div class="text-muted">Loại: ${x.loai || ''}</div>
+                </div>
+                <div class="text-end small">
+                    Hạn: ${han}<br/>còn <b>${x.daysLeft}</b> ngày
+                </div>`;
             box.appendChild(d);
         });
         if (!box.innerHTML) box.innerHTML = '<div class="text-muted">Không có tin sắp hết hạn.</div>';
@@ -144,10 +128,7 @@
             },
             options: {
                 responsive: true,
-                scales: {
-                    x: { stacked: true },
-                    y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
-                }
+                scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } } }
             }
         });
     }
@@ -170,9 +151,11 @@
         });
     }
 
-    // Donut: Candidate breakdown
+    // Donut: trạng thái + loại hồ sơ (2 cái đặt cạnh nhau, cùng kích thước)
     async function loadCandBreakdown() {
         const j = await safeJson(urls.candBreakdown + qs());
+
+        // trạng thái
         destroyChart(candDonut);
         candDonut = new Chart($('#candBreakdown'), {
             type: 'doughnut',
@@ -180,16 +163,37 @@
                 labels: ['Chờ duyệt', 'Đã duyệt', 'Đã huỷ'],
                 datasets: [{ data: [j.pending || 0, j.approved || 0, j.cancelled || 0] }]
             },
-            options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } },
+                cutout: '65%',
+                radius: '55%',
+                layout: { padding: 6 }
+            }
+        });
+
+        // loại hồ sơ
+        destroyChart(candTypeDonut);
+        candTypeDonut = new Chart($('#candTypeDonut'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Viên chức', 'HĐ lao động'],
+                datasets: [{ data: [j.vc || 0, j.hd || 0] }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'bottom' } },
+                cutout: '65%',
+                radius: '55%',
+                layout: { padding: 6 }
+            }
         });
     }
 
     async function applyAll() {
-        // loading state
         btn.disabled = true;
         const orig = btn.textContent;
         btn.textContent = 'Đang tải…';
-
         try {
             await Promise.all([
                 loadSummary(),
@@ -209,6 +213,6 @@
 
     btn?.addEventListener('click', applyAll);
 
-    // auto run lần đầu
+    // chạy lần đầu theo preset mặc định
     applyAll();
 })();

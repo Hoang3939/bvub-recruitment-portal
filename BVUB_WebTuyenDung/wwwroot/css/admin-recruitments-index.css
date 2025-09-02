@@ -133,6 +133,16 @@
     border-radius: 50%;
 }
 
+.btn-clear {
+    background: #eef2f7;
+    color: #1f2937;
+}
+
+    .btn-clear:hover {
+        filter: brightness(.97);
+    }
+
+
 /* ====== Bảng ====== */
 .table-wrap {
     position: relative;
@@ -433,3 +443,10 @@
     min-height: 180px;
 }
 
+.rec-thumb {
+    width: 72px;
+    height: 72px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+}

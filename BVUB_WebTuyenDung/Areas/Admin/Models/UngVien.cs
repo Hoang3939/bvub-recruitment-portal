@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -13,24 +14,24 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
         public string HoTen { get; set; }
 
         [Required]
-        [Column(TypeName = "date")]             
+        [Column(TypeName = "date")]
         public DateTime NgaySinh { get; set; }
 
         [Required]
-        public int GioiTinh { get; set; }       
+        public int GioiTinh { get; set; }
 
         [Required, MaxLength(20)]
         public string SoDienThoai { get; set; }
 
         [Required, MaxLength(255)]
         [EmailAddress]
-        public string Email { get; set; }         
+        public string Email { get; set; }
 
         [Required, MaxLength(20)]
         public string CCCD { get; set; }
 
         [Required]
-        [Column(TypeName = "date")]              
+        [Column(TypeName = "date")]
         public DateTime NgayCapCCCD { get; set; }
 
         [Required, MaxLength(255)]
@@ -55,7 +56,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
         public string TrinhDoChuyenMon { get; set; }
 
         [Required]
-        [Column(TypeName = "date")]
+        [Column(TypeName = "datetime2(3)")]
         public DateTime NgayUngTuyen { get; set; }
+
+        // 1–n: UngVien có nhiều VanBang
+        public virtual ICollection<VanBang> VanBangs { get; set; } = new List<VanBang>();
     }
 }

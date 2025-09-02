@@ -9,6 +9,10 @@
         User.Claims.Any(c => c.Type == ClaimTypes.Role &&
                              (string.Equals(c.Value, "1") ||
                               string.Equals(c.Value, "Admin", StringComparison.OrdinalIgnoreCase)));
+
+    string q = (ViewBag.q as string) ?? "";
+    string st = (ViewBag.st?.ToString() ?? Context.Request.Query["st"].ToString());
+    bool hasFilter = !string.IsNullOrWhiteSpace(q) || (st == "0" || st == "1");
 }
 <link rel="stylesheet" href="~/css/admin-titles-index.css" asp-append-version="true" />
 
@@ -18,13 +22,31 @@
 
 <div class="main-content">
     <div class="actions">
-        <!-- 1 ô lọc: mã hoặc tên -->
         <form method="get" asp-area="Admin" asp-controller="Titles" asp-action="Index"
               class="filter-form" role="search">
+            <!-- NEW: filter Trạng thái -->
+            <select name="st" class="mini-select" aria-label="Trạng thái">
+                <option value="">Tất cả trạng thái</option>
+                <option value="0" selected="@(st=="0")">Sử dụng</option>
+                <option value="1" selected="@(st=="1")">Tạm ngưng</option>
+            </select>
+
             <input type="text" name="q" class="mini-search-input"
                    placeholder="Nhập: mã hoặc tên chức danh"
-                   value="@(ViewBag.q ?? "")" />
-            <button type="submit" class="btn btn-filter">Lọc</button>
+                   value="@q" />
+
+            @if (!hasFilter)
+            {
+                <button type="submit" class="btn btn-filter" id="btnFilter">Lọc</button>
+            }
+            else
+            {
+                <a class="btn btn-clear" id="btnClearLink"
+                   asp-area="Admin" asp-controller="Titles" asp-action="Index"
+                   title="Bỏ lọc" aria-label="Bỏ lọc">
+                    <i class="fas fa-times"></i>
+                </a>
+            }
         </form>
 
         <a asp-area="Admin" asp-controller="Titles" asp-action="Create" class="btn btn-success">
@@ -32,7 +54,6 @@
         </a>
     </div>
 
-    <!-- Toast thông báo (TempData) -->
     @if (TempData["ToastSuccess"] != null || TempData["ToastError"] != null)
     {
         <div id="toast" class="toast-mini @(TempData["ToastError"]!=null?"error":"")">
@@ -44,7 +65,7 @@
         <table class="titles-table" aria-label="Danh mục chức danh dự tuyển">
             <thead>
                 <tr>
-                    <th style="min-width:100px">Mã</th>
+                    <th style="min-width:80px">Mã</th>
                     <th style="min-width:320px">Tên chức danh</th>
                     <th style="min-width:160px">Trạng thái</th>
                     <th class="col-actions" style="text-align:center;">Hoạt động</th>
@@ -88,7 +109,6 @@
     </div>
 </div>
 
-<!-- ===== Modal chi tiết ===== -->
 <div id="titleDetailModal" class="modal-overlay" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="titleModalTitle">
         <div class="modal-header">
@@ -99,7 +119,6 @@
     </div>
 </div>
 
-<!-- ===== Modal confirm xóa ===== -->
 <div id="confirmDelete" class="modal-overlay" aria-hidden="true">
     <div class="modal-card modal-sm" role="dialog" aria-modal="true" aria-labelledby="confirmDelTitle">
         <div class="modal-header">
@@ -120,7 +139,6 @@
     @Html.AntiForgeryToken()
 </form>
 
-<!-- Cầu hình cho JS ngoài -->
 <div id="admin-titles-index-config"
      data-details-url='@Url.Action("DetailsPartial", "Titles", new { area = "Admin" })'>
 </div>

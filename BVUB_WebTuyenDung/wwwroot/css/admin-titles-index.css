@@ -117,6 +117,16 @@
     color: #bb0000;
 }
 
+.btn-clear {
+    background: #eef2f7;
+    color: #1f2937;
+}
+
+    .btn-clear:hover {
+        filter: brightness(.97);
+    }
+
+
 /* ====== Bảng ====== */
 .table-wrap {
     position: relative;

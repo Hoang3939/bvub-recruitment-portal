@@ -28,7 +28,6 @@
     flex-wrap: wrap;
 }
 
-/* BỎ KHUNG quanh filter */
 .main-content .actions, .main-content .actions form, .main-content .filter-form,
 .filter-card, .filter-box, .filter-wrapper {
     background: transparent !important;
@@ -39,7 +38,6 @@
     margin: 0 !important;
 }
 
-/* Form lọc gọn (chỉ ô nhập) */
 .filter-form {
     display: flex;
     align-items: center;
@@ -47,8 +45,8 @@
 }
 
 .mini-search-input {
-    height: 40px;
-    padding: 8px 12px;
+    height: 36px; /* gọn hơn */
+    padding: 6px 10px;
     border: 1px solid #e2e8f0;
     border-radius: 6px;
     outline: none;
@@ -59,18 +57,18 @@
         box-shadow: 0 0 0 3px rgba(13,110,253,.15);
     }
 
-/* Nút */
+/* ====== Nút ====== */
 .btn {
-    padding: 8px 16px;
+    padding: 8px 14px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     box-shadow: 0 3px 6px rgba(0,0,0,.12);
-    min-height: 40px;
+    min-height: 36px;
 }
 
-.btn-filter {
+.btn-filter, .btn-primary {
     background: #0d6efd;
     color: #fff;
 }
@@ -78,89 +76,6 @@
     .btn-filter:hover, .btn-primary:hover {
         filter: brightness(.95);
     }
-
-.btn-primary {
-    background: #0d6efd;
-    color: #fff;
-}
-
-/* ====== Bảng ====== */
-.table-wrap {
-    position: relative;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 12px;
-    margin-top: 12px;
-}
-
-.candidate-table {
-    border-collapse: separate;
-    border-spacing: 0;
-    width: max-content;
-    min-width: 100%;
-}
-
-    .candidate-table thead th {
-        background: #f6f7f9 !important;
-        padding: 12px 14px;
-        text-align: left;
-        font-weight: 700;
-        position: sticky;
-        top: 0;
-        z-index: 5;
-    }
-
-    .candidate-table tbody td {
-        background: #fff;
-        padding: 12px 14px;
-    }
-
-    .candidate-table tbody tr {
-        cursor: pointer;
-    }
-
-        .candidate-table tbody tr:hover td {
-            background: #f7fbff;
-        }
-
-    /* Cột hoạt động dính phải */
-    .candidate-table th:last-child, .candidate-table td:last-child {
-        position: sticky;
-        right: 0;
-        background: #fff;
-        z-index: 6;
-        box-shadow: -8px 0 12px rgba(0,0,0,.06);
-    }
-
-/* Độ rộng cột */
-.col-id {
-    min-width: 140px;
-}
-
-.col-username {
-    min-width: 200px;
-}
-
-.col-email {
-    min-width: 260px;
-}
-
-.col-role {
-    min-width: 150px;
-}
-
-.col-actions {
-    min-width: 180px;
-}
-
-/* Cân nút */
-.cell-actions .btn-primary {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 120px;
-    height: 40px;
-}
 
 .btn-export {
     background: #6c757d;
@@ -180,12 +95,13 @@
         filter: brightness(.95);
     }
 
-.btn-light {
+/* Nút Bỏ lọc */
+.btn-clear {
     background: #eef2f7;
     color: #1f2937;
 }
 
-    .btn-light:hover {
+    .btn-clear:hover {
         filter: brightness(.97);
     }
 
@@ -210,18 +126,87 @@
         filter: brightness(.9);
     }
 
-/* Độ rộng cột hoạt động rộng hơn để chứa 3 nút */
+/* ====== Bảng: full width, không scroll ngang ====== */
+.table-wrap {
+    position: relative;
+    overflow-x: hidden;
+    border-radius: 12px;
+    margin-top: 12px;
+}
+
+.candidate-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    table-layout: fixed;
+}
+
+    .candidate-table thead th {
+        background: #f6f7f9 !important;
+        padding: 10px 12px;
+        text-align: left;
+        font-weight: 700;
+        position: sticky;
+        top: 0;
+        z-index: 5;
+    }
+
+    .candidate-table tbody td {
+        background: #fff;
+        padding: 10px 12px;
+    }
+
+    .candidate-table tbody tr {
+        cursor: pointer;
+    }
+
+        .candidate-table tbody tr:hover td {
+            background: #f7fbff;
+        }
+
+    /* Cột hoạt động dính phải */
+    .candidate-table th:last-child, .candidate-table td:last-child {
+        position: sticky;
+        right: 0;
+        background: #fff;
+        z-index: 6;
+        box-shadow: -8px 0 12px rgba(0,0,0,.06);
+    }
+
+/* Độ rộng cột nhỏ gọn để tránh scroll */
+.col-id {
+    width: 88px;
+}
+
+.col-username {
+    width: 160px;
+}
+
+.col-email {
+    width: 260px;
+}
+
+.col-role {
+    width: 130px;
+}
+
 .col-actions {
-    min-width: 260px;
+    width: 180px;
+}
+
+/* Tránh tràn chữ */
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* Cân các nút trong cột hoạt động */
-.cell-actions .btn,
-.cell-actions .btn-icon {
+.cell-actions .btn, .cell-actions .btn-icon {
     vertical-align: middle;
 }
 
-/* ==== Modal (giống trang ứng viên) ==== */
+/* ==== Modal & Chi tiết (giữ nguyên phong cách đã có) ==== */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -229,7 +214,6 @@
     display: none;
     z-index: 1200;
 }
-
 
     .modal-overlay.show {
         display: block;
@@ -283,7 +267,7 @@
     gap: 10px;
 }
 
-/* ==== Khối chi tiết nhân viên ==== */
+/* Khối chi tiết */
 .emp-detail {
     display: grid;
     gap: 14px;
@@ -337,46 +321,13 @@
 .emp-value {
     font-weight: 600;
     color: #111827;
-}
-
-/* Nút link nhỏ trong chi tiết */
-.btn-link {
-    background: transparent;
-    border: 0;
-    padding: 0 6px;
-    cursor: pointer;
-    color: #0d6efd;
-    font-weight: 600;
-}
-
-    .btn-link:hover {
-        text-decoration: underline;
-    }
-
-.btn-sm {
-    font-size: .9rem;
-}
-
-/* Kiểu monospace cho hash */
-.secret-mono {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-}
-
-.muted {
-    color: #6b7280;
-    margin-left: 6px;
-}
-
-/* Ô giá trị trong thẻ chi tiết: cho phép đặt icon tuyệt đối bên phải */
-.emp-item .emp-value {
     position: relative;
     display: flex;
     align-items: center;
     min-height: 40px;
-    padding-right: 44px; /* chừa chỗ cho icon mắt */
+    padding-right: 44px;
 }
 
-/* Dòng hiển thị hash: gọn đẹp, không tràn */
 .pwd-mask {
     display: block;
     overflow: hidden;
@@ -384,7 +335,6 @@
     white-space: nowrap;
 }
 
-/* Icon mắt cố định bên phải, không khung */
 .icon-btn.toggle-pwd {
     position: absolute;
     top: 50%;
@@ -393,7 +343,7 @@
     background: transparent;
     border: 0;
     box-shadow: none;
-    padding: 6px; /* tăng vùng bấm */
+    padding: 6px;
     line-height: 1;
     cursor: pointer;
     outline: none;
@@ -401,7 +351,7 @@
 
     .icon-btn.toggle-pwd i {
         font-size: 18px;
-        color: #0f172a; /* xám đậm */
+        color: #0f172a;
         opacity: .75;
     }
 
@@ -411,27 +361,27 @@
 
     .icon-btn.toggle-pwd:focus-visible {
         outline: 3px solid rgba(13,110,253,.28);
-        border-radius: 6px; /* chỉ hiện viền focus khi dùng bàn phím */
+        border-radius: 6px;
     }
 
-/* Cho ghi chú hiển thị bên dưới, không đẩy icon lệch */
 .emp-item .emp-value .muted {
     display: block;
     margin-top: 6px;
-    padding-right: 44px; /* tránh đè lên icon */
+    padding-right: 44px;
 }
 
+/* Toast */
 .toast-nice {
     position: fixed;
     right: 24px;
     bottom: 24px;
-    display: none; 
+    display: none;
     align-items: center;
     gap: 10px;
     padding: 10px 12px;
     border-radius: 8px;
     color: #fff;
-    background: #111827; 
+    background: #111827;
     box-shadow: 0 6px 18px rgba(0,0,0,.25);
     z-index: 2000;
 }
@@ -456,4 +406,3 @@
         line-height: 1;
         cursor: pointer;
     }
-

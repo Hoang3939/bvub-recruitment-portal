@@ -1,10 +1,8 @@
-﻿// wwwroot/js/pages/admin.home.index.js
-(function () {
+﻿(function () {
     function el(id) { return document.getElementById(id); }
-    function parseJson(str, fallback) {
-        try { return JSON.parse(str); } catch { return fallback; }
-    }
+    function parseJson(str, fallback) { try { return JSON.parse(str); } catch { return fallback; } }
 
+    // <-- Line chart -->
     function makeLine(labels, data) {
         const ctx = el('line30');
         if (!ctx || typeof Chart === 'undefined') return;
@@ -21,11 +19,14 @@
             },
             options: {
                 responsive: true,
-                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                plugins: { legend: { display: false } }
             }
         });
     }
 
+    // <-- Gender pie -->
     function makeGenderPie(female, male) {
         const ctx = el('genderPie');
         if (!ctx || typeof Chart === 'undefined') return;
@@ -36,12 +37,15 @@
                 datasets: [{ data: [female, male] }]
             },
             options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 plugins: { legend: { position: 'bottom' } },
                 cutout: '55%'
             }
         });
     }
 
+    // <-- Age bar -->
     function makeAgeBar(buckets) {
         const ctx = el('ageBar');
         if (!ctx || typeof Chart === 'undefined') return;
@@ -53,11 +57,14 @@
             },
             options: {
                 responsive: true,
-                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                plugins: { legend: { display: false } }
             }
         });
     }
 
+    // <-- Init -->
     window.addEventListener('DOMContentLoaded', function () {
         const cfg = el('admin-home-index-config');
         if (!cfg) return;

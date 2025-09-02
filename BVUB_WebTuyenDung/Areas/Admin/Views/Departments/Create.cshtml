@@ -1,8 +1,6 @@
 ﻿@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.DepartmentFrmVm
-@using System.Text.Json
 @{
     ViewData["Title"] = "Thêm Khoa/Phòng";
-    var preSelectedJson = JsonSerializer.Serialize(Model?.SelectedViTriIds ?? new List<int>());
 }
 <link rel="stylesheet" href="~/css/admin-departments-create.css" asp-append-version="true" />
 
@@ -28,8 +26,23 @@
         <div class="col-lg-3 col-md-3">
             <label asp-for="Loai" class="form-label">Loại</label>
             <select asp-for="Loai" class="form-select">
-                <option value="Khoa" selected="@(Model?.Loai=="Khoa")">Khoa</option>
-                <option value="Phòng" selected="@(Model?.Loai=="Phòng")">Phòng</option>
+                @if ((Model?.Loai ?? "Khoa") == "Khoa")
+                {
+                    <option value="Khoa" selected>Khoa</option>
+                }
+                else
+                {
+                    <option value="Khoa">Khoa</option>
+                }
+
+                @if (Model?.Loai == "Phòng")
+                {
+                    <option value="Phòng" selected>Phòng</option>
+                }
+                else
+                {
+                    <option value="Phòng">Phòng</option>
+                }
             </select>
         </div>
 
@@ -37,34 +50,24 @@
         <div class="col-lg-3 col-md-3">
             <label asp-for="TamNgung" class="form-label">Trạng thái</label>
             <select asp-for="TamNgung" class="form-select">
-                <option value="0" selected="@(Model?.TamNgung==0)">Sử dụng</option>
-                <option value="1" selected="@(Model?.TamNgung==1)">Tạm ngưng</option>
-            </select>
-        </div>
-
-        <!-- Chức danh (lọc vị trí) -->
-        <div class="col-12">
-            <label class="form-label">Chức danh (để lọc vị trí)</label>
-            <select class="form-select" id="ddlTitle">
-                <option value="">-- chọn chức danh --</option>
-                @foreach (var t in Model.AllChucDanhs)
+                @if ((Model?.TamNgung ?? 0) == 0)
                 {
-                    <option value="@t.Value">@t.Text</option>
+                    <option value="0" selected>Sử dụng</option>
+                }
+                else
+                {
+                    <option value="0">Sử dụng</option>
+                }
+
+                @if (Model?.TamNgung == 1)
+                {
+                    <option value="1" selected>Tạm ngưng</option>
+                }
+                else
+                {
+                    <option value="1">Tạm ngưng</option>
                 }
             </select>
-        </div>
-
-        <!-- Bảng vị trí theo chức danh -->
-        <div class="col-12">
-            <div class="pos-grid" id="posGrid"><!-- render qua JS --></div>
-        </div>
-
-        <!-- Khối vị trí ĐÃ CHỌN (tích lũy) -->
-        <div class="col-12">
-            <label class="form-label">Đã chọn</label>
-            <div id="selectedList" class="selected-grid"><!-- chip render tại đây --></div>
-            <div id="selectedHidden"><!-- hidden inputs SelectedViTriIds[] --></div>
-            <span asp-validation-for="SelectedViTriIds" class="text-danger"></span>
         </div>
     </div>
 
@@ -74,14 +77,6 @@
     </div>
 </form>
 
-<!-- Config cho JS -->
-<div id="admin-dept-form-config"
-     data-preselected='@preSelectedJson'
-     data-url-by-title='@Url.Action("GetPositionsByTitle", "Departments", new { area = "Admin" })'
-     data-url-by-ids='@Url.Action("GetPositionsByIds", "Departments", new { area = "Admin" })'>
-</div>
-
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script src="~/js/pages/admin.departments.form.js" asp-append-version="true"></script>
 }

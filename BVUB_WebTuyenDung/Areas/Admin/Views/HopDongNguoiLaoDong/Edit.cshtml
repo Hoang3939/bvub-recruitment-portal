@@ -3,16 +3,15 @@
     ViewData["Title"] = "Sửa hợp đồng người lao động";
     var backUrl = Url.Action("Index", "Candidates", new { area = "Admin" });
 }
-
 <link rel="stylesheet" href="~/css/admin-edit.css" asp-append-version="true" />
 
 <form asp-area="Admin" asp-controller="HopDongNguoiLaoDong" asp-action="Edit" method="post" id="frmHDLD">
     @Html.AntiForgeryToken()
 
-    <!-- khóa chính -->
+    <!-- Khóa chính -->
     <input type="hidden" asp-for="HopDongNguoiLaoDong.HopDongId" />
     <input type="hidden" asp-for="UngVien.UngVienId" />
-    <!-- giữ giá trị không sửa nhưng cần post -->
+    <!-- Giữ giá trị không sửa nhưng cần post -->
     <input type="hidden" asp-for="HopDongNguoiLaoDong.MaTraCuu" />
     <input type="hidden" asp-for="HopDongNguoiLaoDong.NgayNop" />
     <input type="hidden" asp-for="HopDongNguoiLaoDong.Loai" />
@@ -174,6 +173,83 @@
         <span asp-validation-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung" class="text-danger"></span>
     </div>
 
+    <hr />
+    <h4>Văn bằng</h4>
+
+    <div id="vanbang-container">
+        @if (Model?.VanBangs != null && Model.VanBangs.Count > 0)
+        {
+            for (int i = 0; i < Model.VanBangs.Count; i++)
+            {
+                var vb = Model.VanBangs[i];
+                var ht = vb?.HinhThucDaoTao?.Trim() ?? "";
+                var isCQ = string.Equals(ht, "Chính quy", StringComparison.OrdinalIgnoreCase);
+                var isTC = string.Equals(ht, "Tại chức", StringComparison.OrdinalIgnoreCase);
+                var isLT = string.Equals(ht, "Liên thông", StringComparison.OrdinalIgnoreCase);
+                var isTX = string.Equals(ht, "Từ xa", StringComparison.OrdinalIgnoreCase);
+                var isOtherHT = !(isCQ || isTC || isLT || isTX);
+
+                <div class="vanbang-block">
+                    <h5>Văn bằng: @vb.LoaiVanBang</h5>
+
+                    <!-- Giữ loại VB -->
+                    <input type="hidden" name="VanBangs[@i].LoaiVanBang" value="@vb.LoaiVanBang" />
+
+                    <div class="form-group">
+                        <label>Tên cơ sở cấp</label>
+                        <input name="VanBangs[@i].TenCoSo" class="form-control" type="text" value="@(vb.TenCoSo ?? "")" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ngày cấp</label>
+                        <input name="VanBangs[@i].NgayCap" class="form-control" type="date" value="@(vb.NgayCap == default(DateTime) ? "" : vb.NgayCap?.ToString("yyyy-MM-dd"))" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Số hiệu</label>
+                        <input name="VanBangs[@i].SoHieu" class="form-control" type="text" value="@(vb.SoHieu ?? "")" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Chuyên ngành đào tạo</label>
+                        <input name="VanBangs[@i].ChuyenNganhDaoTao" class="form-control" type="text" value="@(vb.ChuyenNganhDaoTao ?? "")" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Ngành đào tạo</label>
+                        <input name="VanBangs[@i].NganhDaoTao" class="form-control" type="text" value="@(vb.NganhDaoTao ?? "")" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Hình thức đào tạo</label>
+
+                        <input type="hidden" name="VanBangs[@i].HinhThucDaoTao" class="vb-ht-hidden" data-index="@i" value="@ht" />
+
+                        <div class="form-check"><input type="radio" name="vb-ht-@i" value="Chính quy" class="radio-solid vb-ht form-check-input" @(isCQ ? "checked" : "") id="vbht-@i-1"><label for="vbht-@i-1">Chính quy</label></div>
+                        <div class="form-check"><input type="radio" name="vb-ht-@i" value="Tại chức" class="radio-solid vb-ht form-check-input" @(isTC ? "checked" : "") id="vbht-@i-2"><label for="vbht-@i-2">Tại chức</label></div>
+                        <div class="form-check"><input type="radio" name="vb-ht-@i" value="Liên thông" class="radio-solid vb-ht form-check-input" @(isLT ? "checked" : "") id="vbht-@i-3"><label for="vbht-@i-3">Liên thông</label></div>
+                        <div class="form-check"><input type="radio" name="vb-ht-@i" value="Từ xa" class="radio-solid vb-ht form-check-input" @(isTX ? "checked" : "") id="vbht-@i-4"><label for="vbht-@i-4">Từ xa</label></div>
+                        <div class="form-check"><input type="radio" name="vb-ht-@i" value="__OTHER__" class="radio-solid vb-ht form-check-input" @(isOtherHT ? "checked" : "") id="vbht-@i-5"><label for="vbht-@i-5">Khác</label></div>
+
+                        <input type="text" class="form-control vb-ht-other" data-index="@i"
+                               placeholder="Nhập hình thức đào tạo khác"
+                               style="display:@(isOtherHT ? "block" : "none");"
+                               value="@(isOtherHT ? ht : "")" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Xếp loại</label>
+                        <input name="VanBangs[@i].XepLoai" class="form-control" type="text" value="@(vb.XepLoai ?? "")" />
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p class="text-muted">Không có văn bằng nào.</p>
+        }
+    </div>
+
     <div style="margin-top:16px;">
         <button type="submit" class="btn btn-primary">Lưu</button>
         <a class="btn btn-secondary" href="@backUrl">Quay lại</a>
@@ -192,5 +268,54 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // --- Đồng bộ "Tình trạng sức khỏe" vào hidden ---
+        (function () {
+            const hid = document.getElementById('hidSK');
+            const radios = document.querySelectorAll('.js-sk');
+            const txtOther = document.getElementById('txtSkKhac');
+            function sync() {
+                const checked = Array.from(radios).find(r => r.checked);
+                if (!checked) return;
+                if (checked.value === '__OTHER__') {
+                    txtOther.style.display = 'block';
+                    hid.value = txtOther.value.trim();
+                } else {
+                    txtOther.style.display = 'none';
+                    hid.value = checked.value;
+                }
+            }
+            radios.forEach(r => r.addEventListener('change', sync));
+            txtOther.addEventListener('input', sync);
+            sync();
+        })();
+
+        // --- Đồng bộ "Hình thức đào tạo" cho từng văn bằng ---
+        (function () {
+            const radios = document.querySelectorAll('.vb-ht');
+            function onChange(e) {
+                const name = e.target.getAttribute('name'); // vb-ht-{i}
+                const idx = name.replace('vb-ht-', '');
+                const hidden = document.querySelector('.vb-ht-hidden[data-index="' + idx + '"]');
+                const other = document.querySelector('.vb-ht-other[data-index="' + idx + '"]');
+                const val = e.target.value;
+                if (val === '__OTHER__') {
+                    other.style.display = 'block';
+                    hidden.value = other.value.trim();
+                } else {
+                    other.style.display = 'none';
+                    hidden.value = val;
+                }
+            }
+            radios.forEach(r => r.addEventListener('change', onChange));
+            document.querySelectorAll('.vb-ht-other').forEach(inp => {
+                inp.addEventListener('input', function () {
+                    const idx = this.getAttribute('data-index');
+                    const hidden = document.querySelector('.vb-ht-hidden[data-index="' + idx + '"]');
+                    hidden.value = this.value.trim();
+                });
+            });
+        })();
+    </script>
     <script src="~/js/pages/admin.hopdong.edit.js" asp-append-version="true"></script>
 }

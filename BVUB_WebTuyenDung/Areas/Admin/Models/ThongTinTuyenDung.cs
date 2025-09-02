@@ -7,9 +7,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
     public enum TrangThaiTuyenDung
     {
         DangTuyen = 1, // Đang tuyển
-        TamAn = 2, // Tạm ẩn
-        NgungTuyen = 3, // Ngừng tuyển
-        DaDong = 4  // Đã đóng
+        TamAn = 2,     // Tạm ẩn
+        NgungTuyen = 3,// Ngừng tuyển
+        DaDong = 4     // Đã đóng
     }
 
     [Table("ThongTinTuyenDung")]
@@ -37,6 +37,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
 
         [StringLength(255)]
         public string? FileDinhKem { get; set; }
+
+        [StringLength(255)]
+        public string? FileAnh { get; set; } 
 
         [Required]
         public TrangThaiTuyenDung TrangThai { get; set; }

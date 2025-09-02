@@ -111,7 +111,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             d.SoTaiKhoan = s.SoTaiKhoan?.Trim();
             d.TinhTrangSucKhoe = s.TinhTrangSucKhoe?.Trim();
             d.TrinhDoChuyenMon = s.TrinhDoChuyenMon?.Trim();
-            // d.NgayUngTuyen       = keep
+            // d.NgayUngTuyen = giữ nguyên
         }
 
         private async Task LoadKhoaPhongSelect(int? selectedId = null)
@@ -125,25 +125,174 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         }
 
         // GET: Xem chi tiết đơn
-        [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
-            var hd = await _context.HopDongNguoiLaoDongs.AsNoTracking()
+            var don = await _context.HopDongNguoiLaoDongs
                 .Include(h => h.UngVien)
                 .Include(h => h.KhoaPhongCongTac)
                 .FirstOrDefaultAsync(h => h.HopDongId == id);
+            if (don == null) return NotFound();
+
+            // LẤY VB THEO ỨNG VIÊN
+            var vbs = await _context.VanBangs.AsNoTracking()
+                .Where(v => v.UngVienId == don.UngVienId)
+                .OrderByDescending(v => v.NgayCap ?? DateTime.MinValue)
+                .ThenBy(v => v.VanBangId)
+                .ToListAsync();
+
+            var vm = new HopDongNguoiLaoDongDetailsVm
+            {
+                Don = don,
+                UngVien = don.UngVien,
+                TrangThaiClass = don.TrangThai == 2 ? "approved" : don.TrangThai == 3 ? "cancelled" : "pending",
+                TrangThaiLabel = don.TrangThai == 2 ? "Đã duyệt" : don.TrangThai == 3 ? "Đã hủy" : "Đang duyệt",
+                VanBangs = vbs
+            };
+            return View(vm);
+        }
+
+        // ================== EDIT ==================
+        [HttpGet]
+        public async System.Threading.Tasks.Task<IActionResult> Edit(int id) // id = HopDongId
+        {
+            var hd = await _context.HopDongNguoiLaoDongs
+                        .Include(h => h.UngVien)
+                        .Include(h => h.KhoaPhongCongTac)
+                        .FirstOrDefaultAsync(h => h.HopDongId == id);
 
             if (hd == null) return NotFound();
 
-            var (label, css) = MapStatus(hd.TrangThai);
-            var vm = new HopDongNguoiLaoDongDetailsVm
+            // Lấy VB theo Ứng viên
+            var vbs = await _context.VanBangs.AsNoTracking()
+                .Where(v => v.UngVienId == hd.UngVienId)
+                .OrderByDescending(v => v.NgayCap ?? DateTime.MinValue)
+                .ThenBy(v => v.VanBangId)
+                .ToListAsync();
+
+            var vm = new UngTuyenNguoiLaoDongViewModel
             {
-                Don = hd,
-                UngVien = hd.UngVien!,
-                TrangThaiLabel = label,
-                TrangThaiClass = css
+                UngVien = hd.UngVien,
+                HopDongNguoiLaoDong = hd,
+                VanBangs = vbs
             };
+
+            await LoadSelects();
             return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async System.Threading.Tasks.Task<IActionResult> Edit(UngTuyenNguoiLaoDongViewModel vm)
+        {
+            // Bỏ validate các navigation / field không sửa
+            string[] ignore = {
+                "HopDongNguoiLaoDong.UngVien",
+                "HopDongNguoiLaoDong.KhoaPhongCongTac",
+                "HopDongNguoiLaoDong.MaTraCuu",
+                "HopDongNguoiLaoDong.NgayNop",
+                "HopDongNguoiLaoDong.TrangThai",
+                "HopDongNguoiLaoDong.Loai"
+            };
+            foreach (var k in ignore) ModelState.Remove(k);
+
+            if (!ModelState.IsValid)
+            {
+                if (IsAjax())
+                    return BadRequest(new { ok = false, message = "Dữ liệu chưa hợp lệ.", errors = JoinModelErrors() });
+
+                await LoadSelects();
+                return View(vm);
+            }
+
+            var hd = await _context.HopDongNguoiLaoDongs
+                        .Include(h => h.UngVien)
+                        .FirstOrDefaultAsync(h => h.HopDongId == vm.HopDongNguoiLaoDong.HopDongId);
+
+            if (hd == null)
+            {
+                if (IsAjax())
+                    return NotFound(new { ok = false, message = "Không tìm thấy hợp đồng." });
+                return NotFound();
+            }
+
+            try
+            {
+                // 1) Cập nhật Ứng viên
+                ApplyUngVien(vm.UngVien, hd.UngVien);
+
+                // 2) Cập nhật HĐ (chỉ field cho phép sửa)
+                var src = vm.HopDongNguoiLaoDong;
+                hd.KhoaPhongCongTacId = src.KhoaPhongCongTacId;
+                hd.NoiSinh = src.NoiSinh?.Trim();
+                hd.ChuyenNganhDaoTao = src.ChuyenNganhDaoTao?.Trim();
+                hd.NamTotNghiep = src.NamTotNghiep?.Trim();
+                hd.TrinhDoTinHoc = src.TrinhDoTinHoc?.Trim();
+                hd.TrinhDoNgoaiNgu = src.TrinhDoNgoaiNgu?.Trim();
+                hd.ChungChiHanhNghe = src.ChungChiHanhNghe?.Trim();
+                hd.NgheNghiepTruocTuyenDung = src.NgheNghiepTruocTuyenDung?.Trim();
+                // KHÔNG đụng tới: hd.Loai, hd.MaTraCuu, hd.NgayNop, hd.TrangThai, hd.UngVienId
+
+                // 3) Văn bằng: thay thế toàn bộ
+                var ungVienId = hd.UngVienId;
+                var existingVbs = await _context.VanBangs
+                    .Where(v => v.UngVienId == ungVienId)
+                    .ToListAsync();
+
+                _context.VanBangs.RemoveRange(existingVbs);
+
+                var cleaned = (vm.VanBangs ?? new List<VanBang>())
+                    .Select(v => new VanBang
+                    {
+                        UngVienId = ungVienId,
+                        TenCoSo = (v.TenCoSo ?? "").Trim(),
+                        NgayCap = v.NgayCap,
+                        SoHieu = (v.SoHieu ?? "").Trim(),
+                        ChuyenNganhDaoTao = (v.ChuyenNganhDaoTao ?? "").Trim(),
+                        NganhDaoTao = (v.NganhDaoTao ?? "").Trim(),
+                        HinhThucDaoTao = (v.HinhThucDaoTao ?? "").Trim(),
+                        XepLoai = (v.XepLoai ?? "").Trim(),
+                        LoaiVanBang = (v.LoaiVanBang ?? "").Trim()
+                    })
+                    .Where(v =>
+                        !(string.IsNullOrWhiteSpace(v.TenCoSo)
+                          && string.IsNullOrWhiteSpace(v.SoHieu)
+                          && string.IsNullOrWhiteSpace(v.ChuyenNganhDaoTao)
+                          && string.IsNullOrWhiteSpace(v.NganhDaoTao)
+                          && string.IsNullOrWhiteSpace(v.HinhThucDaoTao)
+                          && string.IsNullOrWhiteSpace(v.XepLoai)
+                          && string.IsNullOrWhiteSpace(v.LoaiVanBang)
+                          && v.NgayCap == null))
+                    .ToList();
+
+                if (cleaned.Count > 0)
+                    await _context.VanBangs.AddRangeAsync(cleaned);
+
+                await _context.SaveChangesAsync();
+
+                if (IsAjax())
+                    return Ok(new { ok = true, message = "Đã lưu thành công." });
+
+                TempData["SavedOk"] = true;
+                return RedirectToAction("Index", "Candidates", new { area = "Admin" });
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                if (IsAjax())
+                    return StatusCode(409, new { ok = false, message = "Xung đột dữ liệu. Vui lòng tải lại trang.", detail = ex.Message });
+
+                ModelState.AddModelError(string.Empty, "Xung đột dữ liệu. Vui lòng tải lại trang.");
+                await LoadSelects();
+                return View(vm);
+            }
+            catch (Exception ex)
+            {
+                if (IsAjax())
+                    return StatusCode(500, new { ok = false, message = "Có lỗi khi lưu.", detail = ex.Message });
+
+                ModelState.AddModelError(string.Empty, "Có lỗi khi lưu: " + ex.Message);
+                await LoadSelects();
+                return View(vm);
+            }
         }
 
         // GET: Xuất word
@@ -198,23 +347,23 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
             var sb = new StringBuilder();
             sb.Append($@"
-<html><head><meta charset='utf-8'/><title>HopDong_{don.HopDongId}</title>
-<style>
-body {{ font-family:'Times New Roman', serif; font-size:12pt }}
-h1 {{ text-align:center; margin:0 0 16px 0; font-weight:800 }}
-h2 {{ margin:18px 0 8px 0; font-weight:800 }}
-table {{ width:100%; border-collapse:collapse; margin-bottom:12px }}
-td {{ border:1px solid #999; padding:6px 8px; vertical-align:top }}
-td.label {{ width:35%; font-weight:bold; background:#f5f5f5 }}
-.badge {{ display:inline-block; padding:4px 8px; border-radius:12px; color:#fff }}
-.badge.pending {{ background:#f0ad4e }}
-.badge.approved {{ background:#5cb85c }}
-.badge.cancelled {{ background:#dc3545 }}
-</style></head><body>
-<h1>HỢP ĐỒNG NGƯỜI LAO ĐỘNG</h1>
+            <html><head><meta charset='utf-8'/><title>HopDong_{don.HopDongId}</title>
+            <style>
+            body {{ font-family:'Times New Roman', serif; font-size:12pt }}
+            h1 {{ text-align:center; margin:0 0 16px 0; font-weight:800 }}
+            h2 {{ margin:18px 0 8px 0; font-weight:800 }}
+            table {{ width:100%; border-collapse:collapse; margin-bottom:12px }}
+            td {{ border:1px solid #999; padding:6px 8px; vertical-align:top }}
+            td.label {{ width:35%; font-weight:bold; background:#f5f5f5 }}
+            .badge {{ display:inline-block; padding:4px 8px; border-radius:12px; color:#fff }}
+            .badge.pending {{ background:#f0ad4e }}
+            .badge.approved {{ background:#5cb85c }}
+            .badge.cancelled {{ background:#dc3545 }}
+            </style></head><body>
+            <h1>HỢP ĐỒNG NGƯỜI LAO ĐỘNG</h1>
 
-<h2>I. Thông tin ứng viên</h2>
-<table>");
+            <h2>I. Thông tin ứng viên</h2>
+            <table>");
 
             foreach (var r in BuildRows(uv, uvLabel))
                 sb.Append($"<tr><td class='label'>{H(r.Label)}</td><td>{H(r.Value)}</td></tr>");
@@ -229,123 +378,6 @@ td.label {{ width:35%; font-weight:bold; background:#f5f5f5 }}
 
             var bytes = Encoding.UTF8.GetBytes(sb.ToString());
             return File(bytes, "application/msword", $"HopDong_{don.HopDongId}.doc");
-        }
-
-        // GET: edit
-        [HttpGet]
-        public async System.Threading.Tasks.Task<IActionResult> Edit(int id) // id = HopDongId
-        {
-            var hd = await _context.HopDongNguoiLaoDongs
-                        .Include(h => h.UngVien)
-                        .Include(h => h.KhoaPhongCongTac)
-                        .FirstOrDefaultAsync(h => h.HopDongId == id);
-
-            if (hd == null) return NotFound();
-
-            var vm = new UngTuyenNguoiLaoDongViewModel
-            {
-                UngVien = hd.UngVien,
-                HopDongNguoiLaoDong = hd
-            };
-
-            await LoadSelects();
-            return View(vm);
-        }
-
-        // POST: edit
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async System.Threading.Tasks.Task<IActionResult> Edit(UngTuyenNguoiLaoDongViewModel vm)
-        {
-            // Bỏ validate các navigation / field không sửa
-            string[] ignore = {
-                "HopDongNguoiLaoDong.UngVien",
-                "HopDongNguoiLaoDong.KhoaPhongCongTac",
-                "HopDongNguoiLaoDong.MaTraCuu",
-                "HopDongNguoiLaoDong.NgayNop",
-                "HopDongNguoiLaoDong.TrangThai",
-                "HopDongNguoiLaoDong.Loai"
-            };
-            foreach (var k in ignore) ModelState.Remove(k);
-
-            if (!ModelState.IsValid)
-            {
-                if (IsAjax())
-                    return BadRequest(new { ok = false, message = "Dữ liệu chưa hợp lệ.", errors = JoinModelErrors() });
-
-                await LoadSelects();
-                return View(vm);
-            }
-
-            var hd = await _context.HopDongNguoiLaoDongs
-                        .Include(h => h.UngVien)
-                        .FirstOrDefaultAsync(h => h.HopDongId == vm.HopDongNguoiLaoDong.HopDongId);
-
-            if (hd == null)
-            {
-                if (IsAjax())
-                    return NotFound(new { ok = false, message = "Không tìm thấy hợp đồng." });
-                return NotFound();
-            }
-
-            try
-            {
-                // Cập nhật Ứng viên
-                var s = vm.UngVien;
-                var d = hd.UngVien;
-                d.Email = s.Email?.Trim();
-                d.HoTen = s.HoTen?.Trim();
-                d.GioiTinh = s.GioiTinh;
-                d.NgaySinh = s.NgaySinh;
-                d.SoDienThoai = s.SoDienThoai?.Trim();
-                d.CCCD = s.CCCD?.Trim();
-                d.NgayCapCCCD = s.NgayCapCCCD;
-                d.NoiCapCCCD = s.NoiCapCCCD?.Trim();
-                d.DiaChiThuongTru = s.DiaChiThuongTru?.Trim();
-                d.DiaChiCuTru = s.DiaChiCuTru?.Trim();
-                d.MaSoThue = s.MaSoThue?.Trim();
-                d.SoTaiKhoan = s.SoTaiKhoan?.Trim();
-                d.TinhTrangSucKhoe = s.TinhTrangSucKhoe?.Trim();
-                d.TrinhDoChuyenMon = s.TrinhDoChuyenMon?.Trim();
-
-                // Cập nhật HĐ (chỉ các field cho phép sửa)
-                var src = vm.HopDongNguoiLaoDong;
-                hd.KhoaPhongCongTacId = src.KhoaPhongCongTacId;
-                hd.NoiSinh = src.NoiSinh?.Trim();
-                hd.ChuyenNganhDaoTao = src.ChuyenNganhDaoTao?.Trim();
-                hd.NamTotNghiep = src.NamTotNghiep?.Trim();
-                hd.TrinhDoTinHoc = src.TrinhDoTinHoc?.Trim();
-                hd.TrinhDoNgoaiNgu = src.TrinhDoNgoaiNgu?.Trim();
-                hd.ChungChiHanhNghe = src.ChungChiHanhNghe?.Trim();
-                hd.NgheNghiepTruocTuyenDung = src.NgheNghiepTruocTuyenDung?.Trim();
-                // KHÔNG đụng tới: hd.Loai, hd.MaTraCuu, hd.NgayNop, hd.TrangThai, hd.UngVienId
-
-                await _context.SaveChangesAsync();
-
-                if (IsAjax())
-                    return Ok(new { ok = true, message = "Đã lưu thành công." });
-
-                TempData["SavedOk"] = true;
-                return RedirectToAction("Index", "Candidates", new { area = "Admin" });
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                if (IsAjax())
-                    return StatusCode(409, new { ok = false, message = "Xung đột dữ liệu. Vui lòng tải lại trang.", detail = ex.Message });
-
-                ModelState.AddModelError(string.Empty, "Xung đột dữ liệu. Vui lòng tải lại trang.");
-                await LoadSelects();
-                return View(vm);
-            }
-            catch (Exception ex)
-            {
-                if (IsAjax())
-                    return StatusCode(500, new { ok = false, message = "Có lỗi khi lưu.", detail = ex.Message });
-
-                ModelState.AddModelError(string.Empty, "Có lỗi khi lưu: " + ex.Message);
-                await LoadSelects();
-                return View(vm);
-            }
         }
     }
 }

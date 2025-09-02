@@ -8,5 +8,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.ViewModels
         public UngVien UngVien { get; set; } = default!;
         public string TrangThaiLabel { get; set; } = "";
         public string TrangThaiClass { get; set; } = "";
+
+        public ICollection<VanBang> VanBangs { get; set; } = new List<VanBang>();
     }
 }

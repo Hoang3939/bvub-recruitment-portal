@@ -141,6 +141,54 @@
             <tr><td class="label">Trạng thái</td><td><span class="badge @Model.TrangThaiClass">@Model.TrangThaiLabel</span></td></tr>
         </table>
     </div>
+
+    <div class="section">
+        <h3>III. Văn bằng</h3>
+        @if (Model?.VanBangs != null && Model.VanBangs.Any())
+        {
+            <table class="vb-table">
+                <thead>
+                    <tr>
+                        <td>#</td>
+                        <td>Loại văn bằng</td>
+                        <td>Cơ sở đào tạo</td>
+                        <td>Ngành đào tạo</td>
+                        <td>Chuyên ngành</td>
+                        <td>Hình thức đào tạo</td>
+                        <td>Xếp loại</td>
+                        <td>Số hiệu</td>
+                        <td>Ngày cấp</td>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        var idx = 0;
+                        foreach (var vb in Model.VanBangs
+                        .OrderByDescending(v => v.NgayCap ?? DateTime.MinValue)
+                        .ThenBy(v => v.VanBangId))
+                        {
+                            idx++;
+                            <tr>
+                                <td>@idx</td>
+                                <td>@vb.LoaiVanBang</td>
+                                <td>@vb.TenCoSo</td>
+                                <td>@vb.NganhDaoTao</td>
+                                <td>@vb.ChuyenNganhDaoTao</td>
+                                <td>@vb.HinhThucDaoTao</td>
+                                <td>@vb.XepLoai</td>
+                                <td>@vb.SoHieu</td>
+                                <td>@(vb.NgayCap.HasValue ? vb.NgayCap.Value.ToString("dd/MM/yyyy") : "")</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div style="padding:10px 0; color:#64748b">Chưa có văn bằng.</div>
+        }
+    </div>
 </div>
 
 <!-- Anti-forgery -->

@@ -22,7 +22,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         private readonly AdminDbContext _context;
         public DonVienChucController(AdminDbContext context) => _context = context;
 
-        // Helpers
+        // Map trạng thái
         private static (string Label, string Css) MapStatus(int? stt) => stt switch
         {
             1 => ("Chờ xử lý", "pending"),
@@ -33,58 +33,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
         private bool IsAjax() =>
             string.Equals(Request.Headers["X-Requested-With"], "XMLHttpRequest", StringComparison.OrdinalIgnoreCase);
-
-        private string JoinModelErrors()
-        {
-            var errs = ModelState
-                .Where(kv => kv.Value.Errors.Count > 0)
-                .Select(kv =>
-                {
-                    var msg = string.Join(", ", kv.Value.Errors.Select(e => e.ErrorMessage));
-                    return string.IsNullOrWhiteSpace(kv.Key) ? msg : $"{kv.Key}: {msg}";
-                });
-            return string.Join(" | ", errs);
-        }
-
-        // Map Entity -> VM
-        private static UngVien ToUngVienVm(UngVien e) => new UngVien
-        {
-            UngVienId = e.UngVienId,
-            Email = e.Email,
-            HoTen = e.HoTen,
-            GioiTinh = e.GioiTinh,
-            NgaySinh = e.NgaySinh,
-            SoDienThoai = e.SoDienThoai,
-            CCCD = e.CCCD,
-            NgayCapCCCD = e.NgayCapCCCD,
-            NoiCapCCCD = e.NoiCapCCCD,
-            DiaChiThuongTru = e.DiaChiThuongTru,
-            DiaChiCuTru = e.DiaChiCuTru,
-            MaSoThue = e.MaSoThue,
-            SoTaiKhoan = e.SoTaiKhoan,
-            TinhTrangSucKhoe = e.TinhTrangSucKhoe,
-            TrinhDoChuyenMon = e.TrinhDoChuyenMon,
-            NgayUngTuyen = e.NgayUngTuyen
-        };
-
-        // Áp VM -> Entity (đang được EF track)
-        private static void ApplyUngVien(UngVien s, UngVien d)
-        {
-            d.Email = s.Email?.Trim();
-            d.HoTen = s.HoTen?.Trim();
-            d.GioiTinh = s.GioiTinh;
-            d.NgaySinh = s.NgaySinh;
-            d.SoDienThoai = s.SoDienThoai?.Trim();
-            d.CCCD = s.CCCD?.Trim();
-            d.NgayCapCCCD = s.NgayCapCCCD;
-            d.NoiCapCCCD = s.NoiCapCCCD?.Trim();
-            d.DiaChiThuongTru = s.DiaChiThuongTru?.Trim();
-            d.DiaChiCuTru = s.DiaChiCuTru?.Trim();
-            d.MaSoThue = s.MaSoThue?.Trim();
-            d.SoTaiKhoan = s.SoTaiKhoan?.Trim();
-            d.TinhTrangSucKhoe = s.TinhTrangSucKhoe?.Trim();
-            d.TrinhDoChuyenMon = s.TrinhDoChuyenMon?.Trim();
-        }
 
         private static string H(object? s) => WebUtility.HtmlEncode(s?.ToString() ?? "");
 
@@ -124,7 +72,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
         }
 
-        // GET: Xem chi tiết (popup)
+        // GET: Chi tiết
         [HttpGet]
         public async Task<IActionResult> Details(int id)
         {
@@ -133,7 +81,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 .Include(d => d.ViTriDuTuyen)
                 .Include(d => d.ChucDanhDuTuyen)
                 .Include(d => d.KhoaPhong)
-                .Include(d => d.VanBangs)
                 .FirstOrDefaultAsync(x => x.VienChucId == id);
 
             if (don == null) return NotFound();
@@ -142,6 +89,13 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 .FirstOrDefaultAsync(x => x.UngVienId == don.UngVienId);
             if (uv == null) return NotFound();
 
+            // Văn bằng theo Ứng viên
+            var vbs = await _context.VanBangs.AsNoTracking()
+                .Where(v => v.UngVienId == uv.UngVienId)
+                .OrderByDescending(v => v.NgayCap ?? DateTime.MinValue)
+                .ThenBy(v => v.VanBangId)
+                .ToListAsync();
+
             var (label, css) = MapStatus(don.TrangThai);
 
             var vm = new DonVienChucDetailsVm
@@ -149,12 +103,13 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 Don = don,
                 UngVien = uv,
                 TrangThaiLabel = label,
-                TrangThaiClass = css
+                TrangThaiClass = css,
+                VanBangs = vbs
             };
             return View(vm);
         }
 
-        // GET: Xuất Word
+        // GET: Xuất Word đơn VC
         [HttpGet]
         public async Task<IActionResult> ExportWord(int id)
         {
@@ -209,19 +164,22 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             var (statusLabel, statusCss) = MapStatus(don.TrangThai);
 
             var sb = new StringBuilder();
-            sb.Append($@"
-<html><head><meta charset='utf-8'/><title>DonVienChuc_{don.VienChucId}</title>
+            // <-- HTML Word -->
+            sb.Append(@"
+<html><head><meta charset='utf-8'/><title>");
+            sb.Append($"DonVienChuc_{don.VienChucId}");
+            sb.Append(@"</title>
 <style>
-body {{ font-family:'Times New Roman', serif; font-size:12pt }}
-h1 {{ text-align:center; margin:0 0 16px 0; font-weight:800 }}
-h2 {{ margin:18px 0 8px 0; font-weight:800 }}
-table {{ width:100%; border-collapse:collapse; margin-bottom:12px }}
-td {{ border:1px solid #999; padding:6px 8px; vertical-align:top }}
-td.label {{ width:35%; font-weight:bold; background:#f5f5f5 }}
-.badge {{ display:inline-block; padding:4px 8px; border-radius:12px; color:#fff }}
-.badge.pending {{ background:#f0ad4e }}
-.badge.approved {{ background:#5cb85c }}
-.badge.cancelled {{ background:#dc3545 }}
+body { font-family:'Times New Roman', serif; font-size:12pt }
+h1 { text-align:center; margin:0 0 16px 0; font-weight:800 }
+h2 { margin:18px 0 8px 0; font-weight:800 }
+table { width:100%; border-collapse:collapse; margin-bottom:12px }
+td { border:1px solid #999; padding:6px 8px; vertical-align:top }
+td.label { width:35%; font-weight:bold; background:#f5f5f5 }
+.badge { display:inline-block; padding:4px 8px; border-radius:12px; color:#fff }
+.badge.pending { background:#f0ad4e }
+.badge.approved { background:#5cb85c }
+.badge.cancelled { background:#dc3545 }
 </style></head><body>
 <h1>ĐƠN VIÊN CHỨC</h1>
 
@@ -244,28 +202,51 @@ td.label {{ width:35%; font-weight:bold; background:#f5f5f5 }}
             return File(bytes, "application/msword", $"DonVienChuc_{don.VienChucId}.doc");
         }
 
-        // GET: edit
+        // ================== EDIT ==================
         [HttpGet]
-        public async Task<IActionResult> Edit(int id) 
+        public async Task<IActionResult> Edit(int id)
         {
             var don = await _context.DonVienChucs
                 .Include(d => d.UngVien)
                 .Include(d => d.KhoaPhong)
                 .Include(d => d.ChucDanhDuTuyen)
                 .Include(d => d.ViTriDuTuyen)
-                .Include(d => d.VanBangs)
                 .FirstOrDefaultAsync(d => d.VienChucId == id);
-
             if (don == null) return NotFound();
+
+            // Văn bằng theo Ứng viên
+            var vbs = await _context.VanBangs.AsNoTracking()
+                .Where(v => v.UngVienId == don.UngVienId)
+                .OrderByDescending(v => v.NgayCap ?? DateTime.MinValue)
+                .ThenBy(v => v.VanBangId)
+                .ToListAsync();
 
             var vm = new UngTuyenVienChucViewModel
             {
-                UngVien = ToUngVienVm(don.UngVien),
+                UngVien = new UngVien
+                {
+                    UngVienId = don.UngVien.UngVienId,
+                    Email = don.UngVien.Email,
+                    HoTen = don.UngVien.HoTen,
+                    GioiTinh = don.UngVien.GioiTinh,
+                    NgaySinh = don.UngVien.NgaySinh,
+                    SoDienThoai = don.UngVien.SoDienThoai,
+                    CCCD = don.UngVien.CCCD,
+                    NgayCapCCCD = don.UngVien.NgayCapCCCD,
+                    NoiCapCCCD = don.UngVien.NoiCapCCCD,
+                    DiaChiThuongTru = don.UngVien.DiaChiThuongTru,
+                    DiaChiCuTru = don.UngVien.DiaChiCuTru,
+                    MaSoThue = don.UngVien.MaSoThue,
+                    SoTaiKhoan = don.UngVien.SoTaiKhoan,
+                    TinhTrangSucKhoe = don.UngVien.TinhTrangSucKhoe,
+                    TrinhDoChuyenMon = don.UngVien.TrinhDoChuyenMon,
+                    NgayUngTuyen = don.UngVien.NgayUngTuyen
+                },
                 DonVienChuc = don,
-                VanBangs = don.VanBangs?.ToList() ?? new List<VanBang>()
+                VanBangs = vbs
             };
 
-            // Dropdowns (đưa sẵn giá trị đã chọn)
+            // Dropdowns
             ViewBag.ChucDanhList = await _context.DanhMucChucDanhDuTuyens
                 .Select(x => new SelectListItem { Value = x.ChucDanhId.ToString(), Text = x.TenChucDanh })
                 .ToListAsync();
@@ -282,12 +263,11 @@ td.label {{ width:35%; font-weight:bold; background:#f5f5f5 }}
             return View("Edit", vm);
         }
 
-        // POST: edit – JSON khi AJAX
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(UngTuyenVienChucViewModel vm)
         {
-            // 1) Bỏ validate các field không post
+            // -- Bỏ validate các navigation/field hệ thống --
             string[] ignoreKeys =
             {
                 "DonVienChuc.UngVien",
@@ -302,29 +282,48 @@ td.label {{ width:35%; font-weight:bold; background:#f5f5f5 }}
 
             if (!ModelState.IsValid)
             {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                    return BadRequest(new { ok = false, message = "Dữ liệu chưa hợp lệ.", errors = string.Join(" | ", ModelState.Where(x => x.Value.Errors.Any()).Select(x => $"{x.Key}: {string.Join(", ", x.Value.Errors.Select(e => e.ErrorMessage))}")) });
+                if (IsAjax())
+                    return BadRequest(new
+                    {
+                        ok = false,
+                        message = "Dữ liệu chưa hợp lệ.",
+                        errors = string.Join(" | ", ModelState.Where(x => x.Value.Errors.Any()).Select(x => $"{x.Key}: {string.Join(", ", x.Value.Errors.Select(e => e.ErrorMessage))}"))
+                    });
                 return View("Edit", vm);
             }
 
             var don = await _context.DonVienChucs
                 .Include(d => d.UngVien)
-                .Include(d => d.VanBangs)
                 .FirstOrDefaultAsync(d => d.VienChucId == vm.DonVienChuc.VienChucId);
 
             if (don == null)
             {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                    return NotFound(new { ok = false, message = "Không tìm thấy đơn viên chức." });
+                if (IsAjax()) return NotFound(new { ok = false, message = "Không tìm thấy đơn viên chức." });
                 return NotFound();
             }
 
             try
             {
-                // 2) Cập nhật U̲n̲g̲V̲i̲ê̲n̲: chỉ những trường cho phép sửa
-                ApplyUngVien(vm.UngVien, don.UngVien);
+                // -- Cập nhật UngVien --
+                var src = vm.UngVien;
+                var dst = don.UngVien;
+                dst.Email = src.Email?.Trim();
+                dst.HoTen = src.HoTen?.Trim();
+                dst.GioiTinh = src.GioiTinh;
+                dst.NgaySinh = src.NgaySinh;
+                dst.SoDienThoai = src.SoDienThoai?.Trim();
+                dst.CCCD = src.CCCD?.Trim();
+                dst.NgayCapCCCD = src.NgayCapCCCD;
+                dst.NoiCapCCCD = src.NoiCapCCCD?.Trim();
+                dst.DiaChiThuongTru = src.DiaChiThuongTru?.Trim();
+                dst.DiaChiCuTru = src.DiaChiCuTru?.Trim();
+                dst.MaSoThue = src.MaSoThue?.Trim();
+                dst.SoTaiKhoan = src.SoTaiKhoan?.Trim();
+                dst.TinhTrangSucKhoe = src.TinhTrangSucKhoe?.Trim();
+                dst.TrinhDoChuyenMon = src.TrinhDoChuyenMon?.Trim();
+                // Không đụng NgayUngTuyen
 
-                // 3) Cập nhật D̲o̲n̲V̲i̲ê̲n̲C̲h̲ứ̲̲c̲: CHỈ cập nhật các field được sửa
+                // -- Cập nhật DonVienChuc --
                 don.ViTriDuTuyenId = vm.DonVienChuc.ViTriDuTuyenId;
                 don.ChucDanhDuTuyenId = vm.DonVienChuc.ChucDanhDuTuyenId;
                 don.KhoaPhongId = vm.DonVienChuc.KhoaPhongId;
@@ -337,15 +336,31 @@ td.label {{ width:35%; font-weight:bold; background:#f5f5f5 }}
                 don.TrinhDoVanHoa = vm.DonVienChuc.TrinhDoVanHoa?.Trim();
                 don.LoaiHinhDaoTao = vm.DonVienChuc.LoaiHinhDaoTao?.Trim();
                 don.DoiTuongUuTien = vm.DonVienChuc.DoiTuongUuTien?.Trim();
-                // KHÔNG đụng tới: don.MaTraCuu, don.NgayNop, don.TrangThai, don.UngVienId ...
+                // Không chỉnh: MaTraCuu, NgayNop, TrangThai, UngVienId
 
-                // 4) Văn bằng: thay thế toàn bộ 
-                _context.RemoveRange(don.VanBangs);
-                don.VanBangs = vm.VanBangs ?? new List<VanBang>();
+                // -- Đồng bộ Văn bằng --
+                var uid = don.UngVienId;
+                var oldVbs = await _context.VanBangs.Where(v => v.UngVienId == uid).ToListAsync();
+                _context.VanBangs.RemoveRange(oldVbs);
+
+                var newVbs = vm.VanBangs ?? new List<VanBang>();
+                foreach (var vb in newVbs)
+                {
+                    vb.VanBangId = 0;
+                    vb.UngVienId = uid;
+                    vb.TenCoSo = vb.TenCoSo?.Trim();
+                    vb.SoHieu = vb.SoHieu?.Trim();
+                    vb.ChuyenNganhDaoTao = vb.ChuyenNganhDaoTao?.Trim();
+                    vb.NganhDaoTao = vb.NganhDaoTao?.Trim();
+                    vb.HinhThucDaoTao = vb.HinhThucDaoTao?.Trim();
+                    vb.XepLoai = vb.XepLoai?.Trim();
+                    vb.LoaiVanBang = vb.LoaiVanBang?.Trim();
+                }
+                await _context.VanBangs.AddRangeAsync(newVbs);
 
                 await _context.SaveChangesAsync();
 
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                if (IsAjax())
                     return Ok(new { ok = true, message = "Đã lưu thành công." });
 
                 TempData["SavedOk"] = true;
@@ -353,22 +368,21 @@ td.label {{ width:35%; font-weight:bold; background:#f5f5f5 }}
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                if (IsAjax())
                     return StatusCode(409, new { ok = false, message = "Xung đột dữ liệu. Vui lòng tải lại trang.", detail = ex.Message });
                 ModelState.AddModelError(string.Empty, "Xung đột dữ liệu. Vui lòng tải lại trang.");
                 return View("Edit", vm);
             }
             catch (Exception ex)
             {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                if (IsAjax())
                     return StatusCode(500, new { ok = false, message = "Có lỗi khi lưu.", detail = ex.Message });
                 ModelState.AddModelError(string.Empty, "Có lỗi khi lưu: " + ex.Message);
                 return View("Edit", vm);
             }
         }
 
-
-        // ================= AJAX (cascades) =================
+        // ================= AJAX cascades =================
         [HttpGet]
         public async Task<IActionResult> GetViTriByChucDanh(int chucDanhId)
         {
@@ -380,7 +394,6 @@ td.label {{ width:35%; font-weight:bold; background:#f5f5f5 }}
             return Json(list);
         }
 
-        //GET: Trả về danh sách khoa/phòng theo vị trí dự tuyển
         [HttpGet]
         public async Task<IActionResult> GetKhoaPhongByViTri(int viTriId)
         {

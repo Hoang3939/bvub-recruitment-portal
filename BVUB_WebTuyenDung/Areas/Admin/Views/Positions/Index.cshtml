@@ -1,6 +1,10 @@
 ﻿@model IEnumerable<BVUB_WebTuyenDung.Areas.Admin.Models.DanhMucViTriDuTuyen>
+
 @{
     ViewData["Title"] = "Vị trí dự tuyển";
+    string qVal = (ViewBag.q as string) ?? Context?.Request?.Query["q"].ToString();
+    string st = (ViewBag.st?.ToString() ?? Context?.Request?.Query["st"].ToString());
+    bool hasFilter = !string.IsNullOrWhiteSpace(qVal) || (st == "0" || st == "1");
 }
 <link rel="stylesheet" href="~/css/admin-positions-index.css" asp-append-version="true" />
 
@@ -11,10 +15,28 @@
 <div class="main-content">
     <div class="actions">
         <form method="get" asp-action="Index" class="filter-form" role="search">
+            <!-- NEW: filter Trạng thái -->
+            <select name="st" class="mini-select" aria-label="Trạng thái">
+                <option value="">Tất cả trạng thái</option>
+                <option value="0" selected="@(st=="0")">Sử dụng</option>
+                <option value="1" selected="@(st=="1")">Tạm ngưng</option>
+            </select>
+
             <input type="text" name="q" class="mini-search-input"
                    placeholder="Nhập: tên vị trí / tên chức danh"
-                   value="@(ViewBag.q ?? Context?.Request?.Query["q"].ToString())" />
-            <button type="submit" class="btn btn-filter">Lọc</button>
+                   value="@qVal" />
+
+            @if (!hasFilter)
+            {
+                <button type="submit" class="btn btn-filter" id="btnFilter">Lọc</button>
+            }
+            else
+            {
+                <a class="btn btn-clear" id="btnClearLink"
+                   asp-action="Index" title="Bỏ lọc" aria-label="Bỏ lọc">
+                    <i class="fas fa-times"></i>
+                </a>
+            }
         </form>
 
         <a asp-action="Create" class="btn btn-success">
@@ -22,7 +44,6 @@
         </a>
     </div>
 
-    @* Toast thông báo (TempData) *@
     @if (TempData["ToastSuccess"] != null || TempData["ToastError"] != null)
     {
         <div id="toast" class="toast-mini @(TempData["ToastError"] != null ? "error" : "")" role="status" aria-live="polite">
@@ -42,6 +63,7 @@
         <table class="positions-table" aria-label="Danh sách vị trí dự tuyển">
             <thead>
                 <tr>
+                    <th class="col-id">Mã</th>
                     <th class="col-name">Tên vị trí</th>
                     <th class="col-type">Chức danh</th>
                     <th class="col-status">Trạng thái</th>
@@ -53,6 +75,7 @@
                 {
                     var suspended = x.TamNgung == 1;
                     <tr class="row-click" data-id="@x.ViTriId">
+                        <td>@x.ViTriId</td>
                         <td>@x.TenViTri</td>
                         <td>@x.ChucDanh?.TenChucDanh</td>
                         <td>
@@ -64,7 +87,9 @@
                             <a asp-action="Edit" asp-route-id="@x.ViTriId" class="btn btn-primary">Sửa</a>
                             <form id="del-@x.ViTriId" asp-action="Delete" asp-route-id="@x.ViTriId" method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
-                                <button type="button" class="btn-icon btn-delete" data-form="#del-@x.ViTriId" title="Xóa"><i class="fas fa-trash"></i></button>
+                                <button type="button" class="btn-icon btn-delete" data-form="#del-@x.ViTriId" title="Xóa">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </form>
                         </td>
                     </tr>
@@ -102,7 +127,6 @@
     </div>
 </div>
 
-@* Config để JS lấy URL *@
 <div id="pos-index-config"
      data-details-url='@Url.Action("DetailsPartial", "Positions", new { area = "Admin" })'>
 </div>

@@ -2,23 +2,37 @@
 @{
     ViewData["Title"] = "Danh sách nhân viên";
     Func<int, string> renderRole = r => r == 1 ? "Quản trị viên" : "Nhân viên";
+    var hasFilter = !string.IsNullOrWhiteSpace(ViewBag.q as string);
 }
 
 <link rel="stylesheet" href="~/css/admin-employees-index.css" asp-append-version="true" />
 
-<!-- TIÊU ĐỀ để ngoài khung -->
 <div class="header-row">
     <h2>Danh sách nhân viên</h2>
 </div>
 
-<!-- KHUNG main-content bọc ô nhập + bảng -->
 <div class="main-content">
     <div class="actions">
         <form method="get" asp-area="Admin" asp-controller="Employee" asp-action="Index" class="filter-form" role="search">
             <input type="text" name="q" class="mini-search-input"
                    placeholder="Nhập: Mã NV / Username / Email"
                    value="@ViewBag.q" />
-            <button type="submit" class="btn btn-filter">Lọc</button>
+
+            @* Chỉ hiển thị một nút theo trạng thái đã lọc hay chưa *@
+            @if (!hasFilter)
+            {
+                <!-- Lọc -->
+                <button type="submit" class="btn btn-filter" id="btnFilter">Lọc</button>
+            }
+            else
+            {
+                <!-- Bỏ lọc -->
+                <a class="btn btn-clear" id="btnClearLink"
+                   asp-area="Admin" asp-controller="Employee" asp-action="Index"
+                   title="Bỏ lọc" aria-label="Bỏ lọc">
+                    <i class="fas fa-times"></i>
+                </a>
+            }
         </form>
 
         <a class="btn btn-export"
@@ -37,8 +51,8 @@
         <table class="candidate-table" aria-label="Danh sách nhân viên">
             <thead>
                 <tr>
-                    <th class="col-id">Mã nhân viên</th>
-                    <th class="col-username">Tên đăng nhập</th>
+                    <th class="col-id">Mã NV</th>
+                    <th class="col-username">Username</th>
                     <th class="col-email">Email</th>
                     <th class="col-role">Role</th>
                     <th class="col-actions" style="text-align:center;">Hoạt động</th>
@@ -47,20 +61,22 @@
             <tbody>
                 @foreach (var u in Model)
                 {
-                    if (u.Role == 1) { continue; } // không render admin
+                    if (u.Role == 1) { continue; } // ẩn admin
 
                     <tr data-id="@u.AdminId"
                         data-editurl="@Url.Action("Edit", "Employee", new { area = "Admin", id = u.AdminId })">
                         <td>@u.AdminId</td>
-                        <td>@u.Username</td>
-                        <td>@u.Email</td>
-                        <td>@(u.Role == 1 ? "Quản trị viên" : "Nhân viên")</td>
+                        <td class="truncate" title="@u.Username">@u.Username</td>
+                        <td class="truncate" title="@u.Email">@u.Email</td>
+                        <td>@renderRole(u.Role)</td>
                         <td class="cell-actions" style="text-align:center; white-space:nowrap;">
                             <a class="btn btn-primary"
                                asp-area="Admin" asp-controller="Employee" asp-action="Edit"
                                asp-route-id="@u.AdminId">Sửa</a>
 
-                            <button type="button" class="btn-icon btn-delete" title="Xóa" aria-label="Xóa nhân viên">🗑</button>
+                            <button type="button" class="btn-icon btn-delete" title="Xóa" aria-label="Xóa nhân viên">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </td>
                     </tr>
                 }

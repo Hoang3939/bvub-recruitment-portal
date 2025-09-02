@@ -7,7 +7,7 @@
 
 <link rel="stylesheet" href="~/css/admin-homeindex.css" asp-append-version="true" />
 
-<h1 style="font-size: 24px; margin-bottom: 20px;">Bảng điều khiển</h1>
+<h1 style="font-size: 22px; margin-bottom: 14px;">Bảng điều khiển</h1>
 
 <div class="overview">
     <div class="card">
@@ -31,24 +31,23 @@
     </div>
 </div>
 
-<div class="chart-section">
+<!-- Biểu đồ nhỏ gọn -->
+<div class="chart-section chart-small">
     <h3>Ứng viên 30 ngày gần nhất</h3>
-    <canvas id="line30"></canvas>
+    <div class="chart-box"><canvas id="line30"></canvas></div>
 </div>
 
-<div class="chart-section" style="margin-top:20px;">
+<div class="chart-section chart-small" style="margin-top:14px;">
     <h3>Giới tính</h3>
-    <div style="max-width:520px;">
-        <canvas id="genderPie"></canvas>
-    </div>
+    <div class="chart-box narrow"><canvas id="genderPie"></canvas></div>
 </div>
 
-<div class="chart-section" style="margin-top:20px;">
+<div class="chart-section chart-small" style="margin-top:14px;">
     <h3>Nhóm tuổi</h3>
-    <canvas id="ageBar"></canvas>
+    <div class="chart-box"><canvas id="ageBar"></canvas></div>
 </div>
 
-<div class="deals-section" style="margin-top:30px;">
+<div class="deals-section" style="margin-top:18px;">
     <h3>Hoạt động gần đây</h3>
     <table>
         <thead>
@@ -67,8 +66,9 @@
                     <td>@r.UngVienId</td>
                     <td>@r.HoTen</td>
                     <td>@r.Email</td>
-                    <td>@r.NgayUngTuyen.ToString("dd/MM/yyyy")</td>
+                    <td>@r.NgayUngTuyen.ToString("dd/MM/yyyy HH:mm:ss")</td> <!-- hiển thị tới giây -->
                     <td>
+                        <!-- Xem nhanh -->
                         <a class="btn btn-sm btn-primary"
                            asp-area="Admin" asp-controller="Candidates" asp-action="Index"
                            asp-route-id="@r.UngVienId">Xem</a>
