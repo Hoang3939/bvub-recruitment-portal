@@ -64,7 +64,7 @@ namespace BVUB_WebTuyenDung.Models
         public string MaTraCuu { get; set; }
 
         public UngVien? UngVien { get; set; }
-        public ICollection<VanBang>? VanBangs { get; set; }
+        
         public DanhMucChucDanhDuTuyen? ChucDanhDuTuyen { get; set; }
         public DanhMucViTriDuTuyen? ViTriDuTuyen { get; set; }
         public DanhMucKhoaPhong? KhoaPhong { get; set; }

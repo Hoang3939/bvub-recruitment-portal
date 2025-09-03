@@ -6,7 +6,9 @@
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/tracuu-chitiet.css" />
+    <link rel="stylesheet" href="~/css/tracuu-chitiet.css" asp-append-version="true" />
+    <!-- để reuse .vb-card, .vb-field read-only -->
+    <link rel="stylesheet" href="~/css/apply-forms.css" asp-append-version="true" />
 }
 
 <div class="detail-page">
@@ -17,88 +19,123 @@
 
     <div class="section-list">
 
-        <!-- Thông tin ứng viên (đọc dọc) -->
+        <!-- Thông tin ứng viên -->
         <div class="card">
             <h5>Thông tin ứng viên</h5>
             <dl class="kv">
                 <dt>Họ tên</dt>
                 <dd>@Model.UngVien.HoTen</dd>
+
                 <dt>Ngày sinh</dt>
                 <dd>@Model.UngVien.NgaySinh?.ToString("dd/MM/yyyy")</dd>
+
                 <dt>Giới tính</dt>
-                <dd>@(Model.UngVien.GioiTinh == 1 ? "Nam" : Model.UngVien.GioiTinh == 2 ? "Nữ" : "Khác")</dd>
+                <dd>@(Model.UngVien.GioiTinh == 0 ? "Nam" : Model.UngVien.GioiTinh == 1 ? "Nữ" : "Khác")</dd>
+
                 <dt>Số điện thoại</dt>
                 <dd>@Model.UngVien.SoDienThoai</dd>
+
                 <dt>Email</dt>
                 <dd>@Model.UngVien.Email</dd>
+
                 <dt>CCCD</dt>
                 <dd>@Model.UngVien.CCCD</dd>
+
                 <dt>Ngày cấp CCCD</dt>
                 <dd>@Model.UngVien.NgayCapCCCD?.ToString("dd/MM/yyyy")</dd>
+
                 <dt>Nơi cấp CCCD</dt>
                 <dd>@Model.UngVien.NoiCapCCCD</dd>
+
                 <dt>Thường trú</dt>
                 <dd>@Model.UngVien.DiaChiThuongTru</dd>
+
                 <dt>Cư trú</dt>
                 <dd>@Model.UngVien.DiaChiCuTru</dd>
+
                 <dt>MST</dt>
                 <dd>@Model.UngVien.MaSoThue</dd>
+
                 <dt>Số tài khoản</dt>
                 <dd>@Model.UngVien.SoTaiKhoan</dd>
+
                 <dt>Tình trạng sức khỏe</dt>
                 <dd>@Model.UngVien.TinhTrangSucKhoe</dd>
+
                 <dt>Trình độ chuyên môn</dt>
                 <dd>@Model.UngVien.TrinhDoChuyenMon</dd>
             </dl>
         </div>
 
-        <!-- Thông tin đơn (đọc dọc) -->
+        <!-- Thông tin đơn -->
         <div class="card">
             <h5>Thông tin đơn</h5>
             <dl class="kv">
                 <dt>Mã tra cứu</dt>
                 <dd>@Model.MaTraCuu</dd>
+
                 <dt>Ngày nộp</dt>
                 <dd>@Model.NgayNop.ToString("dd/MM/yyyy")</dd>
+
                 <dt>Chức danh dự tuyển</dt>
                 <dd>@Model.TenChucDanh</dd>
+
                 <dt>Vị trí dự tuyển</dt>
                 <dd>@Model.TenViTri</dd>
+
                 <dt>Khoa/Phòng</dt>
                 <dd>@Model.TenKhoaPhong</dd>
+
                 <dt>Trạng thái</dt>
                 <dd>@TrangThaiText(Model.TrangThai)</dd>
             </dl>
         </div>
 
+        <!-- Văn bằng (read-only) -->
         @if (Model.VanBangs != null && Model.VanBangs.Any())
         {
             <div class="card">
                 <h5>Văn bằng/Chứng chỉ</h5>
-
-                <div class="vb-list">
-                    @for (int i = 0; i < Model.VanBangs.Count; i++)
-                    {
-                        var vb = Model.VanBangs[i];
-                        <div class="vb-card">
-                            <h6>Văn bằng #@(i + 1)</h6>
-                            <dl class="kv">
-                                <dt>Tên cơ sở</dt>
-                                <dd>@vb.TenCoSo</dd>
-                                <dt>Ngành/Chuyên ngành</dt>
-                                <dd>@vb.NganhDaoTao / @vb.ChuyenNganhDaoTao</dd>
-                                <dt>Hình thức</dt>
-                                <dd>@vb.HinhThucDaoTao</dd>
-                                <dt>Xếp loại</dt>
-                                <dd>@vb.XepLoai</dd>
-                                <dt>Ngày cấp</dt>
-                                <dd>@(vb.NgayCap?.ToString("dd/MM/yyyy"))</dd>
-                                <dt>Số hiệu</dt>
-                                <dd>@vb.SoHieu</dd>
-                            </dl>
+                @for (int i = 0; i < Model.VanBangs.Count; i++)
+                {
+                    var vb = Model.VanBangs[i];
+                    <div class="vb-card vb-card--readonly">
+                        <div class="vb-card__head">
+                            <div class="vb-card__title">Văn bằng #@(i + 1)</div>
+                            <span class="vb-card__tag">Read-only</span>
                         </div>
-                    }
-                </div>
+                        <div class="vb-card__grid">
+                            <div class="vb-field">
+                                <label>Tên cơ sở cấp</label>
+                                <input class="form-control" value="@vb.TenCoSo" readonly />
+                            </div>
+                            <div class="vb-field">
+                                <label>Ngày cấp</label>
+                                <input class="form-control" value="@(vb.NgayCap?.ToString("dd/MM/yyyy"))" readonly />
+                            </div>
+                            <div class="vb-field">
+                                <label>Số hiệu</label>
+                                <input class="form-control" value="@vb.SoHieu" readonly />
+                            </div>
+                            <div class="vb-field">
+                                <label>Ngành đào tạo</label>
+                                <input class="form-control" value="@vb.NganhDaoTao" readonly />
+                            </div>
+                            <div class="vb-field">
+                                <label>Chuyên ngành đào tạo</label>
+                                <input class="form-control" value="@vb.ChuyenNganhDaoTao" readonly />
+                            </div>
+                            <div class="vb-field">
+                                <label>Hình thức đào tạo</label>
+                                <input class="form-control" value="@vb.HinhThucDaoTao" readonly />
+                            </div>
+                            <div class="vb-field">
+                                <label>Xếp loại</label>
+                                <input class="form-control" value="@vb.XepLoai" readonly />
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         }
     </div>

@@ -53,11 +53,10 @@ namespace BVUB_WebTuyenDung.Data
                 .HasIndex(u => u.Email)
                 .IsUnique();
 
-            // ===== Quan hệ 1-n: DonVienChuc ↔ VanBang =====
-            modelBuilder.Entity<DonVienChuc>()
-                .HasMany(d => d.VanBangs)
-                .WithOne(v => v.DonVienChuc)
-                .HasForeignKey(v => v.DonVienChucId)
+            modelBuilder.Entity<VanBang>()
+                .HasOne(v => v.UngVien)
+                .WithMany(u => u.VanBangs)
+                .HasForeignKey(v => v.UngVienId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // ===== Bảng nối KhoaPhong ↔ ViTri =====
@@ -128,6 +127,17 @@ namespace BVUB_WebTuyenDung.Data
                 .HasForeignKey(h => h.KhoaPhongCongTacId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<DonVienChuc>()
+                .Property(x => x.NgayNop)
+                .HasColumnType("datetime");
+
+            modelBuilder.Entity<HopDongNguoiLaoDong>()
+                .Property(x => x.NgayNop)
+                .HasColumnType("datetime");
+
+            modelBuilder.Entity<HopDongNguoiLaoDong>()
+                .HasIndex(h => h.MaTraCuu)
+                .IsUnique();
         }
     }
 }

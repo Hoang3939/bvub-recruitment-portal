@@ -108,7 +108,6 @@ namespace BVUB_WebTuyenDung.Controllers
             {
                 var d = await _db.DonVienChuc
                     .Include(x => x.UngVien)
-                    .Include(x => x.VanBangs)
                     .Include(x => x.ChucDanhDuTuyen)
                     .Include(x => x.ViTriDuTuyen)
                     .Include(x => x.KhoaPhong)
@@ -117,17 +116,11 @@ namespace BVUB_WebTuyenDung.Controllers
 
                 if (d == null) return NotFound();
 
-                var vm = new VienChucDetailsVM
-                {
-                    VienChucId = d.VienChucId,
-                    MaTraCuu = d.MaTraCuu,
-                    TrangThai = d.TrangThai,
-                    NgayNop = d.NgayNop,
-                    TenChucDanh = d.ChucDanhDuTuyen?.TenChucDanh ?? "(Chưa rõ tên chức danh)",
-                    TenViTri = d.ViTriDuTuyen?.TenViTri ?? "(Chưa rõ tên vị trí)", // nếu model ViTri dùng tên property khác, sửa tại đây
-                    TenKhoaPhong = d.KhoaPhong?.Ten ?? "(Chưa rõ tên khoa/phòng)",
-                    UngVien = d.UngVien!,
-                    VanBangs = d.VanBangs?.Select(v => new VanBangRow
+                // Lấy văn bằng THEO UngVienId (không Include từ DonVienChuc nữa)
+                var vbList = await _db.VanBang
+                    .AsNoTracking()
+                    .Where(v => v.UngVienId == d.UngVienId)
+                    .Select(v => new VanBangRow
                     {
                         TenCoSo = v.TenCoSo,
                         NgayCap = v.NgayCap,
@@ -136,7 +129,20 @@ namespace BVUB_WebTuyenDung.Controllers
                         NganhDaoTao = v.NganhDaoTao,
                         HinhThucDaoTao = v.HinhThucDaoTao,
                         XepLoai = v.XepLoai
-                    }).ToList() ?? new()
+                    })
+                    .ToListAsync();
+
+                var vm = new VienChucDetailsVM
+                {
+                    VienChucId = d.VienChucId,
+                    MaTraCuu = d.MaTraCuu,
+                    TrangThai = d.TrangThai,
+                    NgayNop = d.NgayNop,
+                    TenChucDanh = d.ChucDanhDuTuyen?.TenChucDanh ?? "(Chưa rõ tên chức danh)",
+                    TenViTri = d.ViTriDuTuyen?.TenViTri ?? "(Chưa rõ tên vị trí)",
+                    TenKhoaPhong = d.KhoaPhong?.Ten ?? "(Chưa rõ tên khoa/phòng)",
+                    UngVien = d.UngVien!,
+                    VanBangs = vbList
                 };
 
                 return View("ChiTietVienChuc", vm);
@@ -150,6 +156,21 @@ namespace BVUB_WebTuyenDung.Controllers
                     .FirstOrDefaultAsync(x => x.HopDongId == id);
 
                 if (h == null) return NotFound();
+
+                var vbList = await _db.VanBang
+                    .AsNoTracking()
+                    .Where(v => v.UngVienId == h.UngVienId)
+                    .Select(v => new VanBangRow
+                    {
+                        TenCoSo = v.TenCoSo,
+                        NgayCap = v.NgayCap,
+                        SoHieu = v.SoHieu,
+                        ChuyenNganhDaoTao = v.ChuyenNganhDaoTao,
+                        NganhDaoTao = v.NganhDaoTao,
+                        HinhThucDaoTao = v.HinhThucDaoTao,
+                        XepLoai = v.XepLoai
+                    })
+                    .ToListAsync();
 
                 var vm = new NguoiLaoDongDetailsVM
                 {
@@ -165,7 +186,8 @@ namespace BVUB_WebTuyenDung.Controllers
                     TrinhDoNgoaiNgu = h.TrinhDoNgoaiNgu,
                     ChungChiHanhNghe = h.ChungChiHanhNghe,
                     NgheNghiepTruocTuyenDung = h.NgheNghiepTruocTuyenDung,
-                    UngVien = h.UngVien!
+                    UngVien = h.UngVien!,
+                    VanBangs = vbList
                 };
 
                 return View("ChiTietNguoiLaoDong", vm);

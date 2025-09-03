@@ -7,8 +7,8 @@ namespace BVUB_WebTuyenDung.Models
         [Key]
         public int VanBangId { get; set; }
 
-        [Required(ErrorMessage = "Thiếu ID Đơn vị viên chức.")]
-        public int DonVienChucId { get; set; }
+        [Required(ErrorMessage = "Thiếu ID Ứng viên.")]
+        public int UngVienId { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập Tên cơ sở.")]
         [StringLength(50, ErrorMessage = "Tên cơ sở tối đa 50 ký tự.")]
@@ -44,6 +44,6 @@ namespace BVUB_WebTuyenDung.Models
         [StringLength(50, ErrorMessage = "Loại văn bằng tối đa 50 ký tự.")]
         public string LoaiVanBang { get; set; }
 
-        public DonVienChuc? DonVienChuc { get; set; }
+        public UngVien? UngVien { get; set; }
     }
 }

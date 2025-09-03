@@ -85,7 +85,8 @@ namespace BVUB_WebTuyenDung.Controllers
                 _context.DanhMucKhoaPhong.Where(k => k.TamNgung == 0).AsNoTracking().ToList(),
                 "KhoaPhongId", "Ten"
             );
-            return View(model); // ==> Views/UngTuyen/NguoiLaoDong.cshtml
+            ViewBag.LoaiVanBangOptions = GetLoaiVanBangOptions();
+            return View(model);
         }
 
         [HttpPost]
@@ -97,7 +98,9 @@ namespace BVUB_WebTuyenDung.Controllers
             ModelState.Remove("HopDongNguoiLaoDong.UngVienId");
             ModelState.Remove("HopDongNguoiLaoDong.MaTraCuu");
             ModelState.Remove("HopDongNguoiLaoDong.Loai");
-            ModelState.Remove("HopDongNguoiLaoDong.UngVien"); // tránh validate navigation
+            ModelState.Remove("HopDongNguoiLaoDong.UngVien");
+            PruneEmptyVanBangs(model.VanBangs, "VanBangs");
+            ClearVBModelStateErrors();
 
             if (model.UngVien?.NgaySinh is DateTime ns && ns.Date > DateTime.Today)
                 ModelState.AddModelError("UngVien.NgaySinh", "Ngày sinh không được lớn hơn ngày hiện tại.");
@@ -111,6 +114,7 @@ namespace BVUB_WebTuyenDung.Controllers
                     _context.DanhMucKhoaPhong.Where(k => k.TamNgung == 0).AsNoTracking().ToList(),
                     "KhoaPhongId", "Ten", model.HopDongNguoiLaoDong?.KhoaPhongCongTacId
                 );
+                ViewBag.LoaiVanBangOptions = GetLoaiVanBangOptions();
                 return View("NguoiLaoDong", model);
             }
 
@@ -130,16 +134,33 @@ namespace BVUB_WebTuyenDung.Controllers
                     return View("NguoiLaoDong", model);
                 }
 
-                // 3) Lưu hợp đồng
+                // (3) BẮT BUỘC có ít nhất 1 văn bằng:
+                var daCoVb = await _context.VanBang.AnyAsync(v => v.UngVienId == ungVien.UngVienId);
+                var vbTrongForm = model.VanBangs != null && model.VanBangs.Count > 0;
+                if (!daCoVb && !vbTrongForm)
+                {
+                    ModelState.AddModelError("", "Vui lòng khai tối thiểu 1 văn bằng.");
+                    ViewBag.KhoaPhongList = new SelectList(
+                        _context.DanhMucKhoaPhong.Where(k => k.TamNgung == 0).AsNoTracking().ToList(),
+                        "KhoaPhongId", "Ten", model.HopDongNguoiLaoDong?.KhoaPhongCongTacId
+                    );
+                    ViewBag.LoaiVanBangOptions = GetLoaiVanBangOptions();
+                    return View("NguoiLaoDong", model);
+                }
+
+                // (4) Lưu HĐ
                 var hd = model.HopDongNguoiLaoDong;
                 hd.UngVienId = ungVien.UngVienId;
                 hd.NgayNop = DateTime.Now;
-                hd.TrangThai = 1;                       // mới nộp
+                hd.TrangThai = 1;
                 hd.Loai = "Người lao động";
                 hd.MaTraCuu = await GenerateUniqueMaTraCuuAsync(6);
 
                 _context.HopDongNguoiLaoDong.Add(hd);
                 await _context.SaveChangesAsync();
+
+                // (5) Thêm mới (nếu có) các văn bằng chưa tồn tại
+                await AddNewVanBangsAsync(ungVien.UngVienId, model.VanBangs, Request.Form);
 
                 try
                 {
@@ -232,6 +253,8 @@ namespace BVUB_WebTuyenDung.Controllers
             ModelState.Remove("DonVienChuc.MaTraCuu");
             ModelState.Remove("DonVienChuc.UngVienId");
             ModelState.Remove("DonVienChuc.ChucDanhDuTuyen"); // nếu còn key cũ
+            PruneEmptyVanBangs(model.VanBangs, "VanBangs");
+            ClearVBModelStateErrors();
 
             // Validate bổ sung
             if (model.DonVienChuc.ChucDanhDuTuyenId <= 0)
@@ -268,21 +291,24 @@ namespace BVUB_WebTuyenDung.Controllers
                     return View("VienChuc", model);
                 }
 
-                // (3) Lưu đơn VC
+                // (3) BẮT BUỘC có ít nhất 1 văn bằng:
+                var daCoVb = await _context.VanBang.AnyAsync(v => v.UngVienId == ungVien.UngVienId);
+                var vbTrongForm = model.VanBangs != null && model.VanBangs.Count > 0;
+                if (!daCoVb && !vbTrongForm)
+                {
+                    ModelState.AddModelError("", "Vui lòng khai tối thiểu 1 văn bằng.");
+                    RefillVienChucViewBags(model);
+                    return View("VienChuc", model);
+                }
+
+                // (4) Lưu ĐVC
                 model.DonVienChuc.UngVienId = ungVien.UngVienId;
                 _context.DonVienChuc.Add(model.DonVienChuc);
                 await _context.SaveChangesAsync();
 
-                // (4) Lưu văn bằng
-                var danhSachVanBang = model.VanBangs ?? new List<VanBang>();
-                if (danhSachVanBang.Count > 0)
-                {
-                    foreach (var vb in danhSachVanBang)
-                        vb.DonVienChucId = model.DonVienChuc.VienChucId;
-
-                    _context.VanBang.AddRange(danhSachVanBang);
-                    await _context.SaveChangesAsync();
-                }
+                // (5) Thêm mới (nếu có) các văn bằng chưa tồn tại
+                await AddNewVanBangsAsync(ungVien.UngVienId, model.VanBangs, Request.Form);
+                // (6) Gửi email
                 try
                 {
                     var to = model.UngVien.Email;
@@ -361,10 +387,16 @@ namespace BVUB_WebTuyenDung.Controllers
             {
                 "Tiến sĩ",
                 "Thạc sĩ",
-                "Cử nhân",
-                "Tin học",
+                "Chuyên khoa II",
+                "Chuyên khoa I",
+                "Nội trú",
+                "Đại học",
+                "Cao đẳng",
+                "Trung cấp",
+                "Văn bằng 2",
+                "Chứng chỉ bồi dưỡng nghiệp vụ công tác xã hội",
                 "Ngoại ngữ",
-                "Chứng chỉ chuyên môn",
+                "Tin học",
                 "Khác"
             };
         }
@@ -382,12 +414,28 @@ namespace BVUB_WebTuyenDung.Controllers
 
             var ungVien = await _context.UngVien
                 .Include(u => u.HopDongNguoiLaoDong)
-                .Include(u => u.DonVienChuc) // <<< thêm cho trang Viên chức
+                .Include(u => u.DonVienChuc)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Email == email);
 
             if (ungVien == null)
                 return Json(new { ok = true, exists = false, hasUngVien = false });
+
+            var vanBangs = await _context.VanBang
+                .Where(v => v.UngVienId == ungVien.UngVienId)
+                .AsNoTracking()
+                .Select(v => new {
+                    v.VanBangId,
+                    v.LoaiVanBang,
+                    v.TenCoSo,
+                    NgayCap = v.NgayCap.HasValue ? v.NgayCap.Value.ToString("yyyy-MM-dd") : null,
+                    v.SoHieu,
+                    v.ChuyenNganhDaoTao,
+                    v.NganhDaoTao,
+                    v.HinhThucDaoTao,
+                    v.XepLoai
+                })
+                .ToListAsync();
 
             return Json(new
             {
@@ -412,7 +460,8 @@ namespace BVUB_WebTuyenDung.Controllers
                     ungVien.SoTaiKhoan,
                     ungVien.TinhTrangSucKhoe,
                     ungVien.TrinhDoChuyenMon
-                }
+                },
+                vanBangs
             });
         }
 
@@ -448,5 +497,80 @@ namespace BVUB_WebTuyenDung.Controllers
             await _context.SaveChangesAsync();
             return posted;
         }
+
+        private void ClearVBModelStateErrors()
+        {
+            var keys = ModelState.Keys
+                .Where(k => k.Contains("VanBangs") && k.EndsWith(".UngVienId"))
+                .ToList();
+            foreach (var k in keys) ModelState.Remove(k);
+        }
+        private static string VanBangKey(VanBang v)
+        {
+            string d = v.NgayCap?.Date.ToString("yyyy-MM-dd") ?? "";
+            return $"{(v.SoHieu ?? "").Trim().ToUpperInvariant()}|{(v.LoaiVanBang ?? "").Trim().ToUpperInvariant()}|{(v.TenCoSo ?? "").Trim().ToUpperInvariant()}|{d}";
+        }
+
+        private async Task<int> AddNewVanBangsAsync(int ungVienId, IList<VanBang>? incoming, IFormCollection form)
+        {
+            if (incoming == null || incoming.Count == 0) return 0;
+
+            // Gán UngVienId + map HinhThucDaoTaoKhac
+            for (int i = 0; i < incoming.Count; i++)
+            {
+                var vb = incoming[i];
+                vb.UngVienId = ungVienId;
+
+                var htKhac = (form[$"VanBangs[{i}].HinhThucDaoTaoKhac"].ToString() ?? "").Trim();
+                if (string.Equals(vb.HinhThucDaoTao, "Khác", StringComparison.OrdinalIgnoreCase)
+                    && !string.IsNullOrWhiteSpace(htKhac))
+                {
+                    vb.HinhThucDaoTao = htKhac;
+                }
+            }
+
+            // Lấy các VB hiện có để chống trùng
+            var existing = await _context.VanBang
+                .Where(v => v.UngVienId == ungVienId)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var existedKeys = new HashSet<string>(existing.Select(VanBangKey));
+            var toInsert = incoming
+                .Where(v =>
+                    v != null &&
+                    !string.IsNullOrWhiteSpace(v.LoaiVanBang) &&
+                    !string.IsNullOrWhiteSpace(v.TenCoSo) &&
+                    !string.IsNullOrWhiteSpace(v.SoHieu) &&
+                    !existedKeys.Contains(VanBangKey(v)))
+                .ToList();
+
+            if (toInsert.Count > 0)
+            {
+                _context.VanBang.AddRange(toInsert);
+                await _context.SaveChangesAsync();
+            }
+            return toInsert.Count;
+        }
+
+        private void PruneEmptyVanBangs(IList<VanBang>? list, string prefix = "VanBangs")
+        {
+            if (list == null) return;
+            for (int i = list.Count - 1; i >= 0; i--)
+            {
+                var v = list[i];
+                bool empty = string.IsNullOrWhiteSpace(v?.TenCoSo)
+                          && string.IsNullOrWhiteSpace(v?.SoHieu)
+                          && string.IsNullOrWhiteSpace(v?.LoaiVanBang);
+                if (empty)
+                {
+                    // gỡ hết lỗi ModelState của dòng trống này
+                    var keys = ModelState.Keys.Where(k => k.StartsWith($"{prefix}[{i}]")).ToList();
+                    foreach (var k in keys) ModelState.Remove(k);
+                    list.RemoveAt(i);
+                }
+            }
+        }
+
     }
 }

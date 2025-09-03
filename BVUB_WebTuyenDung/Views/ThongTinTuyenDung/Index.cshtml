@@ -43,11 +43,10 @@ else
     <div class="td-list">
         @foreach (var item in Model.Items)
         {
-            var img = string.IsNullOrWhiteSpace(item.FileDinhKem)
-            ? Url.Content("~/uploads/job-placeholder.png")
-            : Url.Content(item.FileDinhKem.StartsWith("/")
-            ? item.FileDinhKem
-            : "~/uploads/" + item.FileDinhKem);
+            var img = string.IsNullOrWhiteSpace(item.FileAnh)
+            ? (string.IsNullOrWhiteSpace(item.FileDinhKem) ? Url.Content("~/uploads/job-placeholder.png")
+            : Url.Content(item.FileDinhKem.StartsWith("/") ? item.FileDinhKem : "~/uploads/" + item.FileDinhKem))
+            : Url.Content(item.FileAnh.StartsWith("/") ? item.FileAnh : "~/uploads/" + item.FileAnh);
 
             var days = (item.HanNopHoSo.Date - DateTime.Today).TotalDays;
             var daysText = days < 0 ? "Đã hết hạn" : (days == 0 ? "Hạn nộp hôm nay" : $"Còn {Math.Ceiling(days)} ngày");

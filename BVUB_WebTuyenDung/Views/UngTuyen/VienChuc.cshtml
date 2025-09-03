@@ -17,7 +17,7 @@
 
     <!-- Email -->
     <div class="form-group">
-        <label asp-for="UngVien.Email" class="form-label">Email</label>
+        <label asp-for="UngVien.Email" class="form-label">Email*</label>
         <div class="inline-row">
             <input asp-for="UngVien.Email" type="text" class="form-control" id="txtEmail" placeholder="Ví dụ: abc@gmail.com" />
             <button type="button" id="btnCheckEmail" class="btn btn-secondary">Kiểm tra</button>
@@ -27,13 +27,13 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.HoTen" class="form-label">Họ tên</label>
+        <label asp-for="UngVien.HoTen" class="form-label">Họ và tên*</label>
         <input asp-for="UngVien.HoTen" class="form-control" placeholder="Ví dụ: Nguyễn Văn A" />
         <span asp-validation-for="UngVien.HoTen" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.GioiTinh" class="form-label">Giới tính</label>
+        <label asp-for="UngVien.GioiTinh" class="form-label">Giới tính*</label>
         <select asp-for="UngVien.GioiTinh" class="form-control">
             <option value="0">Nam</option>
             <option value="1">Nữ</option>
@@ -42,31 +42,31 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.NgaySinh" class="form-label">Ngày sinh</label>
+        <label asp-for="UngVien.NgaySinh" class="form-label">Ngày tháng năm sinh*</label>
         <input asp-for="UngVien.NgaySinh" class="form-control js-date" type="text" autocomplete="off" />
         <span asp-validation-for="UngVien.NgaySinh" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.SoDienThoai" class="form-label">Số điện thoại</label>
+        <label asp-for="UngVien.SoDienThoai" class="form-label">Số điện thoại*</label>
         <input asp-for="UngVien.SoDienThoai" class="form-control" type="tel" maxlength="11" />
         <span asp-validation-for="UngVien.SoDienThoai" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.CCCD" class="form-label">CCCD</label>
+        <label asp-for="UngVien.CCCD" class="form-label">Số căn cước công dân hoặc căn cước *</label>
         <input asp-for="UngVien.CCCD" class="form-control" maxlength="12" />
         <span asp-validation-for="UngVien.CCCD" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.NgayCapCCCD" class="form-label">Ngày cấp Thẻ căn cước công dân hoặc thẻ căn cước</label>
+        <label asp-for="UngVien.NgayCapCCCD" class="form-label">Ngày cấp Thẻ căn cước công dân hoặc thẻ căn cước*</label>
         <input asp-for="UngVien.NgayCapCCCD" class="form-control js-date" type="text" autocomplete="off" />
         <span asp-validation-for="UngVien.NgayCapCCCD" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.NoiCapCCCD" class="form-label">Nơi cấp Thẻ căn cước công dân hoặc thẻ căn cước</label>
+        <label asp-for="UngVien.NoiCapCCCD" class="form-label">Nơi cấp Thẻ căn cước công dân hoặc thẻ căn cước*</label>
         <select asp-for="UngVien.NoiCapCCCD" class="form-control">
             <option value="">-- Chọn nơi cấp --</option>
             <option value="Bộ Công an">Bộ Công an</option>
@@ -77,31 +77,31 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.DiaChiThuongTru" class="form-label">Địa chỉ thường trú (ghi đầy đủ và chính xác theo thông tin trong ứng dụng VNeID)</label>
+        <label asp-for="UngVien.DiaChiThuongTru" class="form-label">Địa chỉ thường trú (ghi đầy đủ và chính xác theo thông tin trong ứng dụng VNeID)*</label>
         <input asp-for="UngVien.DiaChiThuongTru" class="form-control" placeholder="Ví dụ: 59 Nguyễn Thị Minh Khai, phường Bến Thành, Thành phố Hồ Chí Minh"/>
         <span asp-validation-for="UngVien.DiaChiThuongTru" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.DiaChiCuTru" class="form-label">Địa chỉ nơi cư trú (để báo tin)(dựa trên Đơn vị hành chính mới theo quy định)</label>
+        <label asp-for="UngVien.DiaChiCuTru" class="form-label">Địa chỉ nơi cư trú (để báo tin)(dựa trên Đơn vị hành chính mới theo quy định)*</label>
         <input asp-for="UngVien.DiaChiCuTru" class="form-control" placeholder="Ví dụ: 59 Nguyễn Thị Minh Khai, phường Bến Thành, Thành phố Hồ Chí Minh" />
         <span asp-validation-for="UngVien.DiaChiCuTru" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.MaSoThue" class="form-label">Mã số thuế</label>
+        <label asp-for="UngVien.MaSoThue" class="form-label">Mã số thuế*</label>
         <input asp-for="UngVien.MaSoThue" class="form-control" maxlength="13" />
         <span asp-validation-for="UngVien.MaSoThue" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.SoTaiKhoan" class="form-label">Số tài khoản ngân hàng Vietinbank Chi nhánh 7</label>
+        <label asp-for="UngVien.SoTaiKhoan" class="form-label">Số tài khoản ngân hàng Vietinbank Chi nhánh 7*</label>
         <input asp-for="UngVien.SoTaiKhoan" class="form-control" maxlength="12" />
         <span asp-validation-for="UngVien.SoTaiKhoan" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label class="form-label fw-bold">Tình trạng sức khỏe</label>
+        <label class="form-label fw-bold">Tình trạng sức khỏe*</label>
         <input type="hidden" asp-for="UngVien.TinhTrangSucKhoe" id="hidSK" />
         <div class="choice-vertical">
             <label class="choice-item"><input class="radio-solid js-sk" type="radio" name="skUI" value="Loại I"> Loại I</label>
@@ -117,14 +117,14 @@
     <h4 class="section-title">Thông tin dự tuyển</h4>
 
     <div class="form-group">
-        <label class="form-label">Chức danh nghề nghiệp dự tuyển</label>
+        <label class="form-label">Chức danh nghề nghiệp dự tuyển*</label>
         <select id="ChucDanhId" class="form-control" asp-for="DonVienChuc.ChucDanhDuTuyenId" asp-items="ViewBag.ChucDanhList">
             <option value="">-- Chọn chức danh --</option>
         </select>
     </div>
 
     <div class="form-group">
-        <label asp-for="DonVienChuc.ViTriDuTuyenId" class="form-label">Vị trí việc làm dữ tuyển</label>
+        <label asp-for="DonVienChuc.ViTriDuTuyenId" class="form-label">Vị trí việc làm dữ tuyển*</label>
         <select id="ViTriId" asp-for="DonVienChuc.ViTriDuTuyenId" class="form-control" asp-items="ViewBag.ViTriList">
             <option value="">-- Chọn vị trí --</option>
         </select>
@@ -132,7 +132,7 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="DonVienChuc.KhoaPhongId" class="form-label">Khoa/Phòng dự tuyển</label>
+        <label asp-for="DonVienChuc.KhoaPhongId" class="form-label">Khoa/Phòng dự tuyển*</label>
         <select id="KhoaPhongId" asp-for="DonVienChuc.KhoaPhongId" class="form-control">
             <option value="">-- Chọn khoa/phòng --</option>
         </select>
@@ -140,40 +140,44 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="DonVienChuc.DanToc" class="form-label">Dân tộc (điền theo giấy khai sinh)</label>
+        <label asp-for="DonVienChuc.DanToc" class="form-label">Dân tộc (điền theo giấy khai sinh)*</label>
         <input asp-for="DonVienChuc.DanToc" class="form-control"/>
         <span asp-validation-for="DonVienChuc.DanToc" class="text-danger"></span>
     </div>
     <div class="form-group">
-        <label asp-for="DonVienChuc.TonGiao" class="form-label">Tôn giáo</label>
+        <label asp-for="DonVienChuc.TonGiao" class="form-label">Tôn giáo*</label>
         <input asp-for="DonVienChuc.TonGiao" class="form-control" />
         <span asp-validation-for="DonVienChuc.TonGiao" class="text-danger"></span>
     </div>
     <div class="form-group">
-        <label asp-for="DonVienChuc.QueQuan" class="form-label">Quê quán (dựa trên Đơn vị hành chính mới theo quy định)</label>
+        <label asp-for="DonVienChuc.QueQuan" class="form-label">Quê quán (dựa trên Đơn vị hành chính mới theo quy định)*</label>
         <input asp-for="DonVienChuc.QueQuan" class="form-control" placeholder="Ví dụ: phường Bến Thành, Thành phố Hồ Chí Minh"/>
         <span asp-validation-for="DonVienChuc.QueQuan" class="text-danger"></span>
     </div>
     <div class="form-group">
-        <label asp-for="DonVienChuc.HoKhau" class="form-label">Thông tin về hộ khẩu (nếu có ghi đầy đủ và chính xác thông tin)</label>
+        <label asp-for="DonVienChuc.HoKhau" class="form-label">Thông tin về hộ khẩu (nếu có ghi đầy đủ và chính xác thông tin)*</label>
         <input asp-for="DonVienChuc.HoKhau" class="form-control" placeholder="Ví dụ: Không có"/>
         <span asp-validation-for="DonVienChuc.HoKhau" class="text-danger"></span>
     </div>
     <div class="form-group">
-        <label asp-for="DonVienChuc.ChieuCao" class="form-label">Chiều cao (cm)</label>
-        <input name="DonVienChuc.ChieuCao" type="number" class="form-control"
-               inputmode="numeric" autocomplete="off" placeholder="Ví dụ: 160" />
+        <label asp-for="DonVienChuc.ChieuCao" class="form-label">Chiều cao (cm)*</label>
+        <input asp-for="DonVienChuc.ChieuCao" type="number" class="form-control"
+               inputmode="numeric" autocomplete="off" placeholder="Ví dụ: 160"
+               min="1" step="1" />
         <span asp-validation-for="DonVienChuc.ChieuCao" class="text-danger"></span>
-    </div>
-    <div class="form-group">
-        <label asp-for="DonVienChuc.CanNang" class="form-label">Cân nặng (kg)</label>
-        <input name="DonVienChuc.CanNang" type="number" class="form-control"
-               inputmode="numeric" autocomplete="off" placeholder="Ví dụ: 50" />
-        <span asp-validation-for="DonVienChuc.CanNang" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label class="form-label fw-bold">Trình độ văn hóa</label>
+        <label asp-for="DonVienChuc.CanNang" class="form-label">Cân nặng (kg)*</label>
+        <input asp-for="DonVienChuc.CanNang" type="number" class="form-control"
+               inputmode="numeric" autocomplete="off" placeholder="Ví dụ: 50"
+               min="1" step="1" />
+        <span asp-validation-for="DonVienChuc.CanNang" class="text-danger"></span>
+    </div>
+
+
+    <div class="form-group">
+        <label class="form-label fw-bold">Trình độ văn hóa*</label>
         <div class="choice-vertical">
             <label class="choice-item">
                 <input class="radio-solid" type="radio" name="DonVienChuc.TrinhDoVanHoa" value="12/12 Chính quy"> 12/12 Chính quy
@@ -190,13 +194,13 @@
     </div>
 
     <div class="form-group">
-        <label asp-for="UngVien.TrinhDoChuyenMon" class="form-label">Trình độ chuyên môn/Trình độ đào tạo</label>
+        <label asp-for="UngVien.TrinhDoChuyenMon" class="form-label">Trình độ chuyên môn/Trình độ đào tạo*</label>
         <input asp-for="UngVien.TrinhDoChuyenMon" class="form-control" placeholder="Ví dụ: Cử nhân Quản lý nhà nước/ Bác sĩ Chuyên khoa cấp II..." />
         <span asp-validation-for="UngVien.TrinhDoChuyenMon" class="text-danger"></span>
     </div>
 
     <div class="form-group">
-        <label class="form-label">Loại hình đào tạo</label>
+        <label class="form-label">Loại hình đào tạo*</label>
         <div class="choice-vertical">
             <label class="choice-item">
                 <input type="radio" name="DonVienChuc.LoaiHinhDaoTao" value="Chính quy" class="radio-solid" />
@@ -226,7 +230,7 @@
     </div>
 
     <div class="form-group">
-        <label class="form-label">Đối tượng ưu tiên (nếu có)</label>
+        <label class="form-label">Đối tượng ưu tiên (nếu có)*</label>
 
         <input type="hidden" asp-for="DonVienChuc.DoiTuongUuTien" id="hidUuTien" />
 
@@ -263,7 +267,7 @@
         @foreach (var loai in loaiVanBangOptions)
         {
             <label class="checkbox-item">
-                <input type="checkbox" class="vb-checkbox" name="selectedLoaiVanBang" value="@loai" onchange="renderVBFields()" />
+                <input type="checkbox" class="vb-checkbox" name="selectedLoaiVanBang" value="@loai" />
                 @loai
             </label>
         }
@@ -282,6 +286,8 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script src="~/js/apply-date.js" asp-append-version="true"></script>
+    <script src="~/js/apply-candidate.js" asp-append-version="true"></script>
+    <script src="~/js/apply-vanbang.js" asp-append-version="true"></script>
     <script src="~/js/apply-email.js" asp-append-version="true"></script>
     <script src="~/js/apply-macdinh.js" asp-append-version="true"></script>
     <script src="~/js/apply-init.js" asp-append-version="true"></script>
@@ -289,7 +295,6 @@
     <script src="~/js/apply-trinhdovanhoa.js" asp-append-version="true"></script>
     <script src="~/js/apply-uutien.js" asp-append-version="true"></script>
     <script src="~/js/apply-loaihinhdaotao.js" asp-append-version="true"></script>
-    <script src="~/js/apply-vanbang.js" asp-append-version="true"></script>
+
     <script src="~/js/apply-cascade.js" asp-append-version="true"></script>
 }
-

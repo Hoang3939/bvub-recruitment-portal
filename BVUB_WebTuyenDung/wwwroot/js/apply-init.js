@@ -1,5 +1,4 @@
-﻿// wwwroot/js/apply-init.js
-(function () {
+﻿(function () {
     if (window.initDatepickers) {
         window.initDatepickers(document);
     }

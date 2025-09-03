@@ -6,7 +6,9 @@
 }
 
 @section Styles {
-    <link rel="stylesheet" href="~/css/tracuu-chitiet.css" />
+    <link rel="stylesheet" href="~/css/tracuu-chitiet.css" asp-append-version="true" />
+    <!-- để reuse .vb-card, .vb-field read-only -->
+    <link rel="stylesheet" href="~/css/apply-forms.css" asp-append-version="true" />
 }
 
 <div class="detail-page">
@@ -23,18 +25,25 @@
             <dl class="kv">
                 <dt>Họ tên</dt>
                 <dd>@Model.UngVien.HoTen</dd>
+
                 <dt>Ngày sinh</dt>
                 <dd>@Model.UngVien.NgaySinh?.ToString("dd/MM/yyyy")</dd>
+
                 <dt>Giới tính</dt>
-                <dd>@(Model.UngVien.GioiTinh == 1 ? "Nam" : Model.UngVien.GioiTinh == 2 ? "Nữ" : "Khác")</dd>
+                <dd>@(Model.UngVien.GioiTinh == 0 ? "Nam" : Model.UngVien.GioiTinh == 1 ? "Nữ" : "Khác")</dd>
+
                 <dt>Số điện thoại</dt>
                 <dd>@Model.UngVien.SoDienThoai</dd>
+
                 <dt>Email</dt>
                 <dd>@Model.UngVien.Email</dd>
+
                 <dt>CCCD</dt>
                 <dd>@Model.UngVien.CCCD</dd>
+
                 <dt>Địa chỉ cư trú</dt>
                 <dd>@Model.UngVien.DiaChiCuTru</dd>
+
                 <dt>Tình trạng sức khỏe</dt>
                 <dd>@Model.UngVien.TinhTrangSucKhoe</dd>
             </dl>
@@ -46,28 +55,86 @@
             <dl class="kv">
                 <dt>Mã tra cứu</dt>
                 <dd>@Model.MaTraCuu</dd>
+
                 <dt>Ngày nộp</dt>
                 <dd>@Model.NgayNop.ToString("dd/MM/yyyy")</dd>
+
                 <dt>Loại hợp đồng</dt>
                 <dd>@Model.LoaiHopDong</dd>
+
                 <dt>Khoa/Phòng công tác</dt>
                 <dd>@Model.TenKhoaPhongCongTac</dd>
+
                 <dt>Chuyên ngành đào tạo</dt>
                 <dd>@Model.ChuyenNganhDaoTao</dd>
+
                 <dt>Năm tốt nghiệp</dt>
                 <dd>@Model.NamTotNghiep</dd>
+
                 <dt>Trình độ tin học</dt>
                 <dd>@Model.TrinhDoTinHoc</dd>
+
                 <dt>Trình độ ngoại ngữ</dt>
                 <dd>@Model.TrinhDoNgoaiNgu</dd>
+
                 <dt>Chứng chỉ hành nghề</dt>
                 <dd>@Model.ChungChiHanhNghe</dd>
+
                 <dt>Nghề nghiệp trước tuyển dụng</dt>
                 <dd>@Model.NgheNghiepTruocTuyenDung</dd>
+
                 <dt>Trạng thái</dt>
                 <dd>@TrangThaiText(Model.TrangThai)</dd>
             </dl>
         </div>
+
+        <!-- Văn bằng (read-only) -->
+        @if (Model.VanBangs?.Any() == true)
+        {
+            <div class="card">
+                <h5>Văn bằng/Chứng chỉ</h5>
+                @for (int i = 0; i < Model.VanBangs.Count; i++)
+                {
+                    var vb = Model.VanBangs[i];
+                    <div class="vb-card vb-card--readonly">
+                        <div class="vb-card__head">
+                            <div class="vb-card__title">Văn bằng #@(i + 1)</div>
+                            <span class="vb-card__tag"></span>
+                        </div>
+                        <div class="vb-card__grid">
+                            <div class="vb-field">
+                                <label>Tên cơ sở cấp</label>
+                                <input class="form-control" value="@vb.TenCoSo" readonly />
+                            </div>
+                            <div class="vb-field">
+                                <label>Ngày cấp</label>
+                                <input class="form-control" value="@(vb.NgayCap?.ToString("dd/MM/yyyy"))" readonly />
+                            </div>
+                            <div class="vb-field">
+                                <label>Số hiệu</label>
+                                <input class="form-control" value="@vb.SoHieu" readonly />
+                            </div>
+                            <div class="vb-field">
+                                <label>Ngành đào tạo</label>
+                                <input class="form-control" value="@vb.NganhDaoTao" readonly />
+                            </div>
+                            <div class="vb-field">
+                                <label>Chuyên ngành đào tạo</label>
+                                <input class="form-control" value="@vb.ChuyenNganhDaoTao" readonly />
+                            </div>
+                            <div class="vb-field">
+                                <label>Hình thức đào tạo</label>
+                                <input class="form-control" value="@vb.HinhThucDaoTao" readonly />
+                            </div>
+                            <div class="vb-field">
+                                <label>Xếp loại</label>
+                                <input class="form-control" value="@vb.XepLoai" readonly />
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
     </div>
 
     <div style="margin-top:18px;">

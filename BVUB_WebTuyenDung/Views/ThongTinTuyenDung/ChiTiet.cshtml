@@ -1,6 +1,6 @@
 ﻿@model BVUB_WebTuyenDung.Models.ThongTinTuyenDung
 @using System
-
+@using System.IO
 @{
     ViewData["Title"] = "Chi tiết tuyển dụng";
 
@@ -11,36 +11,31 @@
         _ => "Khác"
     };
 
-    // Chuẩn hóa URL tệp/ảnh
-    string? fileUrl = null;
+    // Chuẩn hoá URL đính kèm (giữ nguyên nếu là http/https)
+    string? attachUrl = null;
     if (!string.IsNullOrWhiteSpace(Model.FileDinhKem))
     {
         var raw = Model.FileDinhKem.Trim();
-        fileUrl = raw.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+        attachUrl = raw.StartsWith("http", StringComparison.OrdinalIgnoreCase)
             ? raw
             : Url.Content(raw.StartsWith("/") ? raw : "~/uploads/" + raw);
     }
 
-    bool isImage = fileUrl != null && (
-        fileUrl.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||
-        fileUrl.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
-        fileUrl.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase) ||
-        fileUrl.EndsWith(".webp", StringComparison.OrdinalIgnoreCase) ||
-        fileUrl.EndsWith(".gif", StringComparison.OrdinalIgnoreCase)
-    );
+    // Xác định có phải ảnh không (KHÔNG dùng pattern "or", dùng so sánh chuỗi thường)
+    var ext = string.IsNullOrWhiteSpace(attachUrl)
+        ? ""
+        : System.IO.Path.GetExtension(attachUrl!).ToLowerInvariant();
+
+    var isImage = ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".webp" || ext == ".gif";
 
     var days = (Model.HanNopHoSo.Date - DateTime.Today).TotalDays;
     var daysText = days < 0 ? "Đã hết hạn"
-                  : days == 0 ? "Hạn nộp hôm nay"
-                  : $"Còn {Math.Ceiling(days)} ngày";
+                : days == 0 ? "Hạn nộp hôm nay"
+                : $"Còn {Math.Ceiling(days)} ngày";
 }
 
 @section Styles {
     <link rel="stylesheet" href="~/css/tuyendung.css" asp-append-version="true" />
-    <style>
-        /* cover image cho chi tiết */
-        
-    </style>
 }
 
 <div class="td-detail">
@@ -53,24 +48,25 @@
         <span class="td-remain @(days <= 3 && days >= 0 ? "is-hot" : "")">@daysText</span>
     </div>
 
-    @* Hiển thị ảnh cover nếu FileDinhKem là ảnh *@
     @if (isImage)
     {
         <div class="td-detail__cover">
-            <img src="@fileUrl" alt="Hình tuyển dụng" />
+            <img src="@attachUrl" alt="Hình tuyển dụng" />
         </div>
     }
 
     <div class="td-detail__content">
-        @Html.Raw(Model.NoiDung)  @* Nội dung từ admin *@
+        @Html.Raw(Model.NoiDung)
     </div>
 
-    @* Link tải tệp đính kèm nếu không phải ảnh (hoặc bạn vẫn muốn cho tải ảnh) *@
-    @if (!string.IsNullOrWhiteSpace(fileUrl))
+    @if (!string.IsNullOrWhiteSpace(attachUrl))
     {
-        <div class="td-detail__files">
-            <a href="@fileUrl" class="td-btn td-btn--primary" target="_blank" rel="noopener">
-                Tải tệp đính kèm
+        var downloadLabel = ext == ".pdf" ? "Tải PDF"
+        : (ext == ".doc" || ext == ".docx") ? "Tải Word"
+        : "Tải tệp đính kèm";
+        <div class="td-detail__files" style="margin-top:12px;">
+            <a href="@attachUrl" class="td-btn td-btn--primary" target="_blank" rel="noopener">
+                @downloadLabel
             </a>
         </div>
     }

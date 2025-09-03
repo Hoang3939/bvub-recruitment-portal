@@ -9,11 +9,13 @@ namespace BVUB_WebTuyenDung.Models
 
         [Required]
         public string TieuDe { get; set; }
-        public string NoiDung { get; set; }
+        public string? NoiDung { get; set; }
         public DateTime NgayDang { get; set; }
         public DateTime HanNopHoSo { get; set; }
-        public string LoaiTuyenDung { get; set; }
-        public string FileDinhKem { get; set; }
+        public string? LoaiTuyenDung { get; set; }
+        public string? FileDinhKem { get; set; }
+        public string? FileAnh { get; set; }
+
         public int TrangThai { get; set; }
     }
 

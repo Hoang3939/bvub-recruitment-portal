@@ -56,5 +56,6 @@ namespace BVUB_WebTuyenDung.Models
 
         // Ứng viên
         public UngVien UngVien { get; set; } = new UngVien();
+        public List<VanBangRow> VanBangs { get; set; } = new();
     }
 }

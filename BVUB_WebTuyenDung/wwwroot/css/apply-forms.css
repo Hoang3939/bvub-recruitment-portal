@@ -264,23 +264,23 @@ input[type="number"], input[type="date"] {
     gap: .5rem; /* khoảng cách giữa tháng & năm */
 }
 
-    /* BẮT BUỘC: không cho phần năm bị ẩn/thu nhỏ */
-    .flatpickr-current-month .numInputWrapper {
-        display: inline-flex !important;
-        visibility: visible !important;
-    }
+/* BẮT BUỘC: không cho phần năm bị ẩn/thu nhỏ */
+.flatpickr-current-month .numInputWrapper {
+    display: inline-flex !important;
+    visibility: visible !important;
+}
 
-        /* Chiều rộng input năm (4 chữ số) */
-        .flatpickr-current-month .numInputWrapper input.cur-year {
-            width: 5.4ch; /* đủ cho "2025" */
-            min-width: 5ch;
-        }
+/* Chiều rộng input năm (4 chữ số) */
+.flatpickr-current-month .numInputWrapper input.cur-year {
+    width: 5.4ch; /* đủ cho "2025" */
+    min-width: 5ch;
+}
 
-        /* Ẩn mũi tên tăng/giảm năm nếu bạn không thích */
-        .flatpickr-current-month .numInputWrapper span.arrowUp,
-        .flatpickr-current-month .numInputWrapper span.arrowDown {
-            display: none; /* tùy chọn */
-        }
+/* Ẩn mũi tên tăng/giảm năm nếu bạn không thích */
+.flatpickr-current-month .numInputWrapper span.arrowUp,
+.flatpickr-current-month .numInputWrapper span.arrowDown {
+    display: none; /* tùy chọn */
+}
 
 /* Dropdown tháng rộng hơn để không đè vào năm */
 .flatpickr-monthDropdown-months {
@@ -292,11 +292,121 @@ input[type="number"], input[type="date"] {
     z-index: 10000;
 }
 
-
 /* Responsive */
 @media (max-width: 640px) {
     .form-card {
         margin: 16px;
         padding: 18px;
     }
+}
+
+/* Checkbox văn bằng đã có */
+.checkbox-item.is-locked {
+    opacity: 0.6;
+    pointer-events: none; /* chặn click */
+}
+
+/* Card hiển thị văn bằng đã có */
+.vb-card {
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.vb-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.vb-card__title {
+    font-weight: 600;
+}
+
+.vb-card__tag {
+    font-size: 12px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #eee;
+}
+
+.vb-card__tag--new {
+    background: #eaf7ea;
+}
+
+.vb-card--readonly {
+    background: #fafafa;
+}
+
+.vb-card__grid {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 12px;
+}
+
+.vb-field label {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.vb-field input[disabled], .vb-field input[readonly] {
+    background: #f5f5f5;
+}
+
+@media (max-width: 640px) {
+    .vb-card__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.form-control[readonly],
+input[readonly],
+select:disabled,
+.radio-solid:disabled {
+    background: #f5f5f5;
+    color: #666;
+    cursor: not-allowed;
+    opacity: .95;
+}
+
+/* Read-only look */
+.is-readonly {
+    background: #f5f7fb !important;
+    color: #4b5563;
+}
+
+/* Khóa select nhưng vẫn submit được giá trị (không dùng disabled) */
+.pe-none {
+    pointer-events: none !important;
+}
+
+/* Radio đã chọn nhưng bị khóa vẫn giữ màu xanh */
+.radio-solid.locked {
+    pointer-events: none;
+    background-color: #1e87f0 !important;
+    border-color: #1e87f0 !important;
+    opacity: 1;
+    cursor: not-allowed;
+}
+
+/* Input "Khác" khi bị khóa */
+#txtSkKhac.is-readonly {
+    background: #f5f7fb !important;
+}
+
+/* Ẩn spin button cho number input (Chrome/Safari/Edge/Opera) */
+input[type="number"].no-spin::-webkit-outer-spin-button,
+input[type="number"].no-spin::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Ẩn spin button cho Firefox + chuẩn */
+input[type="number"].no-spin {
+    -moz-appearance: textfield;
+    appearance: textfield;
 }

@@ -1,8 +1,6 @@
-﻿// Namespace gọn gàng
-window.Apply = window.Apply || {};
+﻿window.Apply = window.Apply || {};
 
 (function (ns) {
-    // --- HELPER: set date robust cho mọi loại datepicker / không datepicker ---
     function normalizeIso(iso) {
         if (!iso) return "";
         const m = String(iso).match(/^(\d{4}-\d{2}-\d{2})/); // lấy yyyy-MM-dd (cắt phần T.. nếu có)
@@ -23,7 +21,6 @@ window.Apply = window.Apply || {};
         }
 
         // 2) bootstrap-datepicker (eternicode)
-        // Cách an toàn: luôn gọi setDate và update; clear = setDate(null)
         if (typeof $el.datepicker === "function" && $el.data("datepicker")) {
             try {
                 $el.datepicker("setDate", val ? new Date(val + "T00:00:00") : null);
@@ -34,7 +31,6 @@ window.Apply = window.Apply || {};
         }
 
         // 3) jQuery UI datepicker
-        // Nhận diện qua $.ui.datepicker + class hasDatepicker để tránh gọi khi chưa init
         if (window.jQuery && $.ui && $.ui.datepicker &&
             typeof $el.datepicker === "function" && $el.hasClass("hasDatepicker")) {
             try {
@@ -59,7 +55,6 @@ window.Apply = window.Apply || {};
         return $("#ChucDanhId").length ? "vc" : "nld";
     };
 
-    // state chung cho trang
     ns.state = { lastCheckedEmail: null, canSubmit: false };
 
     // hiển thị hint cạnh ô email

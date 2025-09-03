@@ -70,6 +70,7 @@ namespace BVUB_WebTuyenDung.Models
         [DataType(DataType.Date, ErrorMessage = "Ngày ứng tuyển không hợp lệ.")]
         public DateTime NgayUngTuyen { get; set; }
 
+        public ICollection<VanBang>? VanBangs { get; set; }
         public DonVienChuc? DonVienChuc { get; set; }
         public HopDongNguoiLaoDong? HopDongNguoiLaoDong { get; set; }
     }

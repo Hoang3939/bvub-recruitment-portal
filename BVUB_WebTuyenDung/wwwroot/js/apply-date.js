@@ -1,5 +1,4 @@
-﻿// wwwroot/js/apply-date.js
-(function () {
+﻿(function () {
     // Cắt chuẩn về "yyyy-MM-dd"
     function normalizeYmd(s) {
         if (!s) return "";

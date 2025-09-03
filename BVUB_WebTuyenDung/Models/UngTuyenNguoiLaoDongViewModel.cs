@@ -4,7 +4,7 @@
     {
         public UngVien UngVien { get; set; }
         public HopDongNguoiLaoDong HopDongNguoiLaoDong { get; set; }
-
+        public List<VanBang> VanBangs { get; set; } = new();
         public UngTuyenNguoiLaoDongViewModel()
         {
             UngVien = new UngVien();

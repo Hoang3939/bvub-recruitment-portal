@@ -33,7 +33,9 @@ namespace BVUB_WebTuyenDung.Controllers
             if (!string.IsNullOrWhiteSpace(q))
             {
                 var kw = q.Trim();
-                query = query.Where(x => x.TieuDe.Contains(kw) || x.NoiDung.Contains(kw));
+                query = query.Where(x =>
+                    (x.TieuDe ?? "").Contains(kw) || (x.NoiDung ?? "").Contains(kw)
+                );
             }
 
             // sắp xếp
