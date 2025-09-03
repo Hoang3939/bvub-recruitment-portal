@@ -161,7 +161,7 @@
     <div class="section">
         <h3>III. Văn bằng</h3>
 
-        @if (Model?.Don?.VanBangs != null && Model.Don.VanBangs.Any())
+        @if (Model?.VanBangs != null && Model.VanBangs.Any())
         {
             <table class="vb-table">
                 <thead>
@@ -180,7 +180,7 @@
                 <tbody>
                     @{
                         var idx = 0;
-                        foreach (var vb in Model.Don.VanBangs
+                        foreach (var vb in Model.VanBangs
                         .OrderByDescending(v => v.NgayCap ?? DateTime.MinValue)
                         .ThenBy(v => v.VanBangId))
                         {

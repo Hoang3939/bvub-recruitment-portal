@@ -6,6 +6,7 @@
     string q = Context.Request.Query["q"].ToString();
 
     Func<string, string> guideIcon = _ => "fa-book-open";
+    var hasFilter = !string.IsNullOrWhiteSpace(loai) || !string.IsNullOrWhiteSpace(q);
 }
 
 <link rel="stylesheet" href="~/css/admin-guides-index.css" asp-append-version="true" />
@@ -22,7 +23,18 @@
             </select>
 
             <input type="text" name="q" class="mini-search-input" placeholder="Tìm tiêu đề / nội dung" value="@q" />
-            <button type="submit" class="btn btn-filter">Lọc</button>
+            @if (!hasFilter)
+            {
+                <button type="submit" class="btn btn-filter" id="btnFilter">Lọc</button>
+            }
+            else
+            {
+                <a class="btn btn-clear" id="btnClearLink"
+                   asp-action="Index"
+                   title="Bỏ lọc" aria-label="Bỏ lọc">
+                    <i class="fas fa-times"></i>
+                </a>
+            }
         </form>
 
         <a asp-action="Create" class="btn btn-add">+ Thêm</a>

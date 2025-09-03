@@ -20,7 +20,37 @@
         margin: 0
     }
 
-/* ====== Thanh hành động ====== */
+/* ===== Tabs ===== */
+.tabs {
+    margin-top: 14px;
+    display: flex;
+    gap: 8px
+}
+
+.tab-btn {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-weight: 700
+}
+
+    .tab-btn.active {
+        background: #0d6efd;
+        color: #fff;
+        border-color: #0d6efd
+    }
+
+.tab-panel {
+    display: none;
+    margin-top: 12px
+}
+
+    .tab-panel.show {
+        display: block
+    }
+
+/* ===== Actions (lọc) ===== */
 .actions {
     display: flex;
     align-items: center;
@@ -28,17 +58,6 @@
     flex-wrap: wrap
 }
 
-.main-content .actions, .main-content .actions form, .main-content .filter-form,
-.filter-card, .filter-box, .filter-wrapper {
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important
-}
-
-/* Form lọc gọn */
 .filter-form {
     display: flex;
     align-items: center;
@@ -54,8 +73,8 @@
 }
 
 .mini-select {
-    width: 180px;
-    max-width: 220px
+    width: 200px;
+    max-width: 240px
 }
 
     .mini-select:focus, .mini-search-input:focus {
@@ -63,24 +82,34 @@
         box-shadow: 0 0 0 3px rgba(13,110,253,.15)
     }
 
-/* ====== Nút ====== */
+/* === Buttons (ép cùng chiều cao) === */
 .btn {
-    padding: 8px 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px !important;
+    line-height: 40px !important;
+    padding: 0 16px !important;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     box-shadow: 0 3px 6px rgba(0,0,0,.12);
-    min-height: 40px
+    vertical-align: middle
 }
 
     .btn:hover {
         filter: brightness(.97)
     }
 
-.btn-filter {
+.btn-filter, .btn-primary {
     background: #0d6efd;
     color: #fff
+}
+
+.btn-success {
+    background: #28a745;
+    color: #fff;
 }
 
 .btn-export {
@@ -88,19 +117,14 @@
     color: #fff
 }
 
-.btn-success {
-    background: #28a745;
-    color: #fff
-}
-
-.btn-primary {
-    background: #0d6efd;
-    color: #fff
-}
-
 .btn-danger {
     background: #dc3545;
     color: #fff
+}
+
+.btn-clear {
+    background: #eef2f7;
+    color: #1f2937
 }
 
 .btn-icon {
@@ -115,8 +139,8 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px ;
-    color: #bb0000;
+    font-size: 18px;
+    color: #bb0000
 }
 
     .btn-icon:hover {
@@ -126,8 +150,7 @@
 /* ====== Bảng ====== */
 .table-wrap {
     position: relative;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow-x: hidden;
     border-radius: 12px;
     margin-top: 12px
 }
@@ -135,13 +158,13 @@
 .departments-table {
     border-collapse: separate;
     border-spacing: 0;
-    width: max-content;
-    min-width: 100%
+    width: 100%;
+    table-layout: fixed
 }
 
     .departments-table thead th {
         background: #f6f7f9 !important;
-        padding: 12px 14px;
+        padding: 10px 12px;
         text-align: left;
         font-weight: 700;
         position: sticky;
@@ -151,13 +174,14 @@
 
     .departments-table tbody td {
         background: #fff;
-        padding: 12px 14px
+        padding: 10px 12px;
+        vertical-align: top /* mặc định: top */
     }
 
     .departments-table tbody tr:hover td {
         background: #f7fbff
     }
-    /* Cột hoạt động dính phải */
+    /* Cột dính phải */
     .departments-table th:last-child, .departments-table td:last-child {
         position: sticky;
         right: 0;
@@ -167,37 +191,46 @@
     }
 
 /* Độ rộng cột */
+.col-id {
+    width: 50px; 
+    vertical-align: middle
+}
+
 .col-name {
-    min-width: 220px
+    width: 250px;
+    vertical-align: middle
 }
 
 .col-type {
-    min-width: 140px
+    width: 160px
 }
 
 .col-attach {
-    min-width: 240px
+    width: 200px
 }
 
 .col-status {
-    min-width: 140px
+    width: 100px
 }
 
 .col-actions {
-    min-width: 220px
+    width: 180px
 }
 
-/* Cân nút hành động */
-.cell-actions .btn-primary, .cell-actions .btn-success {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 92px;
-    height: 40px
+/* Text wrap */
+.wrap {
+    white-space: normal;
+    word-break: break-word
 }
 
-.cell-actions .btn-danger {
-    height: 40px
+/* Bỏ khung form quanh nút xóa */
+.departments-table td:last-child form.no-box,
+.departments-table td form.no-box {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important
 }
 
 /* Badge trạng thái */
@@ -218,7 +251,7 @@
         background: #dc3545
     }
 
-/* ===== Modal confirm nhỏ xinh ===== */
+/* Modal/Toast */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -238,8 +271,9 @@
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 8px 16px rgba(0,0,0,.12);
-    width: min(420px,92vw);
-    overflow: hidden
+    width: min(700px,92vw);
+    max-height: 85vh;
+    overflow: auto
 }
 
 .modal-header {
@@ -276,39 +310,6 @@
     justify-content: flex-end
 }
 
-/* Patch form trong ô hoạt động */
-.departments-table td:last-child form {
-    background: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important
-}
-
-.departments-table .cell-actions .btn-icon.btn-delete {
-    appearance: none;
-    -webkit-appearance: none;
-    background: transparent !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    width: 36px;
-    height: 36px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0 !important;
-    margin: 0 6px !important;
-    line-height: 1;
-    min-height: 0 !important;
-    border-radius: 50%;
-    font-size: 18px
-}
-
-    .departments-table .cell-actions .btn-icon.btn-delete:hover {
-        background: rgba(0,0,0,.04) !important
-    }
-
-/* ===== Toast nổi góc phải ===== */
 .toast-mini {
     position: fixed;
     top: 86px;
@@ -334,25 +335,33 @@
         transform: translateY(0)
     }
 
-/* ======== Trang chi tiết =========*/
-.detail-wrap {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+/* bỏ “khung” filter */
+.actions.no-box, .actions-manage.no-box, .actions-map.no-box, .actions.no-box form {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 12px 0 0 !important;
+}
+/* ô tìm ở tab map */
+.actions-map .mini-search-input {
+    width: 340px;
+    max-width: 50vw
 }
 
-.detail-row {
-    display: flex;
-    gap: 10px;
+/* Danh sách vị trí xuống dòng */
+.attach-list {
+    margin: 0;
+    padding-left: 18px
 }
 
-    .detail-row .label {
-        min-width: 120px;
-        font-weight: 700;
-        color: #374151;
+    .attach-list li {
+        list-style: disc;
+        margin: 0 0 4px 0
     }
 
-    .detail-row .val {
-        flex: 1;
-    }
+/* === Căn giữa theo chiều dọc riêng cho cột thao tác === */
+.departments-table tbody td.cell-actions {
+    vertical-align: middle
+}
 

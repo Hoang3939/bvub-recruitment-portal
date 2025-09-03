@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using BVUB_WebTuyenDung.Areas.Admin.Models;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Models
 {
@@ -45,16 +45,12 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
         [Required, MaxLength(50)]
         public string DoiTuongUuTien { get; set; }
 
-        [Column(TypeName = "date")]
+        [Column(TypeName = "datetime2(3)")]
         public DateTime NgayNop { get; set; }
 
         public int TrangThai { get; set; } = 0;
 
         [Required, MaxLength(50)]
         public string MaTraCuu { get; set; }
-
-        // ===== Navigation properties =====
-        public virtual ICollection<VanBang> VanBangs { get; set; } = new List<VanBang>();
-
     }
 }

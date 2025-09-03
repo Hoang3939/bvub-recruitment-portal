@@ -4,7 +4,8 @@
 }
 <div class="header-row"><h2>@ViewData["Title"]</h2></div>
 <div class="main-content">
-    <form asp-action="Edit" method="post" id="guideEditForm">
+    
+    <form asp-action="Edit" method="post" id="guideEditForm" enctype="multipart/form-data">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="HuongDanId" />
 
@@ -30,8 +31,17 @@
         </div>
 
         <div class="mb-3">
-            <label asp-for="FileHuongDan" class="form-label">File hướng dẫn</label>
-            <input asp-for="FileHuongDan" class="form-control" />
+            <label class="form-label">File hướng dẫn</label>
+            <input type="file" name="file" class="form-control" />
+            @if (!string.IsNullOrWhiteSpace(Model?.FileHuongDan))
+            {
+                <div class="form-text">
+                    Tệp hiện tại:
+                    <a href="@Model.FileHuongDan" target="_blank" rel="noopener">
+                        @System.IO.Path.GetFileName(Model.FileHuongDan)
+                    </a> — Chọn tệp mới để thay thế.
+                </div>
+            }
         </div>
 
         <button class="btn btn-primary">Lưu</button>

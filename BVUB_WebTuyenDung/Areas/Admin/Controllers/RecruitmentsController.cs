@@ -18,20 +18,18 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     {
         private readonly AdminDbContext _ctx;
         private readonly IWebHostEnvironment _env;
-
         public RecruitmentsController(AdminDbContext ctx, IWebHostEnvironment env)
         {
-            _ctx = ctx;
-            _env = env;
+            _ctx = ctx; _env = env;
         }
 
-        // GET: Recruitments
+        // ===== Danh sách =====
         [HttpGet]
         public async Task<IActionResult> Index(string? q, int? st)
         {
             var query = _ctx.ThongTinTuyenDungs.AsNoTracking().AsQueryable();
 
-            if (st.HasValue && st.Value >= 1 && st.Value <= 4)
+            if (st is >= 1 and <= 4)
             {
                 var status = (TrangThaiTuyenDung)st.Value;
                 query = query.Where(x => x.TrangThai == status);
@@ -40,40 +38,55 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             if (!string.IsNullOrWhiteSpace(q))
             {
                 var kw = q.Trim();
-
                 if (TryParseVnDate(kw, out var d))
-                {
                     query = query.Where(x => x.NgayDang == d || x.HanNopHoSo == d);
-                }
                 else
-                {
-                    query = query.Where(x =>
-                        x.TieuDe.Contains(kw) ||
-                        x.NoiDung.Contains(kw) ||
-                        x.LoaiTuyenDung.Contains(kw));
-                }
+                    query = query.Where(x => x.TieuDe.Contains(kw) || x.NoiDung.Contains(kw) || x.LoaiTuyenDung.Contains(kw));
             }
 
-            var items = await query
-                .OrderBy(x => x.TrangThai)           // 1→4
-                .ThenByDescending(x => x.NgayDang)   // mới nhất trước
-                .ToListAsync();
-
-            return View(items); 
+            var items = await query.OrderBy(x => x.TrangThai).ThenByDescending(x => x.NgayDang).ToListAsync();
+            ViewBag.HasFilter = (!string.IsNullOrWhiteSpace(q)) || (st is >= 1 and <= 4);
+            return View(items);
         }
 
-        // GET: Xem chi tiết
+        // ===== Chi tiết (modal) =====
+        // GET
         [HttpGet]
         public async Task<IActionResult> DetailsPartial(int id)
         {
-            var item = await _ctx.ThongTinTuyenDungs.AsNoTracking()
-                         .FirstOrDefaultAsync(x => x.TuyenDungId == id);
-            if (item == null) return NotFound();
+            if (id <= 0)
+                return Content("<div>Không tìm thấy dữ liệu.</div>", "text/html; charset=utf-8");
 
-            return PartialView("_RecruitmentDetails", item);
+            var item = await _ctx.ThongTinTuyenDungs.AsNoTracking()
+                           .FirstOrDefaultAsync(x => x.TuyenDungId == id);
+
+            if (item == null)
+                return Content("<div>Không tìm thấy dữ liệu.</div>", "text/html; charset=utf-8");
+
+            // <-- Trỏ tuyệt đối để khỏi lệ thuộc casing/thư mục
+            return PartialView("~/Areas/Admin/Views/Recruitments/_RecruitmentDetails.cshtml", item);
         }
 
-        // Create
+        // POST 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DetailsPartialPost(int id)
+        {
+            if (id <= 0)
+                return Content("<div>Không tìm thấy dữ liệu.</div>", "text/html; charset=utf-8");
+
+            var item = await _ctx.ThongTinTuyenDungs.AsNoTracking()
+                           .FirstOrDefaultAsync(x => x.TuyenDungId == id);
+
+            if (item == null)
+                return Content("<div>Không tìm thấy dữ liệu.</div>", "text/html; charset=utf-8");
+
+            return PartialView("~/Areas/Admin/Views/Recruitments/_RecruitmentDetails.cshtml", item);
+        }
+
+
+
+        // ===== Create =====
         [HttpGet]
         public IActionResult Create()
         {
@@ -89,28 +102,22 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(ThongTinTuyenDung m, IFormFile? file)
+        public async Task<IActionResult> Create(ThongTinTuyenDung m, IFormFile? file, IFormFile? image)
         {
             if (!IsAdmin()) return Forbid();
-
-            if (file != null && file.Length > 0)
-            {
-                m.FileDinhKem = await SaveUploadAsync(file);
-            }
-
+            if (file != null && file.Length > 0) m.FileDinhKem = await SaveUploadAsync(file);
+            if (image != null && image.Length > 0) m.FileAnh = await SaveImageAsync(image);
             if (!ModelState.IsValid) return View(m);
-
             _ctx.ThongTinTuyenDungs.Add(m);
             await _ctx.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        // EDIT 
+        // ===== Edit =====
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
             if (!IsAdmin()) return Forbid();
-
             var m = await _ctx.ThongTinTuyenDungs.FindAsync(id);
             if (m == null) return NotFound();
             return View(m);
@@ -118,14 +125,13 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id,ThongTinTuyenDung m, IFormFile? file)
+        public async Task<IActionResult> Edit(int id, ThongTinTuyenDung m, IFormFile? file, IFormFile? image)
         {
             if (!IsAdmin()) return Forbid();
             if (id != m.TuyenDungId) return BadRequest();
 
             var entity = await _ctx.ThongTinTuyenDungs.FirstOrDefaultAsync(x => x.TuyenDungId == id);
             if (entity == null) return NotFound();
-
             if (!ModelState.IsValid) return View(m);
 
             entity.TieuDe = m.TieuDe;
@@ -134,80 +140,73 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             entity.HanNopHoSo = m.HanNopHoSo;
             entity.LoaiTuyenDung = m.LoaiTuyenDung;
             entity.TrangThai = m.TrangThai;
-
-            if (file != null && file.Length > 0)
-            {
-                entity.FileDinhKem = await SaveUploadAsync(file);
-            }
-
+            if (file != null && file.Length > 0) entity.FileDinhKem = await SaveUploadAsync(file);
+            if (image != null && image.Length > 0) entity.FileAnh = await SaveImageAsync(image);
             await _ctx.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        // Helpers
-        private static bool TryParseVnDate(string input, out DateTime date)
-        {
-            return DateTime.TryParseExact(
-                input,
-                "dd/MM/yyyy",
-                CultureInfo.GetCultureInfo("vi-VN"),
-                DateTimeStyles.None,
-                out date);
-        }
-
-        private async Task<string> SaveUploadAsync(IFormFile file)
-        {
-            var folder = Path.Combine(_env.WebRootPath, "uploads", "recruitments");
-            Directory.CreateDirectory(folder);
-
-            var safeName = Path.GetFileName(file.FileName);
-            var fileName = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}_{safeName}";
-            var fullPath = Path.Combine(folder, fileName);
-
-            using (var fs = new FileStream(fullPath, FileMode.Create))
-            {
-                await file.CopyToAsync(fs);
-            }
-
-            // Trả về đường dẫn web
-            return $"/uploads/recruitments/{fileName}";
-        }
-
-        private bool IsAdmin()
-        {
-            return User.IsInRole("Admin") || User.IsInRole("1") ||
-                   User.Claims.Any(c =>
-                       c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role" &&
-                       (string.Equals(c.Value, "Admin", StringComparison.OrdinalIgnoreCase) || c.Value == "1"));
-        }
-
-        // POST: Xóa
+        // ===== Delete =====
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             if (!IsAdmin()) return Forbid();
-
             var m = await _ctx.ThongTinTuyenDungs.FindAsync(id);
             if (m == null) return Json(new { ok = false, message = "Không tìm thấy bản ghi." });
 
-            // Xóa file đính kèm trong wwwroot nếu là file của module
             try
             {
                 if (!string.IsNullOrWhiteSpace(m.FileDinhKem) &&
                     m.FileDinhKem.StartsWith("/uploads/recruitments/", StringComparison.OrdinalIgnoreCase))
                 {
-                    var p = Path.Combine(_env.WebRootPath, m.FileDinhKem.TrimStart('/')
-                                              .Replace('/', Path.DirectorySeparatorChar));
+                    var p = Path.Combine(_env.WebRootPath, m.FileDinhKem.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
                     if (System.IO.File.Exists(p)) System.IO.File.Delete(p);
                 }
+                if (!string.IsNullOrWhiteSpace(m.FileAnh) &&
+                    m.FileAnh.StartsWith("/uploads/recruitments/", StringComparison.OrdinalIgnoreCase))
+                {
+                    var p2 = Path.Combine(_env.WebRootPath, m.FileAnh.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                    if (System.IO.File.Exists(p2)) System.IO.File.Delete(p2);
+                }
             }
-            catch {}
+            catch { }
 
             _ctx.ThongTinTuyenDungs.Remove(m);
             await _ctx.SaveChangesAsync();
             return Json(new { ok = true });
         }
 
+        // ===== Helpers =====
+        private static bool TryParseVnDate(string input, out DateTime date)
+        {
+            return DateTime.TryParseExact(input, "dd/MM/yyyy",
+                CultureInfo.GetCultureInfo("vi-VN"), DateTimeStyles.None, out date);
+        }
+
+        private async Task<string> SaveUploadAsync(IFormFile file)
+        {
+            var folder = Path.Combine(_env.WebRootPath, "uploads", "recruitments");
+            Directory.CreateDirectory(folder);
+            var fileName = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}_{Path.GetFileName(file.FileName)}";
+            using var fs = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
+            await file.CopyToAsync(fs);
+            return $"/uploads/recruitments/{fileName}";
+        }
+
+        private async Task<string> SaveImageAsync(IFormFile image)
+        {
+            var folder = Path.Combine(_env.WebRootPath, "uploads", "recruitments", "images");
+            Directory.CreateDirectory(folder);
+            var fileName = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}_{Path.GetFileName(image.FileName)}";
+            using var fs = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
+            await image.CopyToAsync(fs);
+            return $"/uploads/recruitments/images/{fileName}";
+        }
+
+        private bool IsAdmin() =>
+            User.IsInRole("Admin") || User.IsInRole("1") ||
+            User.Claims.Any(c => c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role" &&
+                                 (string.Equals(c.Value, "Admin", StringComparison.OrdinalIgnoreCase) || c.Value == "1"));
     }
 }

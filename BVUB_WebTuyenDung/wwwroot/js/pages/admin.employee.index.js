@@ -1,5 +1,4 @@
-﻿// wwwroot/js/pages/admin.employee.index.js
-(function () {
+﻿(function () {
     const cfg = document.getElementById('admin-emp-index-config') || {};
     const detailsUrl = (cfg.dataset && cfg.dataset.detailsUrl) || '';
     const deleteUrl = (cfg.dataset && cfg.dataset.deleteUrl) || '';
@@ -24,7 +23,8 @@
     }
     function niceToast(msg, type) {
         const t = ensureToast();
-        t.classList.remove('success', 'error'); t.classList.add(type || 'success');
+        t.classList.remove('success', 'error');
+        t.classList.add(type || 'success');
         t.querySelector('#niceToastMsg').textContent = msg || 'Thao tác thành công.';
         t.classList.add('show');
         const auto = setTimeout(() => t.classList.remove('show'), 2200);
@@ -33,7 +33,7 @@
 
     if (toastMsg) window.addEventListener('DOMContentLoaded', () => niceToast(toastMsg, toastType));
 
-    // ===== Modal chi tiết =====
+    // <-- Popup xem chi tiết -->
     (function () {
         const modal = document.getElementById('empDetailModal');
         const container = document.getElementById('empDetailContainer');
@@ -71,7 +71,6 @@
             }
         });
 
-        // Toggle show/hide password in partial
         container.addEventListener('click', function (e) {
             const btn = e.target.closest('.toggle-pwd');
             if (!btn) return;
@@ -98,7 +97,7 @@
         });
     })();
 
-    // ===== Xóa nhân viên (AJAX) =====
+    // <-- Xóa nhân viên -->
     (function () {
         document.addEventListener('click', async function (e) {
             const btn = e.target.closest('.btn-delete');
@@ -135,4 +134,5 @@
             }
         });
     })();
+
 })();

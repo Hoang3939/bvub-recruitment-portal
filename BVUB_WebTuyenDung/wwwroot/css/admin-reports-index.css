@@ -20,7 +20,7 @@
         margin: 0;
     }
 
-/* ====== Thanh hành động ====== */
+/* ====== Bộ lọc - BỎ BOX/SHADOW HOÀN TOÀN ====== */
 .actions {
     display: flex;
     align-items: center;
@@ -28,35 +28,22 @@
     flex-wrap: wrap;
 }
 
-/* ---------- BỎ HOÀN TOÀN KHUNG/SHADOW quanh cụm lọc ---------- */
-.main-content .actions,
-.main-content .actions form,
-.main-content .filter-form {
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
-}
-/* (phòng hờ nếu có class lạ từ theme) */
-.filter-card, .filter-box, .filter-wrapper {
-    background: transparent !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-}
+    .actions, .actions form, .smart-filter {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
 
-/* Form lọc gọn */
-.filter-form {
+.smart-filter {
     display: flex;
-    align-items: center;
+    flex-wrap: wrap;
     gap: 10px;
+    align-items: center;
 }
 
-/* Hai ô có CHIỀU CAO BẰNG NHAU, select ngắn lại để không ép nút Xuất */
-.mini-select,
-.mini-search-input {
+.mini-select, .mini-search-input {
     height: 40px;
     padding: 8px 12px;
     border: 1px solid #e2e8f0;
@@ -65,17 +52,20 @@
 }
 
 .mini-select {
-    width: 180px;
-    max-width: 220px;
+    width: 200px;
+    max-width: 240px;
 }
 
-    .mini-select:focus,
-    .mini-search-input:focus {
-        border-color: #0d6efd;
-        box-shadow: 0 0 0 3px rgba(13,110,253,.15);
+.range-inline {
+    display: none;
+    gap: 8px;
+}
+
+    .range-inline.show {
+        display: flex;
     }
 
-/* Nút */
+/* Buttons */
 .btn {
     padding: 8px 16px;
     border: none;
@@ -83,34 +73,21 @@
     cursor: pointer;
     font-weight: 600;
     box-shadow: 0 3px 6px rgba(0,0,0,.12);
-    min-height: 40px; /* đồng bộ với ô lọc */
+    min-height: 40px;
 }
 
-.btn-filter {
+.btn-filter, .btn-primary {
     background: #0d6efd;
     color: #fff;
 }
-
-    .btn-filter:hover {
-        filter: brightness(.95);
-    }
-
-.btn-export {
-    background: #6c757d;
-    color: #fff;
-}
-
-    .btn-export:hover {
-        filter: brightness(.95);
-    }
 
 .btn-success {
     background: #28a745;
     color: #fff;
 }
 
-.btn-primary {
-    background: #0d6efd;
+.btn-export {
+    background: #6c757d;
     color: #fff;
 }
 
@@ -119,198 +96,12 @@
     color: #fff;
 }
 
-.btn-restore {
-    background: #17a2b8;
-    color: #fff;
-}
-
-.btn-icon {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    padding: 4px 6px;
-    margin: 0 4px;
-    border-radius: 50%;
-}
-
-/* ====== Bảng ====== */
-.table-wrap {
-    position: relative;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    border-radius: 12px;
-    margin-top: 12px;
-}
-
-.candidate-table {
-    border-collapse: separate;
-    border-spacing: 0;
-    width: max-content;
-    min-width: 100%;
-}
-
-    /* Header MÀU XÁM NHẠT (dễ phân biệt) */
-    .candidate-table thead th {
-        background: #f6f7f9 !important;
-        padding: 12px 14px;
-        text-align: left;
-        font-weight: 700;
-        position: sticky;
-        top: 0;
-        z-index: 5;
-    }
-
-    /* Body cells */
-    .candidate-table tbody td {
-        background: #fff;
-        padding: 12px 14px;
-    }
-
-    .candidate-table tbody tr {
-        cursor: pointer;
-    }
-
-        .candidate-table tbody tr:hover td {
-            background: #f7fbff;
-        }
-
-    /* Cột HOẠT ĐỘNG dính bên phải */
-    .candidate-table th:last-child,
-    .candidate-table td:last-child {
-        position: sticky;
-        right: 0;
-        background: #fff;
-        z-index: 6;
-        box-shadow: -8px 0 12px rgba(0,0,0,.06);
-    }
-
-/* Badge trạng thái */
-.status {
-    display: inline-block;
-    padding: 6px 12px;
-    border-radius: 16px;
-    color: #fff;
-    font-weight: 700;
-    font-size: .9rem;
-}
-
-    .status.pending {
-        background: #f0ad4e;
-    }
-
-    .status.approved {
-        background: #5cb85c;
-    }
-
-    .status.cancelled {
-        background: #dc3545;
-    }
-
-/* Độ rộng các cột */
-.col-id {
-    min-width: 120px;
-}
-
-.col-name {
-    min-width: 180px;
-}
-
-.col-email {
-    min-width: 240px;
-}
-
-.col-type {
-    min-width: 160px;
-}
-
-.col-status {
-    min-width: 140px;
-}
-
-.col-actions {
-    min-width: 220px;
-}
-
-/* Cân nút hành động */
-.cell-actions .btn-primary,
-.cell-actions .btn-success {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 92px;
-    height: 40px;
-}
-
-.cell-actions .btn-danger {
-    height: 40px;
-}
-
-/* ====== Modal giữ nguyên ====== */
-.modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,.5);
-    display: none;
-    z-index: 1200;
-}
-
-    .modal-overlay.show {
-        display: block;
-    }
-
-.modal-card {
-    position: relative;
-    width: min(900px,92vw);
-    max-height: 84vh;
-    margin: 6vh auto;
-    background: #fff;
-    border-radius: 12px;
-    box-shadow: 0 12px 30px rgba(0,0,0,.2);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.modal-header {
-    padding: 14px 18px;
-    border-bottom: 1px solid #eef0f2;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-title {
-    font-size: 1.25rem;
-    font-weight: 800;
-    margin: 0;
-}
-
-.modal-close {
-    background: transparent;
-    border: none;
-    font-size: 24px;
-    line-height: 1;
-    cursor: pointer;
-}
-
-.modal-body {
-    padding: 16px 18px;
-    overflow: auto;
-}
-
-.modal-footer {
-    padding: 12px 18px;
-    border-top: 1px solid #eef0f2;
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
-}
-
+/* KPI */
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit,minmax(260px,1fr));
     gap: 12px;
-    margin-top: 8px
+    margin-top: 8px;
 }
 
 .kpi-card {
@@ -322,47 +113,53 @@
     min-height: 120px;
     display: flex;
     flex-direction: column;
-    justify-content: space-between
+    justify-content: space-between;
 }
 
 .kpi-title {
-    font-weight: 800
+    font-weight: 800;
 }
 
 .kpi-num {
     font-size: 2rem;
-    font-weight: 800
+    font-weight: 800;
 }
 
 .kpi-icon {
     font-size: 26px;
-    opacity: .9
+    opacity: .9;
 }
 
-.smart-filter {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    align-items: center
-}
-
-    .smart-filter .mini-select {
-        width: 200px
-    }
-
-.range-inline {
-    display: none;
-    gap: 8px
-}
-
-    .range-inline.show {
-        display: flex
-    }
-
+/* Chart container */
 .chart-box {
     border: 1px solid #e7e9ee;
     border-radius: 12px;
     background: #fff;
     box-shadow: 0 4px 10px rgba(0,0,0,.05);
-    padding: 16px
+    padding: 16px;
+}
+
+/* ====== DONUT (2 cái thẳng hàng, kích thước bằng nhau) ====== */
+.donut-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(240px, 1fr));
+    gap: 18px;
+    align-items: start;
+}
+
+.donut-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.donut-title {
+    font-weight: 700;
+}
+
+.donut-canvas {
+    width: 260px !important;
+    height: 220px !important;
+    max-width: 100%;
 }

@@ -16,10 +16,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
         [Required, MaxLength(20)]
         public string Loai { get; set; } // "NguoiLaoDong" | "VienChuc"
 
-        // FK -> DanhMucKhoaPhong(KhoaPhongId)
         [Required]
         public int KhoaPhongCongTacId { get; set; }
-        public DanhMucKhoaPhong KhoaPhongCongTac { get; set; }  
+        public DanhMucKhoaPhong KhoaPhongCongTac { get; set; }
 
         [Required, MaxLength(255)]
         public string NoiSinh { get; set; }
@@ -42,7 +41,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
         [Required, MaxLength(100)]
         public string NgheNghiepTruocTuyenDung { get; set; }
 
-        [Column(TypeName = "date")]
+        [Column(TypeName = "datetime2(3)")]
         public DateTime NgayNop { get; set; }
 
         public int TrangThai { get; set; } = 0;

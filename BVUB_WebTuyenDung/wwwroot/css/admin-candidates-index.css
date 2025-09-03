@@ -1,17 +1,21 @@
 ﻿/* ====== Layout khung ====== */
 .main-content {
-    max-width: 1100px;
+    /* UPDATED: full width thay vì cố định 1100px */
+    max-width: 100%;
+    width: 100%;
     margin: 8px auto 30px;
-    padding: 25px 30px;
+    padding: 20px 24px; /* gọn hơn chút */
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 8px 16px rgba(0,0,0,.1);
 }
 
 .header-row {
-    max-width: 1100px;
+    /* UPDATED: full width */
+    max-width: 100%;
+    width: 100%;
     margin: 18px auto 6px;
-    padding: 0 30px;
+    padding: 0 24px; /* gọn hơn */
 }
 
     .header-row h2 {
@@ -24,7 +28,7 @@
 .actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px; /* gọn hơn */
     flex-wrap: wrap;
 }
 
@@ -49,21 +53,22 @@
 .filter-form {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px; /* gọn hơn */
 }
 
 .mini-select,
 .mini-search-input {
-    height: 40px;
-    padding: 8px 12px;
+    height: 38px; /* gọn hơn */
+    padding: 6px 10px; /* gọn hơn */
     border: 1px solid #e2e8f0;
     border-radius: 6px;
     outline: none;
 }
 
 .mini-select {
-    width: 180px;
-    max-width: 220px;
+    /* UPDATED: thu nhỏ chiều rộng */
+    width: 160px;
+    max-width: 200px;
 }
 
     .mini-select:focus,
@@ -74,13 +79,14 @@
 
 /* Nút */
 .btn {
-    padding: 8px 16px;
+    padding: 7px 12px; /* gọn hơn */
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     box-shadow: 0 3px 6px rgba(0,0,0,.12);
-    min-height: 40px; 
+    min-height: 36px; /* gọn hơn */
+    font-size: 0.95rem;
 }
 
 .btn-filter {
@@ -105,6 +111,28 @@
     background: #28a745;
     color: #fff;
 }
+
+.cell-actions .btn-approve,
+.cell-actions .btn-unapprove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100px; 
+    height: 36px; 
+    padding: 0 10px;
+}
+
+.btn-approve {
+    background: #28a745;
+    color: #fff;
+}
+
+.btn-unapprove {
+    background: #ffc107;
+    color: #000;
+}
+
+
 
 .btn-primary {
     background: #0d6efd;
@@ -137,6 +165,7 @@
     -webkit-overflow-scrolling: touch;
     border-radius: 12px;
     margin-top: 12px;
+    width: 100%; /* UPDATED: full width */
 }
 
 .candidate-table {
@@ -144,22 +173,28 @@
     border-spacing: 0;
     width: max-content;
     min-width: 100%;
+    table-layout: fixed; /* UPDATED: giúp cột gọn ổn định */
+    font-size: 0.95rem; /* UPDATED: nhỏ hơn 1 chút */
 }
 
     .candidate-table thead th {
         background: #f6f7f9 !important;
-        padding: 12px 14px;
+        padding: 10px 12px; /* gọn hơn */
         text-align: left;
         font-weight: 700;
         position: sticky;
         top: 0;
         z-index: 5;
+        white-space: nowrap; /* UPDATED: hạn chế xuống dòng header */
     }
 
-    /* Body cells */
     .candidate-table tbody td {
         background: #fff;
-        padding: 12px 14px;
+        padding: 10px 12px; /* gọn hơn */
+        vertical-align: middle;
+        overflow: hidden; /* UPDATED: nếu text dài sẽ ẩn bớt */
+        text-overflow: ellipsis; /* UPDATED */
+        white-space: nowrap; /* UPDATED: gọn cột */
     }
 
     .candidate-table tbody tr {
@@ -170,7 +205,7 @@
             background: #f7fbff;
         }
 
-    /* Cột HOẠT ĐỘNG  */
+    /* Cột HOẠT ĐỘNG luôn nổi bên phải */
     .candidate-table th:last-child,
     .candidate-table td:last-child {
         position: sticky;
@@ -183,11 +218,11 @@
 /* Badge trạng thái */
 .status {
     display: inline-block;
-    padding: 6px 12px;
+    padding: 5px 10px; /* gọn hơn */
     border-radius: 16px;
     color: #fff;
     font-weight: 700;
-    font-size: .9rem;
+    font-size: .85rem; /* gọn hơn */
 }
 
     .status.pending {
@@ -202,30 +237,30 @@
         background: #dc3545;
     }
 
-/* Độ rộng các cột */
 .col-id {
-    min-width: 120px;
+    min-width: 70px;
 }
 
 .col-name {
-    min-width: 180px;
-}
-
-.col-email {
-    min-width: 240px;
-}
-
-.col-type {
     min-width: 160px;
 }
 
+.col-email {
+    min-width: 200px;
+}
+/* trước 240 */
+.col-type {
+    min-width: 130px;
+}
+/* trước 160 */
 .col-status {
-    min-width: 140px;
+    min-width: 120px;
 }
-
+/* trước 140 */
 .col-actions {
-    min-width: 220px;
+    min-width: 180px;
 }
+/* trước 220 */
 
 /* Cân nút hành động */
 .cell-actions .btn-primary,
@@ -233,12 +268,14 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 92px;
-    height: 40px;
+    width: 86px; /* gọn hơn */
+    height: 36px; /* gọn hơn */
+    padding: 0 8px; /* gọn hơn */
 }
 
 .cell-actions .btn-danger {
-    height: 40px;
+    height: 36px;
+    padding: 0 10px;
 }
 
 /* ====== Modal  ====== */
@@ -256,7 +293,7 @@
 
 .modal-card {
     position: relative;
-    width: min(900px,92vw);
+    width: min(1100px, 96vw); /* UPDATED: mở rộng hơn chút ở màn rộng */
     max-height: 84vh;
     margin: 6vh auto;
     background: #fff;
@@ -268,7 +305,7 @@
 }
 
 .modal-header {
-    padding: 14px 18px;
+    padding: 12px 16px; /* gọn hơn */
     border-bottom: 1px solid #eef0f2;
     display: flex;
     justify-content: space-between;
@@ -276,7 +313,7 @@
 }
 
 .modal-title {
-    font-size: 1.25rem;
+    font-size: 1.15rem; /* gọn hơn */
     font-weight: 800;
     margin: 0;
 }
@@ -284,18 +321,18 @@
 .modal-close {
     background: transparent;
     border: none;
-    font-size: 24px;
+    font-size: 22px; /* gọn hơn */
     line-height: 1;
     cursor: pointer;
 }
 
 .modal-body {
-    padding: 16px 18px;
+    padding: 14px 16px; /* gọn hơn */
     overflow: auto;
 }
 
 .modal-footer {
-    padding: 12px 18px;
+    padding: 10px 16px; /* gọn hơn */
     border-top: 1px solid #eef0f2;
     display: flex;
     justify-content: flex-end;
@@ -306,7 +343,7 @@
 .dv-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 14px 24px;
+    gap: 12px 20px; /* gọn hơn */
 }
 
 .dv-field {
@@ -318,7 +355,7 @@
 
 .dv-label {
     display: block;
-    font-size: .85rem;
+    font-size: .84rem;
     color: #6b7280;
     margin-bottom: 4px;
 }
@@ -329,9 +366,58 @@
     word-break: break-word;
 }
 
+@media (max-width: 1024px) {
+    /* giúp bảng gọn trên laptop nhỏ */
+    .candidate-table {
+        font-size: 0.9rem;
+    }
+
+        .candidate-table thead th,
+        .candidate-table tbody td {
+            padding: 8px 10px;
+        }
+
+    .col-email {
+        min-width: 180px;
+    }
+
+    .col-actions {
+        min-width: 160px;
+    }
+}
+
 @media (max-width: 768px) {
     .dv-grid {
         grid-template-columns: 1fr;
+    }
+
+    .header-row {
+        padding: 0 16px;
+    }
+
+    .main-content {
+        padding: 16px;
+    }
+
+    .candidate-table {
+        font-size: 0.88rem;
+    }
+
+        .candidate-table thead th,
+        .candidate-table tbody td {
+            padding: 8px;
+        }
+
+    .col-name {
+        min-width: 140px;
+    }
+
+    .col-email {
+        min-width: 160px;
+    }
+
+    .col-actions {
+        min-width: 150px;
     }
 }
 
@@ -344,23 +430,20 @@
     font-size: .95rem
 }
 
-.main-content .form-control::placeholder, .main-content .form-select::placeholder {
+.main-content .form-control::placeholder,
+.main-content .form-select::placeholder {
     opacity: .8
 }
 
 /* Ẩn summary & lỗi dòng khi chưa có lỗi */
-.validation-summary-valid {
-    display: none
-}
-
-.field-validation-valid {
-    display: none
-}
-
 .validation-summary-valid,
 .validation-summary-valid.alert,
 .validation-summary-valid.alert-danger {
     display: none !important
+}
+
+.field-validation-valid {
+    display: none
 }
 
 .input-validation-error {

@@ -1,13 +1,13 @@
 ﻿@{
     ViewData["Title"] = "Báo cáo thống kê";
 }
-
 <link rel="stylesheet" href="~/css/admin-reports-index.css" asp-append-version="true" />
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <div class="header-row"><h2>@ViewData["Title"]</h2></div>
 
 <div class="main-content">
+    <!-- Bộ lọc (không có nút Bỏ lọc, không có box) -->
     <div class="actions">
         <form id="filterForm" class="smart-filter" onsubmit="return false;">
             <select id="rangeSelect" class="mini-select" aria-label="Chọn khoảng thời gian">
@@ -17,14 +17,17 @@
                 <option value="year">Năm nay</option>
                 <option value="custom">Tùy chọn…</option>
             </select>
+
             <div id="customRange" class="range-inline" aria-hidden="true">
                 <input type="date" id="from" class="mini-search-input" style="width:170px" />
                 <input type="date" id="to" class="mini-search-input" style="width:170px" />
             </div>
+
             <button id="btnApply" class="btn btn-filter" type="button">Lọc</button>
         </form>
     </div>
 
+    <!-- KPI -->
     <div class="kpi-grid">
         <div class="kpi-card">
             <div class="d-flex justify-content-between align-items-start">
@@ -86,13 +89,23 @@
         <canvas id="candChart" height="90" aria-label="Biểu đồ ứng viên theo ngày"></canvas>
     </div>
 
+    <!-- 2 donut đặt cạnh nhau (đã thu nhỏ và canh đều) -->
     <div class="chart-box mt-3">
-        <div class="fw-bold mb-2">Cơ cấu trạng thái ứng viên</div>
-        <canvas id="candBreakdown" height="90" aria-label="Biểu đồ cơ cấu trạng thái ứng viên"></canvas>
+        <div class="fw-bold mb-2">Cơ cấu ứng viên</div>
+        <div class="donut-grid">
+            <div class="donut-card">
+                <div class="donut-title">Theo trạng thái</div>
+                <canvas id="candBreakdown" class="donut-canvas" aria-label="Biểu đồ trạng thái ứng viên"></canvas>
+            </div>
+            <div class="donut-card">
+                <div class="donut-title">Theo loại hồ sơ (VC / HĐLĐ)</div>
+                <canvas id="candTypeDonut" class="donut-canvas" aria-label="Biểu đồ loại hồ sơ"></canvas>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- Config endpoints cho JS -->
+<!-- Endpoints -->
 <div id="reports-config"
      data-summary-url='@Url.Action("Summary")'
      data-rec-series-url='@Url.Action("RecruitmentSeries")'

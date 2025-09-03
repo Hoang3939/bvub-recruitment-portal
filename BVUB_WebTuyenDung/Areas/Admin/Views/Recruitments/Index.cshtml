@@ -22,6 +22,7 @@
 
     string q = Context.Request.Query["q"];
     string st = Context.Request.Query["st"];
+    var hasFilter = !string.IsNullOrWhiteSpace(q) || !string.IsNullOrWhiteSpace(st);
 }
 
 <link rel="stylesheet" href="~/css/admin-recruitments-index.css" asp-append-version="true" />
@@ -42,7 +43,18 @@
             <input type="text" name="q" class="mini-search-input"
                    placeholder="Nhập: tiêu đề / loại tuyển dụng / ngày (dd/MM/yyyy)"
                    value="@q" />
-            <button type="submit" class="btn btn-filter">Lọc</button>
+            @if (!hasFilter)
+            {
+                <button type="submit" class="btn btn-filter" id="btnFilter">Lọc</button>
+            }
+            else
+            {
+                <a class="btn btn-clear" id="btnClearLink"
+                   asp-area="Admin" asp-controller="Recruitments" asp-action="Index"
+                   title="Bỏ lọc" aria-label="Bỏ lọc">
+                    <i class="fas fa-times"></i>
+                </a>
+            }
         </form>
 
         @if (isAdmin)
@@ -67,7 +79,18 @@
 
                 <article class="rec-card" data-id="@r.TuyenDungId" aria-label="Xem chi tiết tuyển dụng">
                     <span class="badge-status @r.TrangThaiClass">@r.TrangThaiLabel</span>
-                    <div class="rec-icon"><i class="fa-solid @icon" aria-hidden="true"></i></div>
+
+                    <div class="rec-icon">
+                        @if (!string.IsNullOrWhiteSpace(r.FileAnh))
+                        {
+                            <img src="@r.FileAnh" alt="Ảnh tuyển dụng" class="rec-thumb" loading="lazy" />
+                        }
+                        else
+                        {
+                            <i class="fa-solid @icon" aria-hidden="true"></i>
+                        }
+                    </div>
+
                     <div class="rec-body">
                         <h3 class="rec-title"><span>@(r.TieuDe?.ToUpper())</span></h3>
                         <p class="rec-desc">@summary</p>
@@ -101,10 +124,8 @@
     </div>
 </div>
 
-<!-- Anti-forgery cho AJAX Xóa -->
 <form id="af-rec" method="post" style="display:none;">@Html.AntiForgeryToken()</form>
 
-<!-- Config cho JS -->
 <div id="rec-index-config"
      data-is-admin="@isAdmin.ToString().ToLower()"
      data-details-url='@Url.Action("DetailsPartial", "Recruitments", new { area = "Admin" })'

@@ -16,10 +16,16 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         private readonly AdminDbContext _ctx;
         public TitlesController(AdminDbContext ctx) => _ctx = ctx;
 
-        // Index
-        public async Task<IActionResult> Index(string q)
+        // Index + filter trạng thái
+        public async Task<IActionResult> Index(string q, int? st)
         {
             var query = _ctx.DanhMucChucDanhDuTuyens.AsQueryable();
+
+            // lọc trạng thái (0: sử dụng, 1: tạm ngưng)
+            if (st.HasValue && (st.Value == 0 || st.Value == 1))
+            {
+                query = query.Where(x => x.TamNgung == st.Value);
+            }
 
             if (!string.IsNullOrWhiteSpace(q))
             {
@@ -38,7 +44,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
 
             ViewBag.q = q;
+            ViewBag.st = st;
 
+            // sort theo ID tăng dần
             var items = await query.OrderBy(x => x.ChucDanhId).ToListAsync();
             return View(items);
         }
@@ -90,7 +98,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             });
         }
 
-        // Edit: cập nhật Title và ĐỒNG BỘ trạng thái xuống toàn bộ Positions thuộc Title đó
+        // Edit: cập nhật Title và đồng bộ trạng thái xuống Positions
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, TitleFormVm vm)
         {
@@ -110,7 +118,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 e.TamNgung = vm.TamNgung;
                 await _ctx.SaveChangesAsync();
 
-                // Đồng bộ tất cả Vị trí thuộc chức danh này
                 await _ctx.DanhMucViTriDuTuyens
                     .Where(v => v.ChucDanhId == id)
                     .ExecuteUpdateAsync(s => s.SetProperty(v => v.TamNgung, vm.TamNgung));
@@ -140,7 +147,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Toggle: bật/tắt nhanh Title và ĐỒNG BỘ toàn bộ Positions
+        // Toggle
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Toggle(int id)
         {
@@ -174,7 +181,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
         }
 
-        // Partial cho popup chi tiết
+        // Chi tiết (partial)
         [HttpGet]
         public async Task<IActionResult> DetailsPartial(int id)
         {

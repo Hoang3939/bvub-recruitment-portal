@@ -1,0 +1,64 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.DepartmentFrmVm
+@using Microsoft.AspNetCore.Mvc.Rendering
+
+@{
+    ViewData["Title"] = "Sửa thông tin Khoa/Phòng";
+
+    // Nguồn dữ liệu cho 2 dropdown
+    var loaiItems = new List<SelectListItem>
+    {
+        new SelectListItem("Khoa",  "Khoa"),
+        new SelectListItem("Phòng", "Phòng")
+    };
+
+    var trangThaiItems = new List<SelectListItem>
+    {
+        new SelectListItem("Sử dụng",  "0"),
+        new SelectListItem("Tạm ngưng","1")
+    };
+}
+
+<link rel="stylesheet" href="~/css/admin-departments-create.css" asp-append-version="true" />
+
+<h2>@ViewData["Title"]</h2>
+
+@if (TempData["ToastError"] != null)
+{
+    <div class="alert alert-danger" role="alert">@TempData["ToastError"]</div>
+}
+
+<form method="post" asp-action="EditInfo" asp-route-id="@Model.KhoaPhongId">
+    @Html.AntiForgeryToken()
+
+    <div class="row g-3">
+        <!-- Tên -->
+        <div class="col-lg-6 col-md-6">
+            <label asp-for="Ten" class="form-label">Tên</label>
+            <input asp-for="Ten" class="form-control" placeholder="Nhập tên khoa/phòng" />
+            <span asp-validation-for="Ten" class="text-danger"></span>
+        </div>
+
+        <!-- Loại -->
+        <div class="col-lg-3 col-md-3">
+            <label asp-for="Loai" class="form-label">Loại</label>
+            <select asp-for="Loai" class="form-select" asp-items="loaiItems"></select>
+            <span asp-validation-for="Loai" class="text-danger"></span>
+        </div>
+
+        <!-- Trạng thái -->
+        <div class="col-lg-3 col-md-3">
+            <label asp-for="TamNgung" class="form-label">Trạng thái</label>
+            <select asp-for="TamNgung" class="form-select" asp-items="trangThaiItems"></select>
+            <span asp-validation-for="TamNgung" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button class="btn btn-primary">Lưu</button>
+        <a asp-action="Index" class="btn btn-link">Hủy</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

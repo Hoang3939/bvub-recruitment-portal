@@ -9,13 +9,13 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
         [Key]
         public int VanBangId { get; set; }
 
-        [Display(Name = "Đơn viên chức")]
-        [ForeignKey(nameof(DonVienChuc))]
-        public int DonVienChucId { get; set; }
+        [Display(Name = "Ứng viên")]
+        [ForeignKey(nameof(UngVien))]
+        public int UngVienId { get; set; }
 
         [StringLength(50)]
         [Display(Name = "Tên cơ sở đào tạo")]
-        public string? TenCoSo { get; set; }
+        public string TenCoSo { get; set; }
 
         [Column(TypeName = "date")]
         [Display(Name = "Ngày cấp")]
@@ -23,29 +23,29 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
 
         [StringLength(20)]
         [Display(Name = "Số hiệu")]
-        public string? SoHieu { get; set; }
+        public string SoHieu { get; set; }
 
         [StringLength(50)]
         [Display(Name = "Chuyên ngành đào tạo")]
-        public string? ChuyenNganhDaoTao { get; set; }
+        public string ChuyenNganhDaoTao { get; set; }
 
         [StringLength(50)]
         [Display(Name = "Ngành đào tạo")]
-        public string? NganhDaoTao { get; set; }
+        public string NganhDaoTao { get; set; }
 
         [StringLength(50)]
         [Display(Name = "Hình thức đào tạo")]
-        public string? HinhThucDaoTao { get; set; }
+        public string HinhThucDaoTao { get; set; }
 
         [StringLength(50)]
         [Display(Name = "Xếp loại")]
-        public string? XepLoai { get; set; }
+        public string XepLoai { get; set; }
 
         [StringLength(50)]
         [Display(Name = "Loại văn bằng")]
-        public string? LoaiVanBang { get; set; }
+        public string LoaiVanBang { get; set; }
 
         // Navigation
-        public virtual DonVienChuc? DonVienChuc { get; set; }
+        public virtual UngVien UngVien { get; set; }
     }
 }

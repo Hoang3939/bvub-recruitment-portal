@@ -133,6 +133,24 @@
     border-radius: 50%;
 }
 
+.btn-clear {
+    background: #eef2f7;
+    color: #1f2937;
+}
+
+    .btn-clear:hover {
+        filter: brightness(.97);
+    }
+
+.btn-add {
+    background: #28a745;
+    color: #fff;
+}
+
+    .btn-add:hover {
+        filter: brightness(.95);
+    }
+
 /* ====== Bảng ====== */
 .table-wrap {
     position: relative;
@@ -389,13 +407,4 @@
         font-weight: 600;
     }
 
-/* Nút + Thêm xanh lá (dùng btn-success sẵn có) */
-.btn-add {
-    background: #28a745;
-    color: #fff;
-}
-
-    .btn-add:hover {
-        filter: brightness(.95);
-    }
 

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Linq;
+using System.IO;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using BVUB_WebTuyenDung.Areas.Admin.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BVUB_WebTuyenDung.Areas.Admin.Models;
-
+using Microsoft.AspNetCore.Hosting;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 {
@@ -14,14 +16,24 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     public class GuidesController : Controller
     {
         private readonly AdminDbContext _ctx;
-        public GuidesController(AdminDbContext ctx) => _ctx = ctx;
+        private readonly IWebHostEnvironment _env;
+
+        public GuidesController(AdminDbContext ctx, IWebHostEnvironment env)
+        {
+            _ctx = ctx;
+            _env = env;
+        }
 
         // Hướng dẫn đăng ký
         public async Task<IActionResult> Index(string? loai)
         {
             var q = _ctx.HuongDans.AsQueryable();
             if (!string.IsNullOrWhiteSpace(loai)) q = q.Where(x => x.LoaiHuongDan == loai);
+
             var list = await q.OrderByDescending(x => x.NgayCapNhat).ToListAsync();
+
+            ViewBag.HasFilter = !string.IsNullOrWhiteSpace(loai);
+
             return View(list);
         }
 
@@ -35,9 +47,16 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         // POST: Tạo mới
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(HuongDanDangKy m)
+        public async Task<IActionResult> Create(HuongDanDangKy m, IFormFile? file)
         {
             if (!ModelState.IsValid) return View(m);
+
+            // <-- Upload file hướng dẫn -->
+            if (file != null && file.Length > 0)
+            {
+                m.FileHuongDan = await SaveGuideFileAsync(file);
+            }
+
             m.NgayCapNhat = DateTime.Today;
             _ctx.Add(m);
             await _ctx.SaveChangesAsync();
@@ -53,15 +72,27 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             return View(m);
         }
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, HuongDanDangKy m)
+        public async Task<IActionResult> Edit(int id, HuongDanDangKy m, IFormFile? file)
         {
             if (id != m.HuongDanId) return NotFound();
             if (!ModelState.IsValid) return View(m);
-            m.NgayCapNhat = DateTime.Today;
-            _ctx.Update(m);
+
+            var entity = await _ctx.HuongDans.FirstOrDefaultAsync(x => x.HuongDanId == id);
+            if (entity == null) return NotFound();
+
+            entity.TieuDe = m.TieuDe;
+            entity.LoaiHuongDan = m.LoaiHuongDan;
+            entity.NoiDung = m.NoiDung;
+            entity.NgayCapNhat = DateTime.Today;
+
+            // <-- Upload/thay thế file hướng dẫn -->
+            if (file != null && file.Length > 0)
+            {
+                entity.FileHuongDan = await SaveGuideFileAsync(file);
+            }
+
             await _ctx.SaveChangesAsync();
             TempData["ok"] = "Đã cập nhật.";
             return RedirectToAction(nameof(Index));
@@ -72,8 +103,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         public async Task<IActionResult> DetailsPartial(int id)
         {
             var m = await _ctx.HuongDans.FirstOrDefaultAsync(x => x.HuongDanId == id);
-            if (m == null) return NotFound("Không tìm thấy hướng dẫn.");
-            return PartialView("_GuideDetails", m);
+            if (m == null) return Content("<div>Không tìm thấy hướng dẫn.</div>", "text/html; charset=utf-8");
+            // Trỏ tuyệt đối để tránh lệ thuộc casing đường dẫn
+            return PartialView("~/Areas/Admin/Views/Guides/_GuideDetails.cshtml", m);
         }
 
         // Xoá bằng AJAX trong popup
@@ -88,6 +120,24 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             _ctx.HuongDans.Remove(m);
             await _ctx.SaveChangesAsync();
             return Json(new { ok = true });
+        }
+
+        // ==== Helpers ====
+        private async Task<string> SaveGuideFileAsync(IFormFile file)
+        {
+            var folder = Path.Combine(_env.WebRootPath, "uploads", "guides");
+            Directory.CreateDirectory(folder);
+
+            var safeName = Path.GetFileName(file.FileName);
+            var fileName = $"{DateTime.UtcNow:yyyyMMddHHmmssfff}_{safeName}";
+            var fullPath = Path.Combine(folder, fileName);
+
+            using (var fs = new FileStream(fullPath, FileMode.Create))
+            {
+                await file.CopyToAsync(fs);
+            }
+            // Trả về path để bind ra UI
+            return $"/uploads/guides/{fileName}";
         }
     }
 }

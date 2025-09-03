@@ -100,6 +100,27 @@ table.detail {
     .badge.cancelled {
         background: #dc3545
     }
+
+table.vb-table {
+    width: 100%;
+    border-collapse: collapse
+}
+
+.vb-table thead td {
+    background: #f1f5f9;
+    font-weight: 700;
+    border: 1px solid #e5e7eb
+}
+
+.vb-table td {
+    border: 1px solid #e5e7eb;
+    padding: 8px 10px
+}
+
+    .vb-table td:first-child {
+        width: 48px;
+        text-align: center
+    }
 /* ----- Buttons phân biệt rõ ----- */
 .btn-approve {
     background: #16a34a;

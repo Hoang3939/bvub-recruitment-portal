@@ -1,16 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
-using System.Text;
+using Microsoft.AspNetCore.Hosting;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
-using Microsoft.Data.SqlClient;
+using System.Globalization;
+using System.IO;
 using BVUB_WebTuyenDung.Areas.Admin.Data;
 using BVUB_WebTuyenDung.Areas.Admin.Models;
 using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
-using System.Globalization;
+using ClosedXML.Excel;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 {
@@ -19,9 +20,14 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     public class CandidatesController : Controller
     {
         private readonly AdminDbContext _context;
-        public CandidatesController(AdminDbContext context) => _context = context;
+        private readonly IWebHostEnvironment _env;
 
-        // Chuẩn hoá nhãn Loại đơn để hiển thị đẹp (dùng ở ExportWord, ...)
+        public CandidatesController(AdminDbContext context, IWebHostEnvironment env)
+        {
+            _context = context;
+            _env = env;
+        }
+
         private static string FormatLoaiDonLabel(string? loaiDon)
         {
             if (string.IsNullOrWhiteSpace(loaiDon)) return "-";
@@ -34,7 +40,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             };
         }
 
-        // Map trạng thái
         private static (string Label, string Css) MapStatus(int? stt) => stt switch
         {
             1 => ("Chờ xử lý", "pending"),
@@ -43,11 +48,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             _ => (stt?.ToString() ?? "", "")
         };
 
-        // Danh sách ứng viên
         [Authorize]
-        public async Task<IActionResult> Index(string q, string type, int page = 1, int pageSize = 20)
+        public async Task<IActionResult> Index(string q, string type, string status, int page = 1, int pageSize = 20)
         {
-            // VC
+            // VC: dùng NgayNop (NOT NULL) làm mốc thời gian chuẩn để sort/hiển thị
             var vcQuery =
                 from d in _context.DonVienChucs.AsNoTracking()
                 join uv in _context.UngViens.AsNoTracking() on d.UngVienId equals uv.UngVienId
@@ -55,33 +59,32 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 {
                     uv.UngVienId,
                     uv.HoTen,
-                    uv.Email,
-                    uv.NgayUngTuyen,   
+                    uv.NgaySinh,
+                    NgayUngTuyen = d.NgayNop, // <-- chuẩn thời gian hiển thị/sort
                     DonType = "VC",
                     LoaiDon = "Đơn viên chức",
                     DonId = d.VienChucId,
                     TrangThai = (int?)d.TrangThai
                 };
 
-            // HĐLĐ
+            // HD: dùng NgayNop (NOT NULL) làm mốc thời gian chuẩn để sort/hiển thị
             var hdQuery =
-                from d in _context.HopDongNguoiLaoDongs.AsNoTracking()
-                join uv in _context.UngViens.AsNoTracking() on d.UngVienId equals uv.UngVienId
+                from h in _context.HopDongNguoiLaoDongs.AsNoTracking()
+                join uv in _context.UngViens.AsNoTracking() on h.UngVienId equals uv.UngVienId
                 select new
                 {
                     uv.UngVienId,
                     uv.HoTen,
-                    uv.Email,
-                    uv.NgayUngTuyen,
+                    uv.NgaySinh,
+                    NgayUngTuyen = h.NgayNop, // <-- chuẩn thời gian hiển thị/sort
                     DonType = "HD",
                     LoaiDon = "Hợp đồng lao động",
-                    DonId = d.HopDongId,
-                    TrangThai = (int?)d.TrangThai
+                    DonId = h.HopDongId,
+                    TrangThai = (int?)h.TrangThai
                 };
 
             var baseQuery = vcQuery.Concat(hdQuery);
 
-            // Lọc theo loại đơn (nếu chọn)
             if (!string.IsNullOrWhiteSpace(type))
             {
                 var t = type.Trim().ToUpperInvariant();
@@ -89,23 +92,32 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     baseQuery = baseQuery.Where(x => x.DonType == t);
             }
 
-            // Lọc theo 1 ô duy nhất "q"
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                int st = status.Trim().ToLowerInvariant() switch
+                {
+                    "pending" => 1,
+                    "approved" => 2,
+                    "cancelled" => 3,
+                    _ => 0
+                };
+                if (st != 0) baseQuery = baseQuery.Where(x => x.TrangThai == st);
+            }
+
             if (!string.IsNullOrWhiteSpace(q))
             {
                 var qq = q.Trim();
 
-                // 1) Nếu là số -> Mã ứng viên
                 if (int.TryParse(qq, out var uid))
                 {
                     baseQuery = baseQuery.Where(x => x.UngVienId == uid);
                 }
-                // 2) Nếu là ngày -> lọc theo ngày ứng tuyển
                 else if (DateTime.TryParseExact(
-                            qq,
-                            new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd" },
-                            CultureInfo.InvariantCulture,
-                            DateTimeStyles.None,
-                            out var d))
+                             qq,
+                             new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd" },
+                             CultureInfo.InvariantCulture,
+                             DateTimeStyles.None,
+                             out var d))
                 {
                     var from = d.Date;
                     var to = from.AddDays(1);
@@ -113,7 +125,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 }
                 else
                 {
-                    // 3) Nếu là từ khoá trạng thái
                     var s = qq.ToLowerInvariant();
                     int? st = s switch
                     {
@@ -129,10 +140,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     }
                     else
                     {
-                        // 4) Tìm tên hoặc email
-                        baseQuery = baseQuery.Where(x =>
-                            EF.Functions.Like(x.HoTen, $"%{qq}%") ||
-                            EF.Functions.Like(x.Email, $"%{qq}%"));
+                        baseQuery = baseQuery.Where(x => EF.Functions.Like(x.HoTen, $"%{qq}%"));
                     }
                 }
             }
@@ -154,7 +162,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 {
                     UngVienId = x.UngVienId,
                     HoTen = x.HoTen,
-                    Email = x.Email,
+                    NgaySinh = x.NgaySinh,
                     NgayUngTuyen = x.NgayUngTuyen,
                     DonType = x.DonType,
                     DonId = x.DonId,
@@ -165,13 +173,16 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }).ToList();
 
             ViewBag.Total = total;
-            ViewBag.Page = page; ViewBag.PageSize = pageSize;
-            ViewBag.q = q; ViewBag.type = type;
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.q = q;
+            ViewBag.type = type;
+            ViewBag.status = status;
+            ViewBag.hasFilter = !string.IsNullOrWhiteSpace(q) || !string.IsNullOrWhiteSpace(type) || !string.IsNullOrWhiteSpace(status);
 
             return View(list);
         }
 
-        // GET: fragment cho modal xem chi tiết
         [HttpGet]
         public async Task<IActionResult> DetailsPartial(int id)
         {
@@ -182,59 +193,392 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             return PartialView("_DetailsCard", uv);
         }
 
-        // GET: Xuất CSV 
-        [HttpGet]
-        public async Task<IActionResult> ExportCsv(string q)
+        private sealed class ExportRow
         {
-            var query = _context.UngViens.AsNoTracking().AsQueryable();
+            public string DonType { get; set; } = "";
+            public int DonId { get; set; }
+            public DateTime? NgayNop { get; set; }
+            public int TrangThai { get; set; }
+
+            public int UngVienId { get; set; }
+            public string HoTen { get; set; } = "";
+            public DateTime NgaySinh { get; set; }
+            public int GioiTinh { get; set; }
+            public string SoDienThoai { get; set; } = "";
+            public string MaSoThue { get; set; } = "";
+            public string SoTaiKhoan { get; set; } = "";
+            public string Email { get; set; } = "";
+            public string CCCD { get; set; } = "";
+            public DateTime NgayCapCCCD { get; set; }
+            public string NoiCapCCCD { get; set; } = "";
+            public string DiaChiThuongTru { get; set; } = "";
+            public string DiaChiCuTru { get; set; } = "";
+
+            public string? KhoaPhongTen { get; set; }
+            public string? NoiSinh { get; set; }
+            public string? ChuyenNganhDaoTao { get; set; }
+            public string? NamTotNghiep { get; set; }
+            public string? TrinhDoTinHoc { get; set; }
+            public string? TrinhDoNgoaiNgu { get; set; }
+            public string? ChungChiHanhNghe { get; set; }
+            public string? NgheNghiepTruoc { get; set; }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportExcel(string? q, string? type, string? status)
+        {
+            var templatePath = Path.Combine(_env.WebRootPath, "templates", "Thong tin Hop dong.xlsx");
+            if (!System.IO.File.Exists(templatePath))
+                return BadRequest("Không tìm thấy template Excel: /wwwroot/templates/Thong tin Hop dong.xlsx");
+
+            var vc = _context.DonVienChucs.AsNoTracking()
+                .Select(d => new ExportRow
+                {
+                    DonType = "VC",
+                    DonId = d.VienChucId,
+                    NgayNop = d.NgayNop,
+                    TrangThai = d.TrangThai,
+                    UngVienId = d.UngVien.UngVienId,
+                    HoTen = d.UngVien.HoTen,
+                    NgaySinh = d.UngVien.NgaySinh,
+                    GioiTinh = d.UngVien.GioiTinh,
+                    SoDienThoai = d.UngVien.SoDienThoai,
+                    MaSoThue = d.UngVien.MaSoThue,
+                    SoTaiKhoan = d.UngVien.SoTaiKhoan,
+                    Email = d.UngVien.Email,
+                    CCCD = d.UngVien.CCCD,
+                    NgayCapCCCD = d.UngVien.NgayCapCCCD,
+                    NoiCapCCCD = d.UngVien.NoiCapCCCD,
+                    DiaChiThuongTru = d.UngVien.DiaChiThuongTru,
+                    DiaChiCuTru = d.UngVien.DiaChiCuTru,
+                    KhoaPhongTen = d.KhoaPhong.Ten,
+                    NoiSinh = null,
+                    ChuyenNganhDaoTao = null,
+                    NamTotNghiep = null,
+                    TrinhDoTinHoc = null,
+                    TrinhDoNgoaiNgu = null,
+                    ChungChiHanhNghe = null,
+                    NgheNghiepTruoc = null
+                });
+
+            var hd = _context.HopDongNguoiLaoDongs.AsNoTracking()
+                .Select(h => new ExportRow
+                {
+                    DonType = "HD",
+                    DonId = h.HopDongId,
+                    NgayNop = h.NgayNop,
+                    TrangThai = h.TrangThai,
+                    UngVienId = h.UngVien.UngVienId,
+                    HoTen = h.UngVien.HoTen,
+                    NgaySinh = h.UngVien.NgaySinh,
+                    GioiTinh = h.UngVien.GioiTinh,
+                    SoDienThoai = h.UngVien.SoDienThoai,
+                    MaSoThue = h.UngVien.MaSoThue,
+                    SoTaiKhoan = h.UngVien.SoTaiKhoan,
+                    Email = h.UngVien.Email,
+                    CCCD = h.UngVien.CCCD,
+                    NgayCapCCCD = h.UngVien.NgayCapCCCD,
+                    NoiCapCCCD = h.UngVien.NoiCapCCCD,
+                    DiaChiThuongTru = h.UngVien.DiaChiThuongTru,
+                    DiaChiCuTru = h.UngVien.DiaChiCuTru,
+                    KhoaPhongTen = h.KhoaPhongCongTac.Ten,
+                    NoiSinh = h.NoiSinh,
+                    ChuyenNganhDaoTao = h.ChuyenNganhDaoTao,
+                    NamTotNghiep = h.NamTotNghiep,
+                    TrinhDoTinHoc = h.TrinhDoTinHoc,
+                    TrinhDoNgoaiNgu = h.TrinhDoNgoaiNgu,
+                    ChungChiHanhNghe = h.ChungChiHanhNghe,
+                    NgheNghiepTruoc = h.NgheNghiepTruocTuyenDung
+                });
+
+            IQueryable<ExportRow> query = vc.Concat(hd);
+
+            if (!string.IsNullOrWhiteSpace(type))
+            {
+                var t = type.Trim().ToUpperInvariant();
+                query = query.Where(x => x.DonType == t);
+            }
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                int st = status.Trim().ToLowerInvariant() switch
+                {
+                    "pending" => 1,
+                    "approved" => 2,
+                    "cancelled" => 3,
+                    _ => 0
+                };
+                if (st != 0) query = query.Where(x => x.TrangThai == st);
+            }
 
             if (!string.IsNullOrWhiteSpace(q))
             {
-                var qq = q.Trim();
-                if (int.TryParse(qq, out var id))
+                var kw = q.Trim();
+
+                if (int.TryParse(kw, out var idNum))
                 {
-                    query = query.Where(uv =>
-                        uv.UngVienId == id ||
-                        EF.Functions.Like(uv.HoTen, $"%{qq}%") ||
-                        EF.Functions.Like(uv.Email, $"%{qq}%"));
+                    query = query.Where(x => x.UngVienId == idNum || x.DonId == idNum);
+                }
+                else if (DateTime.TryParseExact(kw,
+                         new[] { "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd" },
+                         CultureInfo.InvariantCulture, DateTimeStyles.None, out var d))
+                {
+                    var from = d.Date; var to = from.AddDays(1);
+                    query = query.Where(x => x.NgayNop >= from && x.NgayNop < to);
                 }
                 else
                 {
-                    query = query.Where(uv =>
-                        EF.Functions.Like(uv.HoTen, $"%{qq}%") ||
-                        EF.Functions.Like(uv.Email, $"%{qq}%"));
+                    query = query.Where(x =>
+                        x.HoTen.Contains(kw) ||
+                        x.Email.Contains(kw) ||
+                        x.CCCD.Contains(kw));
                 }
             }
 
-            var ungViens = await query.OrderBy(uv => uv.UngVienId).ToListAsync();
+            var items = await query
+                .OrderByDescending(x => x.NgayNop)
+                .ThenByDescending(x => x.DonId)
+                .ToListAsync();
 
-            var csv = new StringBuilder();
-            csv.AppendLine("ID,Họ tên,Ngày sinh,Giới tính,Số điện thoại,Email,CCCD,Ngày cấp CCCD,Nơi cấp CCCD,Địa chỉ thường trú,Địa chỉ cư trú,Mã số thuế,Số tài khoản,Tình trạng sức khỏe,Trình độ chuyên môn");
+            var uvIds = items.Select(i => i.UngVienId).Distinct().ToList();
 
-            foreach (var uv in ungViens)
+            var vbLookup = await _context.VanBangs.AsNoTracking()
+                .Where(v => uvIds.Contains(v.UngVienId))
+                .GroupBy(v => v.UngVienId)
+                .ToDictionaryAsync(g => g.Key, g => g
+                    .OrderByDescending(v => v.NgayCap ?? DateTime.MinValue)
+                    .ThenBy(v => v.VanBangId)
+                    .ToList());
+
+            using var wb = new XLWorkbook(templatePath);
+            var ws = wb.Worksheet(1);
+
+            int headerRow = 1;
+            var lastCol = ws.LastColumnUsed().ColumnNumber();
+            var lastRow = ws.LastRowUsed().RowNumber();
+
+            var headerToCol = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+            for (int c = 1; c <= lastCol; c++)
             {
-                csv.AppendLine($"{uv.UngVienId}," +
-                               $"{uv.HoTen}," +
-                               $"{uv.NgaySinh:dd/MM/yyyy}," +
-                               $"{(uv.GioiTinh == 1 ? "Nữ" : "Nam")}," +
-                               $"{uv.SoDienThoai}," +
-                               $"{uv.Email}," +
-                               $"{uv.CCCD}," +
-                               $"{uv.NgayCapCCCD:dd/MM/yyyy}," +
-                               $"{uv.NoiCapCCCD}," +
-                               $"{uv.DiaChiThuongTru}," +
-                               $"{uv.DiaChiCuTru}," +
-                               $"{uv.MaSoThue}," +
-                               $"{uv.SoTaiKhoan}," +
-                               $"{uv.TinhTrangSucKhoe}," +
-                               $"{uv.TrinhDoChuyenMon}");
+                var name = (ws.Cell(headerRow, c).GetString() ?? "").Trim();
+                if (!string.IsNullOrEmpty(name) && !headerToCol.ContainsKey(name))
+                    headerToCol[name] = c;
             }
 
-            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
-            return File(bytes, "text/csv", "DanhSachUngVien.csv");
+            void Set(IXLWorksheet s, int row, string header, object? val)
+            {
+                if (!headerToCol.TryGetValue(header, out var col)) return;
+                var cell = s.Cell(row, col);
+                if (val is DateTime dt)
+                {
+                    cell.SetValue(dt);
+                    cell.Style.DateFormat.Format = "dd/MM/yyyy";
+                }
+                else if (val is DateTimeOffset dto)
+                {
+                    cell.SetValue(dto.DateTime);
+                    cell.Style.DateFormat.Format = "dd/MM/yyyy";
+                }
+                else if (val is null)
+                {
+                    cell.SetValue(string.Empty);
+                }
+                else
+                {
+                    cell.SetValue(val.ToString());
+                }
+            }
+
+            string GenderVN(int g) => g == 0 ? "Nam" : g == 1 ? "Nữ" : "";
+            string StatusLabel(int s) => s switch
+            {
+                1 => "Đang duyệt",
+                2 => "Đã duyệt",
+                3 => "Đã hủy",
+                _ => "Không rõ"
+            };
+
+            var startRow = Math.Max(lastRow + 1, 2);
+            int r = startRow, stt = 1;
+
+            foreach (var x in items)
+            {
+                Set(ws, r, "STT", stt++);
+                Set(ws, r, "Loại nhân viên", x.DonType == "VC" ? "Viên chức" : "Người lao động");
+
+                Set(ws, r, "Họ và tên", x.HoTen);
+                Set(ws, r, "Ngày tháng năm sinh", x.NgaySinh);
+                Set(ws, r, "Giới tính", GenderVN(x.GioiTinh));
+                Set(ws, r, "Số điện thoại", x.SoDienThoai);
+                Set(ws, r, "Mã số thuế", x.MaSoThue);
+                Set(ws, r, "Số tài khoản ngân hàng Vietinbank Chi nhánh 7", x.SoTaiKhoan);
+                Set(ws, r, "Email", x.Email);
+                Set(ws, r, "Số Thẻ căn cước công dân hoặc số thẻ căn cước", x.CCCD);
+                Set(ws, r, "Ngày cấp Thẻ căn cước công dân hoặc thẻ căn cước", x.NgayCapCCCD);
+                Set(ws, r, "Nơi cấp Thẻ căn cước công dân hoặc thẻ căn cước", x.NoiCapCCCD);
+                Set(ws, r, "Địa chỉ thường trú (ghi theo thông tin trong ứng dụng VNeID)\nGhi đầy đủ chính xác, đầy đủ thông tin theo đơn vị hành chính mới, bao gồm: Số nhà, tên đường, cấp phường (xã), tỉnh (thành phố)\n(ví dụ: 59 Nguyễn Thị Minh Khai, phường Bến Thành, Thành phố Hồ Chí Minh)", x.DiaChiThuongTru);
+                Set(ws, r, "Địa chỉ nơi cư trú/Nơi ở hiện tại (ghi theo thông tin trong ứng dụng VNeID hoặc nơi ở hiện tại)\nGhi đầy đủ chính xác, đầy đủ thông tin theo đơn vị hành chính mới, bao gồm: Số nhà, tên đường, cấp phường (xã), tỉnh (thành phố)\n(ví dụ: 59 Nguyễn Thị Minh Khai, phường Bến Thành, Thành phố Hồ Chí Minh)", x.DiaChiCuTru);
+                Set(ws, r, "Trạng thái hệ thống", StatusLabel(x.TrangThai));
+
+                if (headerToCol.ContainsKey("Ngày nộp đơn (Hệ thống)") && x.NgayNop.HasValue)
+                {
+                    var col = headerToCol["Ngày nộp đơn (Hệ thống)"];
+                    var cell = ws.Cell(r, col);
+                    cell.Value = x.NgayNop.Value;
+                    cell.Style.DateFormat.Format = "dd/MM/yyyy";
+                }
+
+                Set(ws, r, "Khoa hiện đang công tác", x.KhoaPhongTen ?? "");
+
+                if (x.DonType == "HD")
+                {
+                    Set(ws, r, "Nơi sinh\n(Ghi theo đơn vị hành chính mới - Theo VNeID)\nVí dụ: \n- Phường Tân Bình, Thành phố Hồ Chí Minh\n- Tỉnh Lâm Đồng", x.NoiSinh);
+                    Set(ws, r, "Nghề nghiệp trước khi được tuyển dụng\nVí dụ: Bác sĩ, Điều dưỡng, Kỹ thuật y, Kế toán viên, Chuyên viên...", x.NgheNghiepTruoc);
+                    Set(ws, r, "Chuyên ngành đào tạo", x.ChuyenNganhDaoTao);
+                    Set(ws, r, "Năm tốt nghiệp", x.NamTotNghiep);
+                    Set(ws, r, "Trình độ tin học", x.TrinhDoTinHoc);
+                    Set(ws, r, "Trình độ ngoại ngữ", x.TrinhDoNgoaiNgu);
+                    Set(ws, r, "[Chứng chỉ hành nghề] Số CCHN (nếu có)\nVí dụ: 01234/HCM-CCHN", x.ChungChiHanhNghe);
+                }
+
+                if (vbLookup.TryGetValue(x.UngVienId, out var listVb))
+                {
+                    DateTime? dt;
+                    string? cn;
+
+                    void FillByLoai(string loai, string colCN, string colDate, string? colLevel = null)
+                    {
+                        var vb = listVb.FirstOrDefault(v =>
+                            !string.IsNullOrEmpty(v.LoaiVanBang) &&
+                            v.LoaiVanBang.Trim().Equals(loai, StringComparison.OrdinalIgnoreCase));
+
+                        if (vb == null) return;
+                        cn = vb.ChuyenNganhDaoTao;
+                        dt = vb.NgayCap;
+
+                        if (!string.IsNullOrEmpty(colLevel))
+                            Set(ws, r, colLevel, vb.LoaiVanBang);
+
+                        Set(ws, r, colCN, cn);
+                        if (dt.HasValue) Set(ws, r, colDate, dt.Value);
+                    }
+
+                    FillByLoai("Tiến sĩ",
+                        "[Tiến sĩ] Chuyên ngành đào tạo ghi theo bảng điểm (nếu có)",
+                        "[Tiến sĩ] Ngày, tháng, năm cấp văn bằng (nếu có)");
+
+                    FillByLoai("Thạc sĩ",
+                        "[Thạc sĩ] Chuyên ngành đào tạo ghi theo bảng điểm (nếu có)",
+                        "[Thạc sĩ] Ngày, tháng, năm cấp văn bằng (nếu có)");
+
+                    FillByLoai("Chuyên khoa cấp II",
+                        "[Chuyên khoa cấp II] Chuyên ngành đào tạo ghi theo bảng điểm (nếu có)",
+                        "[Chuyên khoa cấp II] Ngày, tháng, năm cấp văn bằng (nếu có)");
+
+                    FillByLoai("Chuyên khoa cấp I",
+                        "[Chuyên khoa cấp I] Chuyên ngành đào tạo ghi theo bảng điểm (nếu có)",
+                        "[Chuyên khoa cấp I] Ngày, tháng, năm cấp văn bằng (nếu có)");
+
+                    FillByLoai("Bác sĩ nội trú",
+                        "[Bác sĩ nội trú] Chuyên ngành đào tạo ghi theo bảng điểm (nếu có)",
+                        "[Bác sĩ nội trú] Ngày, tháng, năm cấp văn bằng (nếu có)");
+
+                    FillByLoai("Đại học",
+                        "[Đại học] Chuyên ngành đào tạo ghi theo bảng điểm (nếu có)",
+                        "[Đại học] Ngày, tháng, năm cấp văn bằng (nếu có)");
+
+                    FillByLoai("Cao đẳng",
+                        "[Cao đẳng] Chuyên ngành đào tạo ghi theo bảng điểm (nếu có)",
+                        "[Cao đẳng] Ngày, tháng, năm cấp văn bằng (nếu có)");
+
+                    FillByLoai("Trung cấp",
+                        "[Trung cấp] Chuyên ngành đào tạo ghi theo bảng điểm (nếu có)",
+                        "[Trung cấp] Ngày, tháng, năm cấp văn bằng (nếu có)");
+
+                    var vbKhac = listVb.FirstOrDefault(v =>
+                        !string.IsNullOrWhiteSpace(v.LoaiVanBang) &&
+                        v.LoaiVanBang.Trim().Equals("Khác", StringComparison.OrdinalIgnoreCase) == false &&
+                        !new[] { "Tiến sĩ", "Thạc sĩ", "Chuyên khoa cấp II", "Chuyên khoa cấp I",
+                                 "Bác sĩ nội trú", "Đại học", "Cao đẳng", "Trung cấp" }
+                            .Contains(v.LoaiVanBang.Trim(), StringComparer.OrdinalIgnoreCase));
+
+                    if (vbKhac != null)
+                    {
+                        Set(ws, r, "[Văn bằng khác] Trình độ đào tạo\nVí dụ: Chuyên gia...", vbKhac.LoaiVanBang);
+                        Set(ws, r, "[Văn bằng khác] Chuyên ngành đào tạo ghi theo bảng điểm (nếu có)", vbKhac.ChuyenNganhDaoTao);
+                        if (vbKhac.NgayCap.HasValue)
+                            Set(ws, r, "[Văn bằng khác] Ngày, tháng, năm cấp văn bằng (nếu có)", vbKhac.NgayCap.Value);
+                    }
+
+                    var vbTin = listVb.FirstOrDefault(v =>
+                        !string.IsNullOrEmpty(v.NganhDaoTao) &&
+                        v.NganhDaoTao.Trim().Equals("Tin học", StringComparison.OrdinalIgnoreCase));
+                    if (vbTin != null)
+                    {
+                        Set(ws, r, "[Tin học] Chuyên ngành đào tạo ghi theo bảng điểm (nếu có)\nVí dụ: Ứng dụng công nghệ thông tin cơ bản; Cử nhân Công nghệ thông tin", vbTin.ChuyenNganhDaoTao);
+                        if (vbTin.NgayCap.HasValue)
+                            Set(ws, r, "[Tin học] Ngày, tháng, năm cấp văn bằng (nếu có)", vbTin.NgayCap.Value);
+                    }
+
+                    var vbNgoaiNgu = listVb.FirstOrDefault(v =>
+                        !string.IsNullOrEmpty(v.NganhDaoTao) &&
+                        v.NganhDaoTao.Trim().Equals("Ngoại ngữ", StringComparison.OrdinalIgnoreCase));
+                    if (vbNgoaiNgu != null)
+                    {
+                        Set(ws, r, "[Ngoại ngữ] Chuyên ngành đào tạo ghi theo bảng điểm (nếu có)\nVí dụ: Tiếng Anh trình độ B; IELTS 7.5; TOEIC 990", vbNgoaiNgu.ChuyenNganhDaoTao);
+                        if (vbNgoaiNgu.NgayCap.HasValue)
+                            Set(ws, r, "[Ngoại ngữ] Ngày, tháng, năm cấp văn bằng (nếu có)", vbNgoaiNgu.NgayCap.Value);
+                    }
+                }
+
+                r++;
+            }
+
+            int lastDataRow = Math.Max(r - 1, headerRow);
+            var allRange = ws.Range(headerRow, 1, lastDataRow, lastCol);
+
+            allRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+            allRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+            allRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            allRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+            allRange.Style.Alignment.WrapText = true;
+
+            ws.Row(headerRow).Style.Font.Bold = true;
+
+            if (lastDataRow >= startRow)
+            {
+                var dataRange = ws.Range(startRow, 1, lastDataRow, lastCol);
+                dataRange.Style.Font.Bold = false;
+            }
+
+            ws.SheetView.FreezeRows(1);
+
+            var dataStart = startRow;
+            var dataEnd = lastDataRow;
+            for (int row = dataStart; row <= dataEnd; row++)
+            {
+                if ((row - dataStart) % 2 == 1)
+                {
+                    ws.Row(row).Style.Fill.BackgroundColor = XLColor.FromHtml("#F2F2F2");
+                }
+                else
+                {
+                    ws.Row(row).Style.Fill.BackgroundColor = XLColor.White;
+                }
+            }
+
+            ws.Columns(1, lastCol).AdjustToContents();
+            ws.Rows(headerRow, lastDataRow).AdjustToContents();
+
+            using var stream = new MemoryStream();
+            wb.SaveAs(stream);
+            stream.Position = 0;
+            var fileName = $"UngVien_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            return File(stream.ToArray(),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                fileName);
         }
 
-        // GET: Xuất Word
         [HttpGet]
         public async Task<IActionResult> ExportWord(int id)
         {
@@ -298,52 +642,50 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             string fmtDate(DateTime d) => d.ToString("dd/MM/yyyy");
 
             var html = $@"
-            <html>
-            <head>
-            <meta charset='utf-8' />
-            <title>UngVien_{uv.UngVienId}</title>
-            <style>
-            body {{ font-family: 'Times New Roman', serif; font-size: 12pt; }}
-            h1 {{ text-align: center; margin: 0 0 16px 0; }}
-            table {{ width: 100%; border-collapse: collapse; }}
-            td {{ border: 1px solid #999; padding: 6px 8px; vertical-align: top; }}
-            td.label {{ width: 30%; font-weight: bold; background: #f5f5f5; }}
-            </style>
-            </head>
-            <body>
-            <h1>THÔNG TIN ỨNG VIÊN</h1>
-            <table>
-            <tr><td class='label'>Mã ứng viên</td><td>{uv.UngVienId}</td></tr>
-            <tr><td class='label'>Họ và tên</td><td>{G(uv.HoTen)}</td></tr>
-            <tr><td class='label'>Ngày sinh</td><td>{fmtDate(uv.NgaySinh)}</td></tr>
-            <tr><td class='label'>Giới tính</td><td>{(uv.GioiTinh == 1 ? "Nữ" : "Nam")}</td></tr>
-            <tr><td class='label'>Số điện thoại</td><td>{G(uv.SoDienThoai)}</td></tr>
-            <tr><td class='label'>Email</td><td>{G(uv.Email)}</td></tr>
-            <tr><td class='label'>CCCD</td><td>{G(uv.CCCD)}</td></tr>
-            <tr><td class='label'>Ngày cấp CCCD</td><td>{fmtDate(uv.NgayCapCCCD)}</td></tr>
-            <tr><td class='label'>Nơi cấp CCCD</td><td>{G(uv.NoiCapCCCD)}</td></tr>
-            <tr><td class='label'>Địa chỉ thường trú</td><td>{G(uv.DiaChiThuongTru)}</td></tr>
-            <tr><td class='label'>Địa chỉ cư trú</td><td>{G(uv.DiaChiCuTru)}</td></tr>
-            <tr><td class='label'>Mã số thuế</td><td>{G(uv.MaSoThue)}</td></tr>
-            <tr><td class='label'>Số tài khoản</td><td>{G(uv.SoTaiKhoan)}</td></tr>
-            <tr><td class='label'>Tình trạng sức khỏe</td><td>{G(uv.TinhTrangSucKhoe)}</td></tr>
-            <tr><td class='label'>Trình độ chuyên môn</td><td>{G(uv.TrinhDoChuyenMon)}</td></tr>
-            <tr><td class='label'>Loại đơn</td><td>{G(loaiDon)}</td></tr>
-            <tr><td class='label'>Trạng thái</td><td>{G(statusLabel)}</td></tr>
-            </table>
-            </body>
-            </html>";
+        <html>
+        <head>
+        <meta charset='utf-8' />
+        <title>UngVien_{uv.UngVienId}</title>
+        <style>
+        body {{ font-family: 'Times New Roman', serif; font-size: 12pt; }}
+        h1 {{ text-align: center; margin: 0 0 16px 0; }}
+        table {{ width: 100%; border-collapse: collapse; }}
+        td {{ border: 1px solid #999; padding: 6px 8px; vertical-align: top; }}
+        td.label {{ width: 30%; font-weight: bold; background: #f5f5f5; }}
+        </style>
+        </head>
+        <body>
+        <h1>THÔNG TIN ỨNG VIÊN</h1>
+        <table>
+        <tr><td class='label'>Mã ứng viên</td><td>{uv.UngVienId}</td></tr>
+        <tr><td class='label'>Họ và tên</td><td>{G(uv.HoTen)}</td></tr>
+        <tr><td class='label'>Ngày sinh</td><td>{fmtDate(uv.NgaySinh)}</td></tr>
+        <tr><td class='label'>Giới tính</td><td>{(uv.GioiTinh == 1 ? "Nữ" : "Nam")}</td></tr>
+        <tr><td class='label'>Số điện thoại</td><td>{G(uv.SoDienThoai)}</td></tr>
+        <tr><td class='label'>Email</td><td>{G(uv.Email)}</td></tr>
+        <tr><td class='label'>CCCD</td><td>{G(uv.CCCD)}</td></tr>
+        <tr><td class='label'>Ngày cấp CCCD</td><td>{fmtDate(uv.NgayCapCCCD)}</td></tr>
+        <tr><td class='label'>Nơi cấp CCCD</td><td>{G(uv.NoiCapCCCD)}</td></tr>
+        <tr><td class='label'>Địa chỉ thường trú</td><td>{G(uv.DiaChiThuongTru)}</td></tr>
+        <tr><td class='label'>Địa chỉ cư trú</td><td>{G(uv.DiaChiCuTru)}</td></tr>
+        <tr><td class='label'>Mã số thuế</td><td>{G(uv.MaSoThue)}</td></tr>
+        <tr><td class='label'>Số tài khoản</td><td>{G(uv.SoTaiKhoan)}</td></tr>
+        <tr><td class='label'>Tình trạng sức khỏe</td><td>{G(uv.TinhTrangSucKhoe)}</td></tr>
+        <tr><td class='label'>Trình độ chuyên môn</td><td>{G(uv.TrinhDoChuyenMon)}</td></tr>
+        <tr><td class='label'>Loại đơn</td><td>{G(loaiDon)}</td></tr>
+        <tr><td class='label'>Trạng thái</td><td>{G(statusLabel)}</td></tr>
+        </table>
+        </body>
+        </html>";
 
             var bytes = System.Text.Encoding.UTF8.GetBytes(html);
             var fileName = $"UngVien_{uv.UngVienId}.doc";
             return File(bytes, "application/msword", fileName);
         }
 
-        // GET: Trả về link (URL) đến đơn ứng tuyển mới nhất của ứng viên (VC hoặc HĐLĐ)
         [HttpGet]
         public async Task<IActionResult> GetApplicationLink(int id)
         {
-            // VC
             var vcRows = await (
                 from a in _context.AuditTrail.AsNoTracking()
                 join dvc in _context.DonVienChucs.AsNoTracking() on a.DonId equals dvc.VienChucId
@@ -358,7 +700,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 }
             ).ToListAsync();
 
-            // HĐLĐ
             var hdRows = await (
                 from a in _context.AuditTrail.AsNoTracking()
                 join hd in _context.HopDongNguoiLaoDongs.AsNoTracking() on a.DonId equals hd.HopDongId
@@ -394,7 +735,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             return Json(new { url, label });
         }
 
-        // POST: Duyệt ngay từ danh sách hoặc trang chi tiết (CHỈ ADMIN)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "1,Admin")]
@@ -408,8 +748,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 {
                     var d = await _context.DonVienChucs.FirstOrDefaultAsync(x => x.VienChucId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
-                    if ((int)d.TrangThai == DA_DUYET) return Json(new { ok = true, already = true });
-
                     d.TrangThai = DA_DUYET;
                     await _context.SaveChangesAsync();
                     return Json(new { ok = true, newStatusLabel = "Đã duyệt", newStatusClass = "approved" });
@@ -418,8 +756,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 {
                     var d = await _context.HopDongNguoiLaoDongs.FirstOrDefaultAsync(x => x.HopDongId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
-                    if ((int)d.TrangThai == DA_DUYET) return Json(new { ok = true, already = true });
-
                     d.TrangThai = DA_DUYET;
                     await _context.SaveChangesAsync();
                     return Json(new { ok = true, newStatusLabel = "Đã duyệt", newStatusClass = "approved" });
@@ -434,10 +770,45 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             {
                 return Json(new { ok = false, message = ex.Message });
             }
-
         }
 
-        // POST: Hủy đơn 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "1,Admin")]
+        public async Task<IActionResult> UnapproveNow(string donType, int id)
+        {
+            try
+            {
+                const int CHO_XU_LY = 1;
+                donType = donType?.Trim().ToUpperInvariant();
+                if (donType == "VC")
+                {
+                    var d = await _context.DonVienChucs.FirstOrDefaultAsync(x => x.VienChucId == id);
+                    if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
+                    d.TrangThai = CHO_XU_LY;
+                    await _context.SaveChangesAsync();
+                    return Json(new { ok = true, newStatusLabel = "Chờ xử lý", newStatusClass = "pending" });
+                }
+                if (donType == "HD")
+                {
+                    var d = await _context.HopDongNguoiLaoDongs.FirstOrDefaultAsync(x => x.HopDongId == id);
+                    if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
+                    d.TrangThai = CHO_XU_LY;
+                    await _context.SaveChangesAsync();
+                    return Json(new { ok = true, newStatusLabel = "Chờ xử lý", newStatusClass = "pending" });
+                }
+                return Json(new { ok = false, message = "Loại đơn không hợp lệ." });
+            }
+            catch (DbUpdateException ex)
+            {
+                return Json(new { ok = false, message = "Lỗi CSDL: " + (ex.InnerException?.Message ?? ex.Message) });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { ok = false, message = ex.Message });
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelNow(string donType, int id)
@@ -451,8 +822,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 {
                     var d = await _context.DonVienChucs.FirstOrDefaultAsync(x => x.VienChucId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
-                    if ((int?)d.TrangThai == DA_HUY) return Json(new { ok = true, already = true });
-
                     d.TrangThai = DA_HUY;
                     await _context.SaveChangesAsync();
                     return Json(new { ok = true, newStatusLabel = "Đã hủy", newStatusClass = "cancelled" });
@@ -461,8 +830,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 {
                     var d = await _context.HopDongNguoiLaoDongs.FirstOrDefaultAsync(x => x.HopDongId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
-                    if ((int?)d.TrangThai == DA_HUY) return Json(new { ok = true, already = true });
-
                     d.TrangThai = DA_HUY;
                     await _context.SaveChangesAsync();
                     return Json(new { ok = true, newStatusLabel = "Đã hủy", newStatusClass = "cancelled" });
@@ -480,7 +847,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
         }
 
-        // POST: Khôi phục đơn về trạng thái ĐÃ DUYỆT 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RestoreNow(string donType, int id)
@@ -494,7 +860,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 {
                     var d = await _context.DonVienChucs.FirstOrDefaultAsync(x => x.VienChucId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
-
                     d.TrangThai = DA_DUYET;
                     await _context.SaveChangesAsync();
                     return Json(new { ok = true, newStatusLabel = "Đã duyệt", newStatusClass = "approved" });
@@ -503,7 +868,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 {
                     var d = await _context.HopDongNguoiLaoDongs.FirstOrDefaultAsync(x => x.HopDongId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
-
                     d.TrangThai = DA_DUYET;
                     await _context.SaveChangesAsync();
                     return Json(new { ok = true, newStatusLabel = "Đã duyệt", newStatusClass = "approved" });
@@ -521,7 +885,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
         }
 
-        // POST: Xóa thông tin đơn ứng tuyển
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "1,Admin")]
@@ -537,30 +900,24 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
                 if (donType == "VC")
                 {
-                    // Xóa AuditTrail của đơn VC này
                     var audits = _context.AuditTrail.Where(a =>
                         (a.LoaiDon == "VienChuc" || a.LoaiDon == "Viên chức") &&
                         a.DonId == id);
                     _context.AuditTrail.RemoveRange(audits);
 
-                    // Xóa đơn VC 
                     var d = await _context.DonVienChucs
-                                          .Include(x => x.VanBangs) 
                                           .FirstOrDefaultAsync(x => x.VienChucId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
 
-                    if (d.VanBangs?.Any() == true) _context.RemoveRange(d.VanBangs);
                     _context.DonVienChucs.Remove(d);
                 }
                 else if (donType == "HD")
                 {
-                    // Xóa AuditTrail của đơn HĐLĐ này
                     var audits = _context.AuditTrail.Where(a =>
                         (a.LoaiDon == "NguoiLaoDong" || a.LoaiDon == "Người lao động") &&
                         a.DonId == id);
                     _context.AuditTrail.RemoveRange(audits);
 
-                    // Xóa đơn HĐLĐ
                     var d = await _context.HopDongNguoiLaoDongs
                                           .FirstOrDefaultAsync(x => x.HopDongId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
