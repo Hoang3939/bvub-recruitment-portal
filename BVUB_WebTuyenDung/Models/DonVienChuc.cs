@@ -36,10 +36,10 @@ namespace BVUB_WebTuyenDung.Models
         public string HoKhau { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập Chiều cao.")]
-        public int ChieuCao { get; set; }
+        public int? ChieuCao { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập Cân nặng.")]
-        public int CanNang { get; set; }
+        public int? CanNang { get; set; }
 
         [Required(ErrorMessage = "Vui lòng chọn Trình độ văn hóa.")]
         [StringLength(100, ErrorMessage = "Trình độ văn hóa tối đa 100 ký tự.")]
