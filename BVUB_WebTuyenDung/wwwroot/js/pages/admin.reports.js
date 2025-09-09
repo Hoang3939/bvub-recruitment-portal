@@ -64,7 +64,7 @@
     fromInp?.addEventListener('change', () => { if (toInp && fromInp) toInp.min = fromInp.value; });
     toInp?.addEventListener('change', () => { if (toInp && fromInp) fromInp.max = toInp.value; });
     sel?.addEventListener('change', onRangeChange);
-    onRangeChange(); // init default
+    onRangeChange(); 
 
     // ===== Charts =====
     let recChart, recTypeChart, candChart, candDonut, candTypeDonut;
@@ -133,7 +133,7 @@
         });
     }
 
-    // Line: Candidates by day (total/vc/hd)
+    // Line: Candidates by day (vc/hd)
     async function loadCandChart() {
         const j = await safeJson(urls.candSeries + qs());
         destroyChart(candChart);
@@ -142,7 +142,6 @@
             data: {
                 labels: j.labels,
                 datasets: [
-                    { label: 'Tổng', data: j.total, tension: .3 },
                     { label: 'Viên chức', data: j.vc, tension: .3 },
                     { label: 'HĐ lao động', data: j.hd, tension: .3 }
                 ]
@@ -151,7 +150,7 @@
         });
     }
 
-    // Donut: trạng thái + loại hồ sơ (2 cái đặt cạnh nhau, cùng kích thước)
+    // Donut: trạng thái + loại hồ sơ 
     async function loadCandBreakdown() {
         const j = await safeJson(urls.candBreakdown + qs());
 

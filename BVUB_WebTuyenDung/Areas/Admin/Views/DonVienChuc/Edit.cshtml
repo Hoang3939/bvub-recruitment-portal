@@ -101,7 +101,7 @@
         <span asp-validation-for="UngVien.SoTaiKhoan" class="text-danger"></span>
     </div>
 
-    <!-- Sức khỏe -->
+    <!-- Tình trạng sức khỏe -->
     <div class="form-group">
         <label class="form-label fw-bold">Tình trạng sức khỏe</label>
         <input type="hidden" asp-for="UngVien.TinhTrangSucKhoe" id="hidSK" />
@@ -229,7 +229,9 @@
                 <div class="vanbang-block">
                     <h5>Văn bằng: @vb.LoaiVanBang</h5>
 
+                    <!-- Giữ loại & FK Ứng viên -->
                     <input type="hidden" name="VanBangs[@i].LoaiVanBang" value="@vb.LoaiVanBang" />
+                    <input type="hidden" name="VanBangs[@i].UngVienId" value="@Model.UngVien.UngVienId" /> 
 
                     <div class="form-group">
                         <label>Tên cơ sở cấp</label>
@@ -292,12 +294,12 @@
     </div>
 </form>
 
-<!-- POPUP kết quả lưu  -->
+<!-- Popup kết quả lưu --> 
 <dialog id="saveDialog">
     <h3 id="saveDlgTitle" style="margin:0 0 12px;">Kết quả lưu</h3>
     <p id="saveDlgMsg" style="margin:0 0 18px;"></p>
     <div style="display:flex;gap:8px;justify-content:flex-end">
-        <a class="btn btn-secondary" href="@Url.Action("Index","Candidates", new { area="Admin" })">Quay lại</a>
+        <a class="btn btn-secondary" href="@Url.Action("Index","Candidates", new { area = "Admin" })">Quay lại</a>
         <button type="button" class="btn btn-primary" id="btnCloseSave">Đóng</button>
     </div>
 </dialog>

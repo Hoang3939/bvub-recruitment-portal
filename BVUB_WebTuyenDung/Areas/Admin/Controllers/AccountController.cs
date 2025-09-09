@@ -16,7 +16,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Hosting; // <-- để biết env
+using Microsoft.AspNetCore.Hosting; 
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 {
@@ -27,7 +27,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         private readonly IDataProtector _protector;
         private readonly ILogger<AccountController> _logger;
         private readonly IEmailSender _emailSender;
-        private readonly IWebHostEnvironment _env; // để show lỗi chi tiết khi Development
+        private readonly IWebHostEnvironment _env; 
 
         private const string LoginFailCountKey = "AdminLoginFailCount";
 
@@ -254,7 +254,6 @@ Nếu bạn không yêu cầu, vui lòng bỏ qua email này.";
             {
                 _logger.LogError(ex, "Không thể gửi email đặt lại mật khẩu (SendGrid).");
 
-                // Ở môi trường Development: show lỗi chi tiết để debug ngay
                 if (_env.EnvironmentName == "Development")
                 {
                     ModelState.AddModelError("", "Lỗi gửi email: " + ex.Message);

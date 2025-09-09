@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Areas/Admin/Controllers/DonVienChucController.cs
+using System;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -280,6 +281,15 @@ td.label { width:35%; font-weight:bold; background:#f5f5f5 }
             };
             foreach (var k in ignoreKeys) ModelState.Remove(k);
 
+            if (vm.VanBangs != null)
+            {
+                for (int i = 0; i < vm.VanBangs.Count; i++)
+                {
+                    ModelState.Remove($"VanBangs[{i}].UngVien");
+                    ModelState.Remove($"VanBangs[{i}].UngVienId");
+                }
+            }
+
             if (!ModelState.IsValid)
             {
                 if (IsAjax())
@@ -347,7 +357,7 @@ td.label { width:35%; font-weight:bold; background:#f5f5f5 }
                 foreach (var vb in newVbs)
                 {
                     vb.VanBangId = 0;
-                    vb.UngVienId = uid;
+                    vb.UngVienId = uid; 
                     vb.TenCoSo = vb.TenCoSo?.Trim();
                     vb.SoHieu = vb.SoHieu?.Trim();
                     vb.ChuyenNganhDaoTao = vb.ChuyenNganhDaoTao?.Trim();

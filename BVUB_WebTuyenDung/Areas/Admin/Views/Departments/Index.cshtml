@@ -1,23 +1,21 @@
 ﻿@model IEnumerable<BVUB_WebTuyenDung.Areas.Admin.Models.DanhMucKhoaPhong>
 @{
-    ViewData["Title"] = "Khoa / Phòng";
     var q = (ViewBag.q ?? Context?.Request?.Query["q"].ToString()) as string;
     int? st = null;
     if (int.TryParse((ViewBag.st ?? Context?.Request?.Query["st"].ToString()) as string, out var stVal)) st = stVal;
+
     var hasFilter = !string.IsNullOrWhiteSpace(q) || st.HasValue;
     var tab = (Context?.Request?.Query["tab"].ToString() ?? "").ToLower() == "map" ? "map" : "manage";
+
+    // <-- Đổi tiêu đề theo tab
+    var pageTitle = tab == "map" ? "Thiết lập vị trí" : "Danh mục Khoa Phòng";
+    ViewData["Title"] = pageTitle;
 }
 <link rel="stylesheet" href="~/css/admin-departments-index.css" asp-append-version="true" />
 
 <div class="header-row"><h2>@ViewData["Title"]</h2></div>
 
 <div class="main-content">
-    <!-- Tabs -->
-    <div class="tabs">
-        <button type="button" class="tab-btn @(tab=="manage"?"active":"")" data-tab="tab-manage">Danh mục khoa/phòng</button>
-        <button type="button" class="tab-btn @(tab=="map"?"active":"")" data-tab="tab-map">Gắn vị trí</button>
-    </div>
-
     @if (TempData["ToastSuccess"] != null || TempData["ToastError"] != null)
     {
         <div id="toast" class="toast-mini @(TempData["ToastError"]!=null?"error":"")">
@@ -25,7 +23,7 @@
         </div>
     }
 
-    <!-- TAB 1 -->
+    <!-- Quản lý danh mục -->
     <div id="tab-manage" class="tab-panel @(tab=="manage"?"show":"")">
         <div class="actions actions-manage no-box">
             <form method="get" asp-action="Index" class="filter-form" role="search">
@@ -113,7 +111,7 @@
         </div>
     </div>
 
-    <!-- TAB 2 -->
+    <!-- Thiết lập vị trí -->
     <div id="tab-map" class="tab-panel @(tab=="map"?"show":"")">
         <div class="actions actions-map no-box">
             <form method="get" asp-action="Index" class="filter-form" role="search">
@@ -134,7 +132,7 @@
         </div>
 
         <div class="table-wrap">
-            <table class="departments-table" aria-label="Map vị trí cho khoa/phòng">
+            <table class="departments-table" aria-label="Thiết lập vị trí cho khoa/phòng">
                 <thead>
                     <tr>
                         <th class="col-id">Mã</th>
@@ -164,9 +162,8 @@
                                     <span>—</span>
                                 }
                             </td>
-                            <!-- cell-actions => vertical-align: middle -->
                             <td class="cell-actions" style="text-align:center;">
-                                <a asp-action="Edit" asp-route-id="@k.KhoaPhongId" class="btn btn-success">Gắn vị trí</a>
+                                <a asp-action="Edit" asp-route-id="@k.KhoaPhongId" class="btn btn-success">Thiết lập vị trí</a>
                             </td>
                         </tr>
                     }

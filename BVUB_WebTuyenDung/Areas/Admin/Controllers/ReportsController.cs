@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BVUB_WebTuyenDung.Areas.Admin.Data;
-using BVUB_WebTuyenDung.Areas.Admin.ViewModels; 
+using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 {
@@ -134,7 +134,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             return Json(new PairSeriesVm { Labels = labels, A = vc, B = hd });
         }
 
-        // CANDIDATE: daily line total/vc/hd
+        // CANDIDATE: daily line vc/hd 
         [HttpGet]
         public async Task<IActionResult> CandidateSeries(DateTime? from, DateTime? to)
         {
@@ -153,7 +153,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 .Select(g => new
                 {
                     Date = g.Key,
-                    Total = g.Count(),
                     VC = g.Count(x => x.DonType == "VC"),
                     HD = g.Count(x => x.DonType == "HD")
                 })
@@ -161,7 +160,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 .ToListAsync();
 
             var labels = new List<string>();
-            var total = new List<int>();
             var vc = new List<int>();
             var hd = new List<int>();
 
@@ -169,12 +167,12 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             {
                 labels.Add(d.ToString("dd/MM"));
                 var row = grouped.FirstOrDefault(x => x.Date == d);
-                total.Add(row?.Total ?? 0);
                 vc.Add(row?.VC ?? 0);
                 hd.Add(row?.HD ?? 0);
             }
 
-            return Json(new CandidateSeriesVm { Labels = labels, Total = total, VC = vc, HD = hd });
+            // Trả về chỉ VC/HD, không có Total
+            return Json(new CandidateSeriesVm { Labels = labels, VC = vc, HD = hd });
         }
 
         // CANDIDATE: breakdown donut + type bars
