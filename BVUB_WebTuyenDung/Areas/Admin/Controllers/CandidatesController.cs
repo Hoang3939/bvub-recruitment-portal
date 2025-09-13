@@ -51,7 +51,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         [Authorize]
         public async Task<IActionResult> Index(string q, string type, string status, int page = 1, int pageSize = 20)
         {
-            // VC: dùng NgayNop (NOT NULL) làm mốc thời gian chuẩn để sort/hiển thị
             var vcQuery =
                 from d in _context.DonVienChucs.AsNoTracking()
                 join uv in _context.UngViens.AsNoTracking() on d.UngVienId equals uv.UngVienId
@@ -60,14 +59,13 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     uv.UngVienId,
                     uv.HoTen,
                     uv.NgaySinh,
-                    NgayUngTuyen = d.NgayNop, // <-- chuẩn thời gian hiển thị/sort
+                    NgayUngTuyen = d.NgayNop,
                     DonType = "VC",
                     LoaiDon = "Đơn viên chức",
                     DonId = d.VienChucId,
                     TrangThai = (int?)d.TrangThai
                 };
 
-            // HD: dùng NgayNop (NOT NULL) làm mốc thời gian chuẩn để sort/hiển thị
             var hdQuery =
                 from h in _context.HopDongNguoiLaoDongs.AsNoTracking()
                 join uv in _context.UngViens.AsNoTracking() on h.UngVienId equals uv.UngVienId
@@ -76,7 +74,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     uv.UngVienId,
                     uv.HoTen,
                     uv.NgaySinh,
-                    NgayUngTuyen = h.NgayNop, // <-- chuẩn thời gian hiển thị/sort
+                    NgayUngTuyen = h.NgayNop,
                     DonType = "HD",
                     LoaiDon = "Hợp đồng lao động",
                     DonId = h.HopDongId,
@@ -231,6 +229,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             if (!System.IO.File.Exists(templatePath))
                 return BadRequest("Không tìm thấy template Excel: /wwwroot/templates/Thong tin Hop dong.xlsx");
 
+            // VC: đồng nhất tập thuộc tính
             var vc = _context.DonVienChucs.AsNoTracking()
                 .Select(d => new ExportRow
                 {
@@ -261,6 +260,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     NgheNghiepTruoc = null
                 });
 
+            // HD: đồng nhất tập thuộc tính
             var hd = _context.HopDongNguoiLaoDongs.AsNoTracking()
                 .Select(h => new ExportRow
                 {
@@ -350,12 +350,38 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     .ThenBy(v => v.VanBangId)
                     .ToList());
 
-            using var wb = new XLWorkbook(templatePath);
-            var ws = wb.Worksheet(1);
+            XLWorkbook wb;
+            try
+            {
+                // Kiểm tra kích thước file > 0 để tránh lỗi package rỗng
+                var fi = new FileInfo(templatePath);
+                if (!fi.Exists || fi.Length == 0)
+                    throw new InvalidOperationException("File template rỗng hoặc không tồn tại.");
+
+                using var fs = System.IO.File.OpenRead(templatePath);
+                wb = new XLWorkbook(fs);
+            }
+            catch
+            {
+                // Nếu template không hợp lệ (OpenXML hỏng, đổi file khác nhưng nội dung không đúng) => tạo workbook mới
+                wb = new XLWorkbook();
+            }
+
+            var ws = wb.Worksheets.Count > 0 ? wb.Worksheet(1) : wb.AddWorksheet("Sheet1");
 
             int headerRow = 1;
-            var lastCol = ws.LastColumnUsed().ColumnNumber();
-            var lastRow = ws.LastRowUsed().RowNumber();
+
+            // Nếu sheet đang trống: khởi tạo cột đầu tiên để tránh Last* null
+            if (ws.LastRowUsed() == null && ws.LastColumnUsed() == null)
+            {
+                ws.Cell(headerRow, 1).Value = "STT";
+            }
+
+            var lastCol = ws.LastColumnUsed()?.ColumnNumber()
+                         ?? ws.FirstColumnUsed()?.ColumnNumber()
+                         ?? 1;
+            var lastRow = ws.LastRowUsed()?.RowNumber()
+                         ?? headerRow;
 
             var headerToCol = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             for (int c = 1; c <= lastCol; c++)
@@ -365,9 +391,21 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     headerToCol[name] = c;
             }
 
+            // HÀM SET: nếu header chưa có trong template thì TỰ TẠO CỘT MỚI + GHI HEADER
             void Set(IXLWorksheet s, int row, string header, object? val)
             {
-                if (!headerToCol.TryGetValue(header, out var col)) return;
+                if (!headerToCol.TryGetValue(header, out var col))
+                {
+                    col = (++lastCol);
+                    headerToCol[header] = col;
+                    var headCell = s.Cell(headerRow, col);
+                    headCell.Value = header;
+                    headCell.Style.Font.Bold = true;
+                    headCell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                    headCell.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+                    headCell.Style.Fill.BackgroundColor = XLColor.FromHtml("#EEEEEE");
+                }
+
                 var cell = s.Cell(row, col);
                 if (val is DateTime dt)
                 {
@@ -398,7 +436,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 _ => "Không rõ"
             };
 
-            var startRow = Math.Max(lastRow + 1, 2);
+            var startRow = Math.Max(lastRow + 1, headerRow + 1);
             int r = startRow, stt = 1;
 
             foreach (var x in items)
@@ -416,29 +454,24 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 Set(ws, r, "Số Thẻ căn cước công dân hoặc số thẻ căn cước", x.CCCD);
                 Set(ws, r, "Ngày cấp Thẻ căn cước công dân hoặc thẻ căn cước", x.NgayCapCCCD);
                 Set(ws, r, "Nơi cấp Thẻ căn cước công dân hoặc thẻ căn cước", x.NoiCapCCCD);
-                Set(ws, r, "Địa chỉ thường trú (ghi theo thông tin trong ứng dụng VNeID)\nGhi đầy đủ chính xác, đầy đủ thông tin theo đơn vị hành chính mới, bao gồm: Số nhà, tên đường, cấp phường (xã), tỉnh (thành phố)\n(ví dụ: 59 Nguyễn Thị Minh Khai, phường Bến Thành, Thành phố Hồ Chí Minh)", x.DiaChiThuongTru);
-                Set(ws, r, "Địa chỉ nơi cư trú/Nơi ở hiện tại (ghi theo thông tin trong ứng dụng VNeID hoặc nơi ở hiện tại)\nGhi đầy đủ chính xác, đầy đủ thông tin theo đơn vị hành chính mới, bao gồm: Số nhà, tên đường, cấp phường (xã), tỉnh (thành phố)\n(ví dụ: 59 Nguyễn Thị Minh Khai, phường Bến Thành, Thành phố Hồ Chí Minh)", x.DiaChiCuTru);
+                Set(ws, r, "Địa chỉ thường trú ", x.DiaChiThuongTru);
+                Set(ws, r, "Địa chỉ nơi cư trú/Nơi ở hiện tại", x.DiaChiCuTru);
                 Set(ws, r, "Trạng thái hệ thống", StatusLabel(x.TrangThai));
 
-                if (headerToCol.ContainsKey("Ngày nộp đơn (Hệ thống)") && x.NgayNop.HasValue)
-                {
-                    var col = headerToCol["Ngày nộp đơn (Hệ thống)"];
-                    var cell = ws.Cell(r, col);
-                    cell.Value = x.NgayNop.Value;
-                    cell.Style.DateFormat.Format = "dd/MM/yyyy";
-                }
+                if (x.NgayNop.HasValue)
+                    Set(ws, r, "Ngày nộp đơn (Hệ thống)", x.NgayNop.Value);
 
                 Set(ws, r, "Khoa hiện đang công tác", x.KhoaPhongTen ?? "");
 
                 if (x.DonType == "HD")
                 {
-                    Set(ws, r, "Nơi sinh\n(Ghi theo đơn vị hành chính mới - Theo VNeID)\nVí dụ: \n- Phường Tân Bình, Thành phố Hồ Chí Minh\n- Tỉnh Lâm Đồng", x.NoiSinh);
-                    Set(ws, r, "Nghề nghiệp trước khi được tuyển dụng\nVí dụ: Bác sĩ, Điều dưỡng, Kỹ thuật y, Kế toán viên, Chuyên viên...", x.NgheNghiepTruoc);
+                    Set(ws, r, "Nơi sinh", x.NoiSinh);
+                    Set(ws, r, "Nghề nghiệp trước khi được tuyển dụng", x.NgheNghiepTruoc);
                     Set(ws, r, "Chuyên ngành đào tạo", x.ChuyenNganhDaoTao);
                     Set(ws, r, "Năm tốt nghiệp", x.NamTotNghiep);
                     Set(ws, r, "Trình độ tin học", x.TrinhDoTinHoc);
                     Set(ws, r, "Trình độ ngoại ngữ", x.TrinhDoNgoaiNgu);
-                    Set(ws, r, "[Chứng chỉ hành nghề] Số CCHN (nếu có)\nVí dụ: 01234/HCM-CCHN", x.ChungChiHanhNghe);
+                    Set(ws, r, "[Chứng chỉ hành nghề] Số CCHN (nếu có)", x.ChungChiHanhNghe);
                 }
 
                 if (vbLookup.TryGetValue(x.UngVienId, out var listVb))
@@ -504,7 +537,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
                     if (vbKhac != null)
                     {
-                        Set(ws, r, "[Văn bằng khác] Trình độ đào tạo\nVí dụ: Chuyên gia...", vbKhac.LoaiVanBang);
+                        Set(ws, r, "[Văn bằng khác] Trình độ đào tạo", vbKhac.LoaiVanBang);
                         Set(ws, r, "[Văn bằng khác] Chuyên ngành đào tạo ghi theo bảng điểm (nếu có)", vbKhac.ChuyenNganhDaoTao);
                         if (vbKhac.NgayCap.HasValue)
                             Set(ws, r, "[Văn bằng khác] Ngày, tháng, năm cấp văn bằng (nếu có)", vbKhac.NgayCap.Value);
@@ -535,7 +568,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
 
             int lastDataRow = Math.Max(r - 1, headerRow);
-            var allRange = ws.Range(headerRow, 1, lastDataRow, lastCol);
+            var allRange = ws.Range(headerRow, 1, lastDataRow, ws.LastColumnUsed().ColumnNumber());
 
             allRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
             allRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
@@ -545,30 +578,26 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
             ws.Row(headerRow).Style.Font.Bold = true;
 
-            if (lastDataRow >= startRow)
+            if (lastDataRow >= headerRow + 1)
             {
-                var dataRange = ws.Range(startRow, 1, lastDataRow, lastCol);
+                var dataRange = ws.Range(headerRow + 1, 1, lastDataRow, ws.LastColumnUsed().ColumnNumber());
                 dataRange.Style.Font.Bold = false;
             }
 
             ws.SheetView.FreezeRows(1);
 
-            var dataStart = startRow;
+            // Zebra
+            var dataStart = headerRow + 1;
             var dataEnd = lastDataRow;
             for (int row = dataStart; row <= dataEnd; row++)
             {
                 if ((row - dataStart) % 2 == 1)
-                {
-                    ws.Row(row).Style.Fill.BackgroundColor = XLColor.FromHtml("#F2F2F2");
-                }
+                    ws.Row(row).Style.Fill.BackgroundColor = XLColor.FromHtml("#F7F7F7");
                 else
-                {
                     ws.Row(row).Style.Fill.BackgroundColor = XLColor.White;
-                }
             }
 
-            ws.Columns(1, lastCol).AdjustToContents();
-            ws.Rows(headerRow, lastDataRow).AdjustToContents();
+            ws.Columns().AdjustToContents();
 
             using var stream = new MemoryStream();
             wb.SaveAs(stream);

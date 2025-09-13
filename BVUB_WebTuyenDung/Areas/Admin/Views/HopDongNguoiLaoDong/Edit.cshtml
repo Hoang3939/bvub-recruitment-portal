@@ -192,8 +192,9 @@
                 <div class="vanbang-block">
                     <h5>Văn bằng: @vb.LoaiVanBang</h5>
 
-                    <!-- Giữ loại VB -->
+                    <!-- Giữ loại & FK -->
                     <input type="hidden" name="VanBangs[@i].LoaiVanBang" value="@vb.LoaiVanBang" />
+                    <input type="hidden" name="VanBangs[@i].UngVienId" value="@Model.UngVien.UngVienId" /> <!-- Giữ FK -->
 
                     <div class="form-group">
                         <label>Tên cơ sở cấp</label>
@@ -256,7 +257,7 @@
     </div>
 </form>
 
-<!-- Popup kết quả lưu -->
+<!-- Popup xem chi tiết kết quả lưu --> 
 <dialog id="saveDialog" class="save-dialog">
     <h3 id="dlgTitle" style="margin:0 0 12px;">Kết quả lưu</h3>
     <div id="dlgMsg" style="margin:0 0 18px;"></div>
@@ -269,7 +270,7 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        // --- Đồng bộ "Tình trạng sức khỏe" vào hidden ---
+        // Đồng bộ "Tình trạng sức khỏe" --> hidden
         (function () {
             const hid = document.getElementById('hidSK');
             const radios = document.querySelectorAll('.js-sk');
@@ -290,11 +291,11 @@
             sync();
         })();
 
-        // --- Đồng bộ "Hình thức đào tạo" cho từng văn bằng ---
+        // Đồng bộ "Hình thức đào tạo" từng văn bằng
         (function () {
             const radios = document.querySelectorAll('.vb-ht');
             function onChange(e) {
-                const name = e.target.getAttribute('name'); // vb-ht-{i}
+                const name = e.target.getAttribute('name'); 
                 const idx = name.replace('vb-ht-', '');
                 const hidden = document.querySelector('.vb-ht-hidden[data-index="' + idx + '"]');
                 const other = document.querySelector('.vb-ht-other[data-index="' + idx + '"]');

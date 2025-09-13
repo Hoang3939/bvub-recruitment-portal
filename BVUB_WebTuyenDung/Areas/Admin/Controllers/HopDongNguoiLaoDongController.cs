@@ -23,7 +23,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         private readonly AdminDbContext _context;
         public HopDongNguoiLaoDongController(AdminDbContext context) => _context = context;
 
-        // Helpers
+        // Map trạng thái
         private static (string Label, string Css) MapStatus(int? stt) => stt switch
         {
             1 => ("Chờ xử lý", "pending"),
@@ -133,7 +133,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 .FirstOrDefaultAsync(h => h.HopDongId == id);
             if (don == null) return NotFound();
 
-            // LẤY VB THEO ỨNG VIÊN
             var vbs = await _context.VanBangs.AsNoTracking()
                 .Where(v => v.UngVienId == don.UngVienId)
                 .OrderByDescending(v => v.NgayCap ?? DateTime.MinValue)
@@ -153,7 +152,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
         // ================== EDIT ==================
         [HttpGet]
-        public async System.Threading.Tasks.Task<IActionResult> Edit(int id) // id = HopDongId
+        public async System.Threading.Tasks.Task<IActionResult> Edit(int id)
         {
             var hd = await _context.HopDongNguoiLaoDongs
                         .Include(h => h.UngVien)
@@ -162,7 +161,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
             if (hd == null) return NotFound();
 
-            // Lấy VB theo Ứng viên
             var vbs = await _context.VanBangs.AsNoTracking()
                 .Where(v => v.UngVienId == hd.UngVienId)
                 .OrderByDescending(v => v.NgayCap ?? DateTime.MinValue)
@@ -184,7 +182,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async System.Threading.Tasks.Task<IActionResult> Edit(UngTuyenNguoiLaoDongViewModel vm)
         {
-            // Bỏ validate các navigation / field không sửa
+            // -- Bỏ validate các navigation/field hệ thống --
             string[] ignore = {
                 "HopDongNguoiLaoDong.UngVien",
                 "HopDongNguoiLaoDong.KhoaPhongCongTac",
@@ -194,6 +192,16 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 "HopDongNguoiLaoDong.Loai"
             };
             foreach (var k in ignore) ModelState.Remove(k);
+
+            // -- Bỏ validate cho VanBangs[*].UngVien (và FK nếu có [Required]) --
+            if (vm.VanBangs != null)
+            {
+                for (int i = 0; i < vm.VanBangs.Count; i++)
+                {
+                    ModelState.Remove($"VanBangs[{i}].UngVien");
+                    ModelState.Remove($"VanBangs[{i}].UngVienId");
+                }
+            }
 
             if (!ModelState.IsValid)
             {
@@ -217,10 +225,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
             try
             {
-                // 1) Cập nhật Ứng viên
+                // -- Cập nhật Ứng viên --
                 ApplyUngVien(vm.UngVien, hd.UngVien);
 
-                // 2) Cập nhật HĐ (chỉ field cho phép sửa)
+                // -- Cập nhật Hợp đồng --
                 var src = vm.HopDongNguoiLaoDong;
                 hd.KhoaPhongCongTacId = src.KhoaPhongCongTacId;
                 hd.NoiSinh = src.NoiSinh?.Trim();
@@ -230,14 +238,13 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 hd.TrinhDoNgoaiNgu = src.TrinhDoNgoaiNgu?.Trim();
                 hd.ChungChiHanhNghe = src.ChungChiHanhNghe?.Trim();
                 hd.NgheNghiepTruocTuyenDung = src.NgheNghiepTruocTuyenDung?.Trim();
-                // KHÔNG đụng tới: hd.Loai, hd.MaTraCuu, hd.NgayNop, hd.TrangThai, hd.UngVienId
+                // KHÔNG: Loai, MaTraCuu, NgayNop, TrangThai, UngVienId
 
-                // 3) Văn bằng: thay thế toàn bộ
+                // -- Văn bằng: thay thế toàn bộ --
                 var ungVienId = hd.UngVienId;
                 var existingVbs = await _context.VanBangs
                     .Where(v => v.UngVienId == ungVienId)
                     .ToListAsync();
-
                 _context.VanBangs.RemoveRange(existingVbs);
 
                 var cleaned = (vm.VanBangs ?? new List<VanBang>())

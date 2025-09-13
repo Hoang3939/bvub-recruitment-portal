@@ -175,13 +175,13 @@
     .departments-table tbody td {
         background: #fff;
         padding: 10px 12px;
-        vertical-align: top /* mặc định: top */
+        vertical-align: top 
     }
 
     .departments-table tbody tr:hover td {
         background: #f7fbff
     }
-    /* Cột dính phải */
+    
     .departments-table th:last-child, .departments-table td:last-child {
         position: sticky;
         right: 0;
@@ -202,7 +202,7 @@
 }
 
 .col-type {
-    width: 160px
+    width: 100px
 }
 
 .col-attach {
@@ -210,7 +210,7 @@
 }
 
 .col-status {
-    width: 100px
+    width: 120px
 }
 
 .col-actions {

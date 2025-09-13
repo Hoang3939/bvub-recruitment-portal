@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Globalization; 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -9,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using BVUB_WebTuyenDung.Areas.Admin.Data;
 using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
 using M = BVUB_WebTuyenDung.Areas.Admin.Models;
+using System.Text;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 {
@@ -18,6 +20,20 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     {
         private readonly AdminDbContext _ctx;
         public DepartmentsController(AdminDbContext ctx) => _ctx = ctx;
+
+        // ===== Helpers: chuẩn hoá tên để so trùng
+        private static string NormalizeDeptName(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+            // 1) Trim + gộp khoảng trắng
+            var s = string.Join(' ', input.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries));
+            // 2) Bỏ dấu tiếng Việt
+            var normalized = s.Normalize(NormalizationForm.FormD);
+            var chars = normalized.Where(c => CharUnicodeInfo.GetUnicodeCategory(c) != UnicodeCategory.NonSpacingMark).ToArray();
+            s = new string(chars).Normalize(NormalizationForm.FormC);
+            // 3) Không phân biệt hoa/thường
+            return s.ToUpperInvariant();
+        }
 
         // Index: q (text), st (status: null all, 0 active, 1 suspended)
         public async Task<IActionResult> Index(string q, int? st)
@@ -68,7 +84,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             return vm;
         }
 
-        // ====== CREATE: chỉ tạo Tên/Loại/Trạng thái (không map vị trí)
+        // ====== CREATE: chỉ tạo Tên/Loại/Trạng thái 
         [HttpGet]
         public IActionResult Create() => View(new DepartmentFrmVm());
 
@@ -79,13 +95,22 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
             var name = (vm.Ten ?? "").Trim();
 
-            // Chống trùng tên (không phân biệt hoa/thường)
+            // Kiểm tra trùng nhanh theo DB (không phân biệt hoa/thường)
             bool existed = await _ctx.DanhMucKhoaPhongs
                 .AnyAsync(k => k.Ten.ToLower() == name.ToLower());
+
+            // Kiểm tra trùng (bỏ dấu, gộp khoảng trắng, không phân biệt hoa/thường)
+            if (!existed)
+            {
+                var normalizedNew = NormalizeDeptName(name);
+                var allNames = await _ctx.DanhMucKhoaPhongs.Select(x => x.Ten).ToListAsync();
+                existed = allNames.Any(n => NormalizeDeptName(n) == normalizedNew);
+            }
+
             if (existed)
             {
                 ModelState.AddModelError(nameof(vm.Ten), "Tên khoa/phòng đã tồn tại.");
-                TempData["ToastError"] = "Khoa/Phòng này đã tồn tại (đang sử dụng hoặc đã có trong hệ thống).";
+                TempData["ToastError"] = "Khoa/Phòng này đã tồn tại (tên bị trùng).";
                 return View(vm);
             }
 
@@ -110,7 +135,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
         }
 
-        // ====== EditInfo: SỬA CHỈ tên/loại/trạng thái (không map vị trí)
+        // ====== EditInfo: SỬA tên/loại/trạng thái
         [HttpGet]
         public async Task<IActionResult> EditInfo(int id)
         {
@@ -136,12 +161,27 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             if (kp == null) return NotFound();
 
             var name = (vm.Ten ?? "").Trim();
+
+            // Kiểm tra trùng nhanh theo DB (không phân biệt hoa/thường, loại trừ chính nó)
             bool existed = await _ctx.DanhMucKhoaPhongs
                 .AnyAsync(k => k.KhoaPhongId != id && k.Ten.ToLower() == name.ToLower());
+
+            // Kiểm tra trùng (bỏ dấu, gộp khoảng trắng)
+            if (!existed)
+            {
+                var normalizedNew = NormalizeDeptName(name);
+                var otherNames = await _ctx.DanhMucKhoaPhongs
+                    .Where(k => k.KhoaPhongId != id)
+                    .Select(x => x.Ten)
+                    .ToListAsync();
+
+                existed = otherNames.Any(n => NormalizeDeptName(n) == normalizedNew);
+            }
+
             if (existed)
             {
                 ModelState.AddModelError(nameof(vm.Ten), "Tên khoa/phòng đã tồn tại.");
-                TempData["ToastError"] = "Tên khoa/phòng đã tồn tại.";
+                TempData["ToastError"] = "Tên khoa/phòng đã tồn tại. Vui lòng nhập tên khác.";
                 return View(vm);
             }
 
@@ -162,7 +202,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
         }
 
-        // ====== Edit (GIỮ NGUYÊN) – trang MAP vị trí
+        // ====== Edit (Thiết lập vị trí)
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -191,6 +231,17 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             var name = (vm.Ten ?? "").Trim();
             bool existed = await _ctx.DanhMucKhoaPhongs
                 .AnyAsync(k => k.KhoaPhongId != id && k.Ten.ToLower() == name.ToLower());
+
+            if (!existed)
+            {
+                var normalizedNew = NormalizeDeptName(name);
+                var otherNames = await _ctx.DanhMucKhoaPhongs
+                    .Where(k => k.KhoaPhongId != id)
+                    .Select(x => x.Ten)
+                    .ToListAsync();
+                existed = otherNames.Any(n => NormalizeDeptName(n) == normalizedNew);
+            }
+
             if (existed)
             {
                 ModelState.AddModelError(nameof(vm.Ten), "Tên khoa/phòng đã tồn tại.");
@@ -241,8 +292,8 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 }
 
                 await _ctx.SaveChangesAsync();
-                TempData["ToastSuccess"] = "Đã cập nhật khoa/phòng.";
-                return RedirectToAction(nameof(Index));
+                TempData["ToastSuccess"] = "Đã cập nhật.";
+                return RedirectToAction(nameof(Index), new { tab = "map" });
             }
             catch
             {
@@ -277,7 +328,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             return PartialView("_DepartmentDetailsPartial", e);
         }
 
-        // (Giữ nguyên 2 API GetPositionsByTitle / GetPositionsByIds nếu còn dùng ở Edit map)
         [HttpGet]
         public async Task<IActionResult> GetPositionsByTitle(int chucDanhId)
         {
