@@ -7,7 +7,7 @@
     var hasFilter = !string.IsNullOrWhiteSpace(q) || st.HasValue;
     var tab = (Context?.Request?.Query["tab"].ToString() ?? "").ToLower() == "map" ? "map" : "manage";
 
-    // <-- Đổi tiêu đề theo tab
+    // Đổi tiêu đề theo tab
     var pageTitle = tab == "map" ? "Thiết lập vị trí" : "Danh mục Khoa Phòng";
     ViewData["Title"] = pageTitle;
 }

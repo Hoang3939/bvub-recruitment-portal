@@ -335,7 +335,6 @@
         transform: translateY(0)
     }
 
-/* bỏ “khung” filter */
 .actions.no-box, .actions-manage.no-box, .actions-map.no-box, .actions.no-box form {
     background: transparent !important;
     border: none !important;
@@ -343,6 +342,7 @@
     padding: 0 !important;
     margin: 12px 0 0 !important;
 }
+
 /* ô tìm ở tab map */
 .actions-map .mini-search-input {
     width: 340px;
@@ -360,7 +360,6 @@
         margin: 0 0 4px 0
     }
 
-/* === Căn giữa theo chiều dọc riêng cho cột thao tác === */
 .departments-table tbody td.cell-actions {
     vertical-align: middle
 }
