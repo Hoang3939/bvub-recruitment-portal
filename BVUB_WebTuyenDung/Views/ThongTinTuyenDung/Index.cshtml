@@ -8,83 +8,124 @@
     <link rel="stylesheet" href="~/css/tuyendung.css" asp-append-version="true" />
 }
 
-<h1 class="td-title">Thông tin tuyển dụng</h1>
+<div class="td-root">
+    <h1 class="td-title">Thông tin tuyển dụng</h1>
 
-<form method="get" class="td-toolbar">
-    <div class="td-filters">
-        <a asp-action="Index" asp-route-loai="" asp-route-q="@Model.Q" asp-route-sort="@Model.Sort"
-           class="td-chip @(string.IsNullOrEmpty(Model.Loai) ? "is-active" : "")">Tất cả</a>
-        <a asp-action="Index" asp-route-loai="VC" asp-route-q="@Model.Q" asp-route-sort="@Model.Sort"
-           class="td-chip @Active("VC")">Viên chức</a>
-        <a asp-action="Index" asp-route-loai="NLD" asp-route-q="@Model.Q" asp-route-sort="@Model.Sort"
-           class="td-chip @Active("NLD")">Người lao động</a>
-    </div>
+    <form method="get" class="td-toolbar" role="search">
+        <div class="td-filters" role="group" aria-label="Lọc theo loại tuyển dụng">
+            @{
+                var allClass = "td-chip " + (string.IsNullOrEmpty(Model.Loai) ? "is-active" : "");
+                var vcClass = "td-chip " + Active("VC");
+                var nldClass = "td-chip " + Active("NLD");
+            }
+            <a asp-action="Index" asp-route-loai="" asp-route-q="@Model.Q" asp-route-sort="@Model.Sort" class="@allClass">Tất cả</a>
+            <a asp-action="Index" asp-route-loai="VC" asp-route-q="@Model.Q" asp-route-sort="@Model.Sort" class="@vcClass">Viên chức</a>
+            <a asp-action="Index" asp-route-loai="NLD" asp-route-q="@Model.Q" asp-route-sort="@Model.Sort" class="@nldClass">Người lao động</a>
+        </div>
 
-    <div class="td-search-sort">
-        <input type="hidden" name="loai" value="@Model.Loai" />
-        <input type="text" name="q" value="@Model.Q" placeholder="Tìm theo tiêu đề, nội dung..." class="td-search" />
-        @{
-            var s = (Model.Sort ?? "moi-nhat").ToLower();
-        }
-        <select name="sort" class="td-sort">
-            <option value="moi-nhat" selected="@(s == "moi-nhat")">Mới đăng</option>
-            <option value="sap-het-han" selected="@(s == "sap-het-han")">Sắp hết hạn</option>
-        </select>
-        <button type="submit" class="td-btn td-btn--primary">Lọc</button>
-    </div>
-</form>
+        <div class="td-search-sort">
+            <input type="hidden" name="loai" value="@Model.Loai" />
 
-@if (Model.Items.Count == 0)
-{
-    <div class="td-empty">Chưa có thông tin tuyển dụng phù hợp.</div>
-}
-else
-{
-    <div class="td-list">
-        @foreach (var item in Model.Items)
-        {
-            var img = string.IsNullOrWhiteSpace(item.FileAnh)
-            ? (string.IsNullOrWhiteSpace(item.FileDinhKem) ? Url.Content("~/uploads/job-placeholder.png")
-            : Url.Content(item.FileDinhKem.StartsWith("/") ? item.FileDinhKem : "~/uploads/" + item.FileDinhKem))
-            : Url.Content(item.FileAnh.StartsWith("/") ? item.FileAnh : "~/uploads/" + item.FileAnh);
+            <label for="q" class="visually-hidden">Tìm kiếm</label>
+            <input id="q" type="text" name="q" value="@Model.Q"
+                   placeholder="Tìm theo tiêu đề, nội dung..."
+                   class="td-search" autocomplete="off" />
 
-            var days = (item.HanNopHoSo.Date - DateTime.Today).TotalDays;
-            var daysText = days < 0 ? "Đã hết hạn" : (days == 0 ? "Hạn nộp hôm nay" : $"Còn {Math.Ceiling(days)} ngày");
+            @{
+                var s = (Model.Sort ?? "moi-nhat").ToLowerInvariant();
+            }
+            <label for="sort" class="visually-hidden">Sắp xếp</label>
+            <select id="sort" name="sort" class="td-sort">
+                @if (s == "moi-nhat")
+                {
+                    <option value="moi-nhat" selected> Mới đăng </option>
+                    <option value="sap-het-han"> Sắp hết hạn </option>
+                }
+                else
+                {
+                    <option value="moi-nhat"> Mới đăng </option>
+                    <option value="sap-het-han" selected> Sắp hết hạn </option>
+                }
+            </select>
 
-            <article class="td-card">
-                <div class="td-card__body">
-                    <h3 class="td-card__title">
-                        <a asp-action="Detail" asp-route-id="@item.TuyenDungId" class="td-card__title-link">@item.TieuDe</a>
-                    </h3>
-                    <div class="td-card__meta">
-                        <span class="td-badge">@LabelLoai(item.LoaiTuyenDung)</span>
-                        <span>Ngày đăng: @item.NgayDang.ToString("dd/MM/yyyy")</span>
-                        <span>Hạn nộp: @item.HanNopHoSo.ToString("dd/MM/yyyy")</span>
-                        <span class="td-remain @((days <= 3 && days >= 0) ? "is-hot" : "")">@daysText</span>
+            <button type="submit" class="td-btn td-btn--primary">Lọc</button>
+        </div>
+    </form>
+
+    @if (Model.Items.Count == 0)
+    {
+        <div class="td-empty">Chưa có thông tin tuyển dụng phù hợp.</div>
+    }
+    else
+    {
+        <div class="td-list" role="list">
+            @foreach (var item in Model.Items)
+            {
+                var img = string.IsNullOrWhiteSpace(item.FileAnh)
+                ? (string.IsNullOrWhiteSpace(item.FileDinhKem) ? Url.Content("~/uploads/job-placeholder.png")
+                : Url.Content(item.FileDinhKem.StartsWith("/") ? item.FileDinhKem : "~/uploads/" + item.FileDinhKem))
+                : Url.Content(item.FileAnh.StartsWith("/") ? item.FileAnh : "~/uploads/" + item.FileAnh);
+
+                var days = (item.HanNopHoSo.Date - DateTime.Today).TotalDays;
+                var daysText = days < 0 ? "Đã hết hạn" : (days == 0 ? "Hạn nộp hôm nay" : $"Còn {Math.Ceiling(days)} ngày");
+                var loaiText = LabelLoai(item.LoaiTuyenDung);
+
+                <article class="td-card" role="listitem">
+                    <div class="td-card__body">
+                        <h3 class="td-card__title">
+                            <a asp-action="Detail" asp-route-id="@item.TuyenDungId" class="td-card__title-link">
+                                @item.TieuDe
+                            </a>
+                        </h3>
+                        <div class="td-card__meta">
+                            <span class="td-badge">@loaiText</span>
+                            <span>Ngày đăng: @item.NgayDang.ToString("dd/MM/yyyy")</span>
+                            <span>Hạn nộp: @item.HanNopHoSo.ToString("dd/MM/yyyy")</span>
+                            <span class="td-remain @((days <= 3 && days >= 0) ? "is-hot" : "")">@daysText</span>
+                        </div>
+
+                        <a asp-action="Detail" asp-route-id="@item.TuyenDungId" class="td-btn">Xem chi tiết →</a>
                     </div>
 
-                    <a asp-action="Detail" asp-route-id="@item.TuyenDungId" class="td-btn">Xem chi tiết →</a>
-                </div>
-
-                <div class="td-card__thumb">
-                    <img src="@img" alt="Hình tuyển dụng">
-                </div>
-            </article>
-        }
-    </div>
-
-    @if (Model.TotalPages > 1)
-    {
-        <nav class="td-pager" aria-label="Pagination">
-            @for (int p = 1; p <= Model.TotalPages; p++)
-            {
-                <a class="td-page @(p==Model.Page ? "is-active" : "")"
-                   asp-action="Index"
-                   asp-route-loai="@Model.Loai"
-                   asp-route-q="@Model.Q"
-                   asp-route-sort="@Model.Sort"
-                   asp-route-page="@p">@p</a>
+                    <div class="td-card__thumb" aria-hidden="true">
+                        <img src="@img" alt="Ảnh minh họa tuyển dụng @loaiText">
+                    </div>
+                </article>
             }
-        </nav>
+        </div>
+
+        @if (Model.TotalPages > 1)
+        {
+            <nav class="td-pager" aria-label="Phân trang">
+                @for (int p = 1; p <= Model.TotalPages; p++)
+                {
+                    var isCurrent = p == Model.Page;
+                    var pageClass = "td-page" + (isCurrent ? " is-active" : "");
+                    if (isCurrent)
+                    {
+                        <a class="@pageClass"
+                           asp-action="Index"
+                           asp-route-loai="@Model.Loai"
+                           asp-route-q="@Model.Q"
+                           asp-route-sort="@Model.Sort"
+                           asp-route-page="@p"
+                           aria-current="page">
+                            @p
+                        </a>
+                    }
+                    else
+                    {
+                        <a class="@pageClass"
+                           asp-action="Index"
+                           asp-route-loai="@Model.Loai"
+                           asp-route-q="@Model.Q"
+                           asp-route-sort="@Model.Sort"
+                           asp-route-page="@p">
+                            @p
+                        </a>
+                    }
+                }
+            </nav>
+        }
     }
-}
+</div>

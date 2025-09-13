@@ -1,15 +1,8 @@
 ﻿@model BVUB_WebTuyenDung.Models.ThongTinTuyenDung
 @using System
-@using System.IO
+
 @{
     ViewData["Title"] = "Chi tiết tuyển dụng";
-
-    string LabelLoai(string? loai) => (loai ?? "").ToUpperInvariant() switch
-    {
-        "VC" => "Viên chức",
-        "NLD" => "Người lao động",
-        _ => "Khác"
-    };
 
     // Chuẩn hoá URL đính kèm (giữ nguyên nếu là http/https)
     string? attachUrl = null;
@@ -21,11 +14,12 @@
             : Url.Content(raw.StartsWith("/") ? raw : "~/uploads/" + raw);
     }
 
-    // Xác định có phải ảnh không (KHÔNG dùng pattern "or", dùng so sánh chuỗi thường)
-    var ext = string.IsNullOrWhiteSpace(attachUrl)
-        ? ""
-        : System.IO.Path.GetExtension(attachUrl!).ToLowerInvariant();
-
+    // Xác định có phải ảnh (dùng tên đầy đủ System.IO.Path để tránh xung đột)
+    var ext = "";
+    if (!string.IsNullOrWhiteSpace(attachUrl) && System.IO.Path.HasExtension(attachUrl))
+    {
+        ext = System.IO.Path.GetExtension(attachUrl)!.ToLowerInvariant();
+    }
     var isImage = ext == ".png" || ext == ".jpg" || ext == ".jpeg" || ext == ".webp" || ext == ".gif";
 
     var days = (Model.HanNopHoSo.Date - DateTime.Today).TotalDays;
@@ -38,16 +32,47 @@
     <link rel="stylesheet" href="~/css/tuyendung.css" asp-append-version="true" />
 }
 
-<div class="td-detail">
-    <h1 class="td-detail__title">@Model.TieuDe</h1>
+@functions {
+    private static string Norm(string? s) => (s ?? "").Trim().ToUpperInvariant();
 
-    <div class="td-detail__meta">
-        <span class="td-badge">@LabelLoai(Model.LoaiTuyenDung)</span>
-        <span>Ngày đăng: @Model.NgayDang.ToString("dd/MM/yyyy")</span>
-        <span>Hạn nộp: @Model.HanNopHoSo.ToString("dd/MM/yyyy")</span>
-        <span class="td-remain @(days <= 3 && days >= 0 ? "is-hot" : "")">@daysText</span>
+    private static bool IsVC(string? s) =>
+        new[] { "VC", "VIEN CHUC", "VIÊN CHỨC", "VIENCHUC" }.Contains(Norm(s));
+
+    private static bool IsNLD(string? s) =>
+        new[] { "NLD", "NGUOI LAO DONG", "NGƯỜI LAO ĐỘNG", "NGUOILAODONG" }.Contains(Norm(s));
+
+    private static string LabelLoai(string? s) =>
+        IsVC(s) ? "Viên chức" : IsNLD(s) ? "Người lao động" : "Khác";
+}
+
+<div class="td-detail">
+    <div class="td-detail__head">
+        <div>
+            <h1 class="td-detail__title">@Model.TieuDe</h1>
+            <div class="td-detail__meta">
+                <span class="td-badge">@LabelLoai(Model.LoaiTuyenDung)</span>
+                <span>Ngày đăng: @Model.NgayDang.ToString("dd/MM/yyyy")</span>
+                <span>Hạn nộp: @Model.HanNopHoSo.ToString("dd/MM/yyyy")</span>
+                <span class="td-remain @(days <= 3 && days >= 0 ? "is-hot" : "")">@daysText</span>
+            </div>
+        </div>
+
+        @* Nút tải file góc phải *@
+        @if (!string.IsNullOrWhiteSpace(attachUrl))
+        {
+            var downloadLabel = ext == ".pdf" ? "Tải PDF"
+            : (ext == ".doc" || ext == ".docx") ? "Tải Word"
+            : "Tải tệp đính kèm";
+
+            <div class="td-detail__actions">
+                <a href="@attachUrl" class="td-btn td-btn--primary td-btn--sm" target="_blank" rel="noopener">
+                    @downloadLabel
+                </a>
+            </div>
+        }
     </div>
 
+    @* Ảnh cover nếu tệp là ảnh *@
     @if (isImage)
     {
         <div class="td-detail__cover">
@@ -59,19 +84,26 @@
         @Html.Raw(Model.NoiDung)
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(attachUrl))
-    {
-        var downloadLabel = ext == ".pdf" ? "Tải PDF"
-        : (ext == ".doc" || ext == ".docx") ? "Tải Word"
-        : "Tải tệp đính kèm";
-        <div class="td-detail__files" style="margin-top:12px;">
-            <a href="@attachUrl" class="td-btn td-btn--primary" target="_blank" rel="noopener">
-                @downloadLabel
-            </a>
-        </div>
+    @{
+        // Chọn action form ứng tuyển theo loại bài viết (xử lý nhiều biến thể)
+        var applyAction = IsVC(Model.LoaiTuyenDung) ? "VienChuc"
+        : IsNLD(Model.LoaiTuyenDung) ? "NguoiLaoDong"
+        : "NguoiLaoDong";              // fallback
+        var applyController = "UngTuyen";                   // ĐỔI nếu controller khác
+        bool canApply = days >= 0;                          // còn hạn mới hiển thị nút
     }
 
-    <div style="margin-top:16px;">
-        <a asp-action="Index" class="td-btn">← Quay lại danh sách</a>
+    <div class="td-detail__footer td-detail__footer--right">
+        <a asp-action="Index" class="td-btn td-btn--sm td-btn--ghost">← Quay lại danh sách</a>
+
+        @if (canApply)
+        {
+            <a asp-controller="@applyController"
+               asp-action="@applyAction"
+               asp-route-id="@Model.TuyenDungId"
+               class="td-btn td-btn--primary td-btn--sm">
+                Đăng ký ứng tuyển
+            </a>
+        }
     </div>
 </div>

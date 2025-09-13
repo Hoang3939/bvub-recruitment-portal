@@ -1,5 +1,12 @@
-﻿.detail-page {
-    max-width: 980px; /* vừa mắt khi đọc dọc */
+﻿/* 0) Scope & font inheritance: ép tất cả phần "chi tiết" kế thừa font từ body (Inter) */
+.detail-page, .detail-page * {
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+/* 1) Khung chính */
+.detail-page {
+    max-width: 980px;
     margin: 28px auto;
     padding: 24px;
     background: #fff;
@@ -7,69 +14,73 @@
     box-shadow: 0 10px 30px rgba(18,38,63,.06);
 }
 
-/* Header + trạng thái */
+/* 2) Header + trạng thái */
 .detail-head {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 16px;
     margin-bottom: 18px;
+    flex-wrap: wrap; /* tránh tràn ở mobile */
 }
 
-.badge {
+/* 3) Badge (đặt tên riêng để tránh đụng Bootstrap: .badge-plain) */
+.badge-plain {
     display: inline-block;
     padding: 6px 10px;
     border-radius: 999px;
-    font-size: .9rem
+    font-size: .9rem;
+    font-weight: 600;
+    line-height: 1;
 }
 
 .badge-ok {
     background: #e6f6ee;
     color: #1e7d4f;
-    border: 1px solid #b6e3c8
+    border: 1px solid #b6e3c8;
 }
 
 .badge-warn {
     background: #fff7e6;
     color: #9a6a00;
-    border: 1px solid #ffe1a6
+    border: 1px solid #ffe1a6;
 }
 
 .badge-danger {
     background: #fdeaea;
     color: #b21e1e;
-    border: 1px solid #f5b5b5
+    border: 1px solid #f5b5b5;
 }
 
 .badge-muted {
     background: #f1f3f5;
     color: #555;
-    border: 1px solid #e5e7ea
+    border: 1px solid #e5e7ea;
 }
 
-/* Các section xếp DỌC */
+/* 4) Section list */
 .section-list {
     display: grid;
     grid-template-columns: 1fr;
     gap: 16px;
 }
 
-/* Card trắng */
-.card {
+/* 5) Card (đổi selector để tránh đụng Bootstrap .card) */
+.detail-card {
     border: 1px solid #e8e8ef;
     border-radius: 12px;
     background: #fff;
     padding: 18px 16px;
 }
 
-.card h5 {
-    margin: 0 0 12px;
-    font-weight: 700
-}
+    .detail-card h5 {
+        margin: 0 0 12px;
+        font-weight: 700;
+    }
 
-/* Cặp Nhãn–Giá trị: 1 cặp / 1 hàng */
+/* 6) Key–Value grid */
 .kv {
-    --label-w: 240px; /* dễ chỉnh độ rộng nhãn */
+    --label-w: 240px;
     display: grid;
     grid-template-columns: var(--label-w) 1fr;
     column-gap: 18px;
@@ -80,60 +91,80 @@
     line-height: 1.6;
 }
 
-.kv dt {
-    margin: 0;
-    color: #22324d;
-    font-weight: 700;
-    white-space: nowrap;
-}
+    .kv dt {
+        margin: 0;
+        color: #22324d;
+        font-weight: 700;
+        white-space: nowrap;
+    }
 
-.kv dd {
-    margin: 0;
-    color: #222;
-    overflow-wrap: anywhere;
-}
+    .kv dd {
+        margin: 0;
+        color: #222;
+        overflow-wrap: anywhere;
+    }
 
-/* Màn nhỏ: thu hẹp nhãn để không vỡ hàng */
+/* Mobile: thu nhãn và cho phép xuống hàng nếu cần */
 @media (max-width: 640px) {
     .kv {
         --label-w: 160px;
     }
 }
 
-/* Bảng văn bằng */
+@media (max-width: 480px) {
+    .kv {
+        grid-template-columns: 1fr;
+    }
+        /* nhãn trên, giá trị dưới */
+        .kv dt {
+            white-space: normal;
+        }
+}
+
+/* 7) Bảng văn bằng */
 .tbl {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
 }
 
-.tbl th, .tbl td {
-    padding: 10px 12px;
-    border-bottom: 1px solid #eef0f3;
-    vertical-align: top;
-}
+    .tbl th, .tbl td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #eef0f3;
+        vertical-align: top;
+    }
 
-.tbl thead th {
-    background: #fafbfc;
-    font-weight: 700;
-}
+    .tbl thead th {
+        background: #fafbfc;
+        font-weight: 700;
+    }
 
-/* Nút (fallback nếu không dùng bootstrap) */
-.btn {
+/* 8) Nút riêng cho trang chi tiết (tránh đè .btn của Bootstrap) */
+.dbtn {
     display: inline-block;
     text-decoration: none;
-    cursor: pointer
+    cursor: pointer;
 }
 
-.btn-primary {
+.dbtn-primary {
     padding: 10px 22px;
     border-radius: 10px;
     border: none;
     background: #2f6fed;
     color: #fff;
+    font-weight: 600;
+    transition: box-shadow .15s ease, transform .05s ease, opacity .15s ease;
 }
 
-.btn-outline {
+    .dbtn-primary:hover {
+        opacity: .92;
+    }
+
+    .dbtn-primary:active {
+        transform: translateY(1px);
+    }
+
+.dbtn-outline {
     padding: 6px 12px;
     border-radius: 8px;
     border: 1px solid #2f6fed;
@@ -141,7 +172,12 @@
     background: #fff;
 }
 
-/* Văn bằng đọc dọc */
+.dbtn:focus {
+    outline: 2px solid rgba(47,111,237,.35);
+    outline-offset: 2px;
+}
+
+/* 9) Văn bằng đọc dọc */
 .vb-list {
     display: grid;
     grid-template-columns: 1fr;

@@ -5,18 +5,26 @@
     <meta charset="utf-8" />
     <title>@ViewData["Title"] - BV Ung Bướu</title>
 
-    <!-- CSS chung của site -->
-    <link rel="stylesheet" href="~/css/site.css" />
+    <!-- Quan trọng cho mobile -->
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <!-- CSS của layout (đã tách) -->
+    <!-- head -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Inter (để dùng cho body nếu bạn vẫn thích) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap&subset=vietnamese" rel="stylesheet">
+    <!-- Be Vietnam Pro: bộ glyph tiếng Việt đầy đủ, render rất ổn -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@600;700;800&display=swap&subset=vietnamese" rel="stylesheet">
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/layout.css" asp-append-version="true" />
 
-    @* CSS riêng từng trang (ví dụ: apply-forms.css chỉ cho 2 form) *@
     @RenderSection("Styles", required: false)
 
-    @* Flatpickr CSS (nếu dùng datepicker dd/MM/yyyy) *@
+    <!-- Flatpickr (nếu dùng) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
 </head>
+
 <body>
     <div class="header">
         <a asp-controller="Home" asp-action="Index">

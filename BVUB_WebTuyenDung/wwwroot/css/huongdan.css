@@ -128,3 +128,125 @@
     color: #fff;
     border-color: #2f6fed
 }
+
+/* Ép font Việt chuẩn cho tiêu đề & title card */
+.hd-title,
+.hd-card__title {
+    font-family: 'Be Vietnam Pro', 'Inter', 'Noto Sans', 'Segoe UI', Roboto, Arial, sans-serif;
+    font-synthesis: none; /* tránh trình duyệt giả đậm/giả nghiêng */
+}
+
+.hd-title {
+    font-weight: 800;
+}
+/* tiêu đề trang */
+.hd-card__title {
+    font-weight: 700;
+}
+    /* tiêu đề thẻ */
+
+    .hd-card__title b,
+    .hd-card__title strong {
+        font-weight: inherit;
+    }
+/* không nhảy weight khi có <b> */
+/* Header 2 cột: trái (title+meta), phải (nút tải) */
+.hd-detail__head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 12px;
+}
+
+/* Tiêu đề nhỏ hơn ~2–3 size */
+.hd-detail__title {
+    font-family: 'Be Vietnam Pro','Inter','Noto Sans','Segoe UI',Roboto,Arial,sans-serif;
+    font-weight: 800;
+    font-size: clamp(20px,2.1vw,28px);
+    line-height: 1.25;
+    margin: 0 0 6px;
+}
+
+.hd-detail__meta {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    color: #4a5876;
+}
+
+.hd-badge {
+    background: #eef6ff;
+    color: #2056b8;
+    border: 1px solid #d4e6ff;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.hd-detail__actions {
+    flex: 0 0 auto;
+}
+
+/* Buttons */
+.hd-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid #2f6fed;
+    background: #fff;
+    color: #2f6fed;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .15s ease;
+}
+
+    .hd-btn:hover {
+        background: #2f6fed;
+        color: #fff;
+    }
+
+.hd-btn--primary {
+    background: #2f6fed;
+    color: #fff;
+    border-color: #2f6fed;
+}
+
+.hd-btn--ghost {
+    background: #fff;
+    color: #2f6fed;
+    border-color: #cfe0ff;
+}
+
+    .hd-btn--ghost:hover {
+        background: #eef4ff;
+    }
+
+/* Nút nhỏ giống “Xem chi tiết” */
+.hd-btn--sm {
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 8px;
+    min-height: 36px;
+}
+
+/* Footer */
+.hd-detail__footer {
+    margin-top: 16px;
+}
+
+/* Mobile: nút tải xuống dưới tiêu đề */
+@media (max-width:720px) {
+    .hd-detail__head {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .hd-detail__actions {
+        align-self: flex-end;
+    }
+}
