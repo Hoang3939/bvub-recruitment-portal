@@ -28,6 +28,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             _env = env;
         }
 
+        // == Utils ==
         private static string FormatLoaiDonLabel(string? loaiDon)
         {
             if (string.IsNullOrWhiteSpace(loaiDon)) return "-";
@@ -48,6 +49,27 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             _ => (stt?.ToString() ?? "", "")
         };
 
+        // Ghi nhật ký (AuditTrail)
+        private async Task AddAuditAsync(string action)
+        {
+            try
+            {
+                var user = User?.Identity?.Name ?? "unknown";
+                _context.AuditTrail.Add(new AuditTrail
+                {
+                    UserName = user,
+                    Action = action,
+                    ActionDate = DateTime.Now
+                });
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                // giữ luồng nghiệp vụ, không throw
+            }
+        }
+
+        // == Danh sách ==
         [Authorize]
         public async Task<IActionResult> Index(string q, string type, string status, int page = 1, int pageSize = 20)
         {
@@ -229,7 +251,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             if (!System.IO.File.Exists(templatePath))
                 return BadRequest("Không tìm thấy template Excel: /wwwroot/templates/Thong tin Hop dong.xlsx");
 
-            // VC: đồng nhất tập thuộc tính
+            // VC
             var vc = _context.DonVienChucs.AsNoTracking()
                 .Select(d => new ExportRow
                 {
@@ -260,7 +282,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     NgheNghiepTruoc = null
                 });
 
-            // HD: đồng nhất tập thuộc tính
+            // HD
             var hd = _context.HopDongNguoiLaoDongs.AsNoTracking()
                 .Select(h => new ExportRow
                 {
@@ -353,7 +375,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             XLWorkbook wb;
             try
             {
-                // Kiểm tra kích thước file > 0 để tránh lỗi package rỗng
                 var fi = new FileInfo(templatePath);
                 if (!fi.Exists || fi.Length == 0)
                     throw new InvalidOperationException("File template rỗng hoặc không tồn tại.");
@@ -363,7 +384,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
             catch
             {
-                // Nếu template không hợp lệ (OpenXML hỏng, đổi file khác nhưng nội dung không đúng) => tạo workbook mới
                 wb = new XLWorkbook();
             }
 
@@ -371,7 +391,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
             int headerRow = 1;
 
-            // Nếu sheet đang trống: khởi tạo cột đầu tiên để tránh Last* null
             if (ws.LastRowUsed() == null && ws.LastColumnUsed() == null)
             {
                 ws.Cell(headerRow, 1).Value = "STT";
@@ -391,7 +410,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     headerToCol[name] = c;
             }
 
-            // HÀM SET: nếu header chưa có trong template thì TỰ TẠO CỘT MỚI + GHI HEADER
             void Set(IXLWorksheet s, int row, string header, object? val)
             {
                 if (!headerToCol.TryGetValue(header, out var col))
@@ -608,6 +626,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 fileName);
         }
 
+        // == In Word: lấy đơn mới nhất trực tiếp từ VC/HD ==
         [HttpGet]
         public async Task<IActionResult> ExportWord(int id)
         {
@@ -615,39 +634,23 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 .FirstOrDefaultAsync(x => x.UngVienId == id);
             if (uv == null) return NotFound();
 
-            var vcRows = await (
-                from a in _context.AuditTrail.AsNoTracking()
-                join dvc in _context.DonVienChucs.AsNoTracking() on a.DonId equals dvc.VienChucId
-                where dvc.UngVienId == id && (a.LoaiDon == "VienChuc" || a.LoaiDon == "Viên chức")
-                select new
-                {
-                    a.AuditTrailId,
-                    Date = (DateTime?)a.NgayCapNhatMoi ?? (DateTime?)a.NgayTao,
-                    LoaiDon = "VienChuc",
-                    dvc.TrangThai
-                }
-            ).ToListAsync();
+            var vcLatest = await _context.DonVienChucs.AsNoTracking()
+                .Where(d => d.UngVienId == id)
+                .OrderByDescending(d => d.NgayNop)
+                .ThenByDescending(d => d.VienChucId)
+                .Select(d => new { LoaiDon = "VienChuc", Date = (DateTime?)d.NgayNop, d.TrangThai })
+                .FirstOrDefaultAsync();
 
-            var hdRows = await (
-                from a in _context.AuditTrail.AsNoTracking()
-                join hd in _context.HopDongNguoiLaoDongs.AsNoTracking() on a.DonId equals hd.HopDongId
-                where hd.UngVienId == id && (a.LoaiDon == "NguoiLaoDong" || a.LoaiDon == "Người lao động")
-                select new
-                {
-                    a.AuditTrailId,
-                    Date = (DateTime?)a.NgayCapNhatMoi ?? (DateTime?)a.NgayTao,
-                    LoaiDon = "NguoiLaoDong",
-                    hd.TrangThai
-                }
-            ).ToListAsync();
-
-            var vcLatest = vcRows.OrderByDescending(x => x.Date ?? DateTime.MinValue)
-                                 .ThenByDescending(x => x.AuditTrailId).FirstOrDefault();
-            var hdLatest = hdRows.OrderByDescending(x => x.Date ?? DateTime.MinValue)
-                                 .ThenByDescending(x => x.AuditTrailId).FirstOrDefault();
+            var hdLatest = await _context.HopDongNguoiLaoDongs.AsNoTracking()
+                .Where(h => h.UngVienId == id)
+                .OrderByDescending(h => h.NgayNop)
+                .ThenByDescending(h => h.HopDongId)
+                .Select(h => new { LoaiDon = "NguoiLaoDong", Date = (DateTime?)h.NgayNop, h.TrangThai })
+                .FirstOrDefaultAsync();
 
             string loaiDon = "-";
             int? stt = null;
+
             if (vcLatest == null && hdLatest == null) { }
             else if (hdLatest == null) { loaiDon = FormatLoaiDonLabel(vcLatest!.LoaiDon); stt = vcLatest.TrangThai; }
             else if (vcLatest == null) { loaiDon = FormatLoaiDonLabel(hdLatest!.LoaiDon); stt = hdLatest.TrangThai; }
@@ -655,14 +658,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             {
                 var vcDate = vcLatest.Date ?? DateTime.MinValue;
                 var hdDate = hdLatest.Date ?? DateTime.MinValue;
-                if (vcDate > hdDate || (vcDate == hdDate && vcLatest.AuditTrailId > hdLatest.AuditTrailId))
-                {
-                    loaiDon = FormatLoaiDonLabel(vcLatest!.LoaiDon); stt = vcLatest.TrangThai;
-                }
-                else
-                {
-                    loaiDon = FormatLoaiDonLabel(hdLatest!.LoaiDon); stt = hdLatest.TrangThai;
-                }
+                if (vcDate > hdDate) { loaiDon = FormatLoaiDonLabel(vcLatest!.LoaiDon); stt = vcLatest.TrangThai; }
+                else if (hdDate > vcDate) { loaiDon = FormatLoaiDonLabel(hdLatest!.LoaiDon); stt = hdLatest.TrangThai; }
+                else { loaiDon = FormatLoaiDonLabel(vcLatest!.LoaiDon); stt = vcLatest.TrangThai; }
             }
 
             string statusLabel = MapStatus(stt).Label;
@@ -712,58 +710,55 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             return File(bytes, "application/msword", fileName);
         }
 
+        // == Link tới đơn mới nhất =
         [HttpGet]
         public async Task<IActionResult> GetApplicationLink(int id)
         {
-            var vcRows = await (
-                from a in _context.AuditTrail.AsNoTracking()
-                join dvc in _context.DonVienChucs.AsNoTracking() on a.DonId equals dvc.VienChucId
-                where dvc.UngVienId == id && (a.LoaiDon == "VienChuc" || a.LoaiDon == "Viên chức")
-                select new
+            var vc = await _context.DonVienChucs.AsNoTracking()
+                .Where(d => d.UngVienId == id)
+                .OrderByDescending(d => d.NgayNop)
+                .ThenByDescending(d => d.VienChucId)
+                .Select(d => new
                 {
-                    a.AuditTrailId,
-                    Date = (DateTime?)a.NgayCapNhatMoi ?? (DateTime?)a.NgayTao,
-                    DonId = dvc.VienChucId,
+                    Date = (DateTime?)d.NgayNop,
+                    AuditTrailId = d.VienChucId, // tie-break
+                    DonId = d.VienChucId,
                     Label = "Đơn viên chức",
-                    Url = Url.Action("Details", "DonVienChuc", new { area = "Admin", id = dvc.VienChucId })
-                }
-            ).ToListAsync();
+                    Url = Url.Action("Details", "DonVienChuc", new { area = "Admin", id = d.VienChucId })
+                })
+                .FirstOrDefaultAsync();
 
-            var hdRows = await (
-                from a in _context.AuditTrail.AsNoTracking()
-                join hd in _context.HopDongNguoiLaoDongs.AsNoTracking() on a.DonId equals hd.HopDongId
-                where hd.UngVienId == id && (a.LoaiDon == "NguoiLaoDong" || a.LoaiDon == "Người lao động")
-                select new
+            var hd = await _context.HopDongNguoiLaoDongs.AsNoTracking()
+                .Where(h => h.UngVienId == id)
+                .OrderByDescending(h => h.NgayNop)
+                .ThenByDescending(h => h.HopDongId)
+                .Select(h => new
                 {
-                    a.AuditTrailId,
-                    Date = (DateTime?)a.NgayCapNhatMoi ?? (DateTime?)a.NgayTao,
-                    DonId = hd.HopDongId,
+                    Date = (DateTime?)h.NgayNop,
+                    AuditTrailId = h.HopDongId,
+                    DonId = h.HopDongId,
                     Label = "Hợp đồng lao động",
-                    Url = Url.Action("Details", "HopDongNguoiLaoDong", new { area = "Admin", id = hd.HopDongId })
-                }
-            ).ToListAsync();
-
-            var vcLatest = vcRows.OrderByDescending(x => x.Date ?? DateTime.MinValue)
-                                 .ThenByDescending(x => x.AuditTrailId).FirstOrDefault();
-            var hdLatest = hdRows.OrderByDescending(x => x.Date ?? DateTime.MinValue)
-                                 .ThenByDescending(x => x.AuditTrailId).FirstOrDefault();
+                    Url = Url.Action("Details", "HopDongNguoiLaoDong", new { area = "Admin", id = h.HopDongId })
+                })
+                .FirstOrDefaultAsync();
 
             string? url = null; string label = "";
-            if (vcLatest == null && hdLatest == null) { }
-            else if (hdLatest == null) { url = vcLatest!.Url; label = vcLatest.Label; }
-            else if (vcLatest == null) { url = hdLatest!.Url; label = hdLatest.Label; }
+            if (vc == null && hd == null) { }
+            else if (hd == null) { url = vc!.Url; label = vc.Label; }
+            else if (vc == null) { url = hd!.Url; label = hd.Label; }
             else
             {
-                var vcDate = vcLatest.Date ?? DateTime.MinValue;
-                var hdDate = hdLatest.Date ?? DateTime.MinValue;
-                var takeVC = vcDate > hdDate || (vcDate == hdDate && vcLatest.AuditTrailId > hdLatest.AuditTrailId);
-                if (takeVC) { url = vcLatest.Url; label = vcLatest.Label; }
-                else { url = hdLatest.Url; label = hdLatest.Label; }
+                var vcDate = vc.Date ?? DateTime.MinValue;
+                var hdDate = hd.Date ?? DateTime.MinValue;
+                var takeVC = vcDate > hdDate || (vcDate == hdDate && vc.AuditTrailId > hd.AuditTrailId);
+                if (takeVC) { url = vc.Url; label = vc.Label; }
+                else { url = hd.Url; label = hd.Label; }
             }
 
             return Json(new { url, label });
         }
 
+        // == Actions thay đổi trạng thái ==
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "1,Admin")]
@@ -779,6 +774,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
                     d.TrangThai = DA_DUYET;
                     await _context.SaveChangesAsync();
+                    await AddAuditAsync($"Duyệt đơn viên chức #{id}");
                     return Json(new { ok = true, newStatusLabel = "Đã duyệt", newStatusClass = "approved" });
                 }
                 if (donType == "HD")
@@ -787,6 +783,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
                     d.TrangThai = DA_DUYET;
                     await _context.SaveChangesAsync();
+                    await AddAuditAsync($"Duyệt hợp đồng NLĐ #{id}");
                     return Json(new { ok = true, newStatusLabel = "Đã duyệt", newStatusClass = "approved" });
                 }
                 return Json(new { ok = false, message = "Loại đơn không hợp lệ." });
@@ -816,6 +813,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
                     d.TrangThai = CHO_XU_LY;
                     await _context.SaveChangesAsync();
+                    await AddAuditAsync($"Chuyển đơn viên chức #{id} về Chờ xử lý");
                     return Json(new { ok = true, newStatusLabel = "Chờ xử lý", newStatusClass = "pending" });
                 }
                 if (donType == "HD")
@@ -824,6 +822,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
                     d.TrangThai = CHO_XU_LY;
                     await _context.SaveChangesAsync();
+                    await AddAuditAsync($"Chuyển hợp đồng NLĐ #{id} về Chờ xử lý");
                     return Json(new { ok = true, newStatusLabel = "Chờ xử lý", newStatusClass = "pending" });
                 }
                 return Json(new { ok = false, message = "Loại đơn không hợp lệ." });
@@ -853,6 +852,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
                     d.TrangThai = DA_HUY;
                     await _context.SaveChangesAsync();
+                    await AddAuditAsync($"Hủy đơn viên chức #{id}");
                     return Json(new { ok = true, newStatusLabel = "Đã hủy", newStatusClass = "cancelled" });
                 }
                 if (donType == "HD")
@@ -861,6 +861,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
                     d.TrangThai = DA_HUY;
                     await _context.SaveChangesAsync();
+                    await AddAuditAsync($"Hủy hợp đồng NLĐ #{id}");
                     return Json(new { ok = true, newStatusLabel = "Đã hủy", newStatusClass = "cancelled" });
                 }
 
@@ -891,6 +892,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
                     d.TrangThai = DA_DUYET;
                     await _context.SaveChangesAsync();
+                    await AddAuditAsync($"Khôi phục đơn viên chức #{id} về Đã duyệt");
                     return Json(new { ok = true, newStatusLabel = "Đã duyệt", newStatusClass = "approved" });
                 }
                 if (donType == "HD")
@@ -899,6 +901,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
                     d.TrangThai = DA_DUYET;
                     await _context.SaveChangesAsync();
+                    await AddAuditAsync($"Khôi phục hợp đồng NLĐ #{id} về Đã duyệt");
                     return Json(new { ok = true, newStatusLabel = "Đã duyệt", newStatusClass = "approved" });
                 }
 
@@ -914,6 +917,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
         }
 
+        // == Xoá đơn ==
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "1,Admin")]
@@ -929,36 +933,27 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
                 if (donType == "VC")
                 {
-                    var audits = _context.AuditTrail.Where(a =>
-                        (a.LoaiDon == "VienChuc" || a.LoaiDon == "Viên chức") &&
-                        a.DonId == id);
-                    _context.AuditTrail.RemoveRange(audits);
-
                     var d = await _context.DonVienChucs
                                           .FirstOrDefaultAsync(x => x.VienChucId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
-
                     _context.DonVienChucs.Remove(d);
+                    await _context.SaveChangesAsync();
+                    await AddAuditAsync($"Xoá đơn viên chức #{id}");
                 }
                 else if (donType == "HD")
                 {
-                    var audits = _context.AuditTrail.Where(a =>
-                        (a.LoaiDon == "NguoiLaoDong" || a.LoaiDon == "Người lao động") &&
-                        a.DonId == id);
-                    _context.AuditTrail.RemoveRange(audits);
-
                     var d = await _context.HopDongNguoiLaoDongs
                                           .FirstOrDefaultAsync(x => x.HopDongId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
-
                     _context.HopDongNguoiLaoDongs.Remove(d);
+                    await _context.SaveChangesAsync();
+                    await AddAuditAsync($"Xoá hợp đồng NLĐ #{id}");
                 }
                 else
                 {
                     return Json(new { ok = false, message = "Loại đơn không hợp lệ." });
                 }
 
-                await _context.SaveChangesAsync();
                 await tx.CommitAsync();
                 return Json(new { ok = true });
             }

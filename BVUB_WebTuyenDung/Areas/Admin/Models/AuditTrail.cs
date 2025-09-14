@@ -9,22 +9,14 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
         [Key]
         public int AuditTrailId { get; set; }
 
-        [Required, MaxLength(50)]
-        public string LoaiDon { get; set; }      // 'VienChuc' | 'NguoiLaoDong'
+        [Required, MaxLength(100)]
+        public string UserName { get; set; }   // Người thao tác (username)
+
+        [Required, MaxLength(255)]
+        public string Action { get; set; }     // Thao tác: "Thêm phòng X", "Xóa vị trí Y", ...
 
         [Required]
-        public int DonId { get; set; }
-
-        [Column(TypeName = "date")]
-        public DateTime NgayTao { get; set; }
-
-        [Column(TypeName = "date")]
-        public DateTime? NgayCapNhatMoi { get; set; }
-
-        // ĐỂ NULL ĐƯỢC
-        public int? AdminCapNhatId { get; set; }
-        public AdminUser AdminCapNhat { get; set; }
-
-        public string GhiChu { get; set; }
+        [Column(TypeName = "datetime2")]
+        public DateTime ActionDate { get; set; } = DateTime.Now;  // mặc định gán current time
     }
 }

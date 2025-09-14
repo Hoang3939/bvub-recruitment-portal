@@ -14,7 +14,8 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Security
         Positions = 1 << 6,                 // 64
         Titles = 1 << 7,                    // 128
         Reports = 1 << 8,                   // 256
-        AuditTrail = 1 << 9                 // 512
+        AuditTrail = 1 << 9,                // 512
+        Settings = 1 << 10                  // 1024
     }
 
     public static class StaffPermOptions
@@ -30,6 +31,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Security
             ((int)StaffPerms.Titles      , "Quản lý danh mục chức danh dự tuyển"),
             ((int)StaffPerms.Reports     , "Báo cáo thống kê"),
             ((int)StaffPerms.AuditTrail    , "Nhật ký hệ thống"),
+            ((int)StaffPerms.Settings    , "Cài đặt"),
         };
     }
 }
