@@ -104,7 +104,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         {
             var m = await _ctx.HuongDans.FirstOrDefaultAsync(x => x.HuongDanId == id);
             if (m == null) return Content("<div>Không tìm thấy hướng dẫn.</div>", "text/html; charset=utf-8");
-            // Trỏ tuyệt đối để tránh lệ thuộc casing đường dẫn
             return PartialView("~/Areas/Admin/Views/Guides/_GuideDetails.cshtml", m);
         }
 
