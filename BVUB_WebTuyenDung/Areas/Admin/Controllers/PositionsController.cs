@@ -9,6 +9,8 @@ using BVUB_WebTuyenDung.Areas.Admin.Data;
 using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
 using M = BVUB_WebTuyenDung.Areas.Admin.Models;
 
+using BVUB_WebTuyenDung.Areas.Admin.Services;
+
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 {
     [Area("Admin")]
@@ -16,7 +18,14 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     public class PositionsController : Controller
     {
         private readonly AdminDbContext _ctx;
-        public PositionsController(AdminDbContext ctx) => _ctx = ctx;
+        private readonly IAuditTrailService _audit;
+        public PositionsController(AdminDbContext ctx, IAuditTrailService audit)
+        {
+            _ctx = ctx;
+            _audit = audit;
+        }
+
+        private string CurrentUser() => User?.Identity?.Name ?? "unknown";
 
         // Index + filter trạng thái
         public async Task<IActionResult> Index(string q, int? st)
@@ -90,6 +99,8 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 }
             }
 
+            await _audit.LogAsync(CurrentUser(), $"Tạo vị trí mới ID={e.ViTriId}, Ten='{e.TenViTri}', ChucDanhId={e.ChucDanhId}, TamNgung={e.TamNgung}");
+
             TempData["ToastSuccess"] = "Đã thêm vị trí mới.";
             return RedirectToAction(nameof(Index));
         }
@@ -119,6 +130,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             var e = await _ctx.DanhMucViTriDuTuyens.FindAsync(id);
             if (e == null) return NotFound();
 
+            var oldTen = e.TenViTri;
+            var oldCdId = e.ChucDanhId;
+            var oldSt = e.TamNgung;
+
             e.TenViTri = vm.TenViTri;
             e.ChucDanhId = vm.ChucDanhId;
             e.TamNgung = vm.TamNgung;
@@ -132,6 +147,12 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
 
             await _ctx.SaveChangesAsync();
+
+            await _audit.LogAsync(
+                CurrentUser(),
+                $"Cập nhật Vị trí ID={e.ViTriId}: Ten '{oldTen}' -> '{e.TenViTri}', ChucDanhId {oldCdId} -> {e.ChucDanhId}, TamNgung {oldSt} -> {e.TamNgung}"
+            );
+
             TempData["ToastSuccess"] = "Đã cập nhật vị trí.";
             return RedirectToAction(nameof(Index));
         }
@@ -141,8 +162,15 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var e = await _ctx.DanhMucViTriDuTuyens.FindAsync(id);
-            if (e != null) _ctx.DanhMucViTriDuTuyens.Remove(e);
-            await _ctx.SaveChangesAsync();
+            if (e != null)
+            {
+                var ten = e.TenViTri; var cd = e.ChucDanhId;
+                _ctx.DanhMucViTriDuTuyens.Remove(e);
+                await _ctx.SaveChangesAsync();
+
+                await _audit.LogAsync(CurrentUser(), $"Xóa Vị trí ID={id}, Ten='{ten}', ChucDanhId={cd}");
+            }
+
             TempData["ToastSuccess"] = "Đã xóa vị trí.";
             return RedirectToAction(nameof(Index));
         }

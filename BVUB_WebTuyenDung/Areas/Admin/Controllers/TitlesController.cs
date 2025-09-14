@@ -1,10 +1,12 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
+﻿using BVUB_WebTuyenDung.Areas.Admin.Data;
+using BVUB_WebTuyenDung.Areas.Admin.Services;
+using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BVUB_WebTuyenDung.Areas.Admin.Data;
-using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
+using System.Linq;
+using System.Threading.Tasks;
 using M = BVUB_WebTuyenDung.Areas.Admin.Models;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
@@ -14,7 +16,14 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     public class TitlesController : Controller
     {
         private readonly AdminDbContext _ctx;
-        public TitlesController(AdminDbContext ctx) => _ctx = ctx;
+        private readonly IAuditTrailService _audit;
+        public TitlesController(AdminDbContext ctx, IAuditTrailService audit)
+        {
+            _ctx = ctx;
+            _audit = audit;
+        }
+
+        private string CurrentUser() => User?.Identity?.Name ?? "unknown";
 
         // Index + filter trạng thái
         public async Task<IActionResult> Index(string q, int? st)
@@ -66,12 +75,21 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
             try
             {
+                var e = new M.DanhMucChucDanhDuTuyen
+                {
+                    TenChucDanh = vm.TenChucDanh,
+                    TamNgung = vm.TamNgung
+                };
+
                 _ctx.DanhMucChucDanhDuTuyens.Add(new M.DanhMucChucDanhDuTuyen
                 {
                     TenChucDanh = vm.TenChucDanh,
                     TamNgung = vm.TamNgung
                 });
+
                 await _ctx.SaveChangesAsync();
+
+                await _audit.LogAsync(CurrentUser(), $"Tạo Chức danh ID={e.ChucDanhId}, Ten='{e.TenChucDanh}', TamNgung={e.TamNgung}");
 
                 TempData["ToastSuccess"] = "Đã thêm chức danh mới.";
                 return RedirectToAction(nameof(Index));
@@ -114,6 +132,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             await using var tx = await _ctx.Database.BeginTransactionAsync();
             try
             {
+                var oldName = e.TenChucDanh;
+                var oldSt = e.TamNgung;
+
                 e.TenChucDanh = vm.TenChucDanh;
                 e.TamNgung = vm.TamNgung;
                 await _ctx.SaveChangesAsync();
@@ -123,6 +144,11 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     .ExecuteUpdateAsync(s => s.SetProperty(v => v.TamNgung, vm.TamNgung));
 
                 await tx.CommitAsync();
+
+                await _audit.LogAsync(
+                    CurrentUser(),
+                    $"Sửa Chức danh ID={e.ChucDanhId}: Ten '{oldName}' -> '{e.TenChucDanh}', TamNgung {oldSt} -> {e.TamNgung} (đã đồng bộ xuống Vị trí)"
+                );
 
                 TempData["ToastSuccess"] = "Đã cập nhật chức danh và đồng bộ trạng thái vị trí.";
                 return RedirectToAction(nameof(Index));
@@ -140,9 +166,14 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var e = await _ctx.DanhMucChucDanhDuTuyens.FindAsync(id);
-            if (e != null) _ctx.DanhMucChucDanhDuTuyens.Remove(e);
-            await _ctx.SaveChangesAsync();
+            if (e != null)
+            {
+                var name = e.TenChucDanh;
+                _ctx.DanhMucChucDanhDuTuyens.Remove(e);
+                await _ctx.SaveChangesAsync();
 
+                await _audit.LogAsync(CurrentUser(), $"Xóa Chức danh ID={id}, Ten='{name}'");
+            }
             TempData["ToastSuccess"] = "Đã xóa chức danh.";
             return RedirectToAction(nameof(Index));
         }
@@ -159,6 +190,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             await using var tx = await _ctx.Database.BeginTransactionAsync();
             try
             {
+                var old = e.TamNgung;
                 e.TamNgung = newStatus;
                 await _ctx.SaveChangesAsync();
 
@@ -167,6 +199,11 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     .ExecuteUpdateAsync(s => s.SetProperty(v => v.TamNgung, newStatus));
 
                 await tx.CommitAsync();
+
+                await _audit.LogAsync(
+                    CurrentUser(),
+                    $"Đổi trạng thái Chức danh ID={e.ChucDanhId} từ {old} -> {newStatus} (đã đồng bộ toàn bộ Vị trí)"
+                );
 
                 TempData["ToastSuccess"] = newStatus == 1
                     ? "Đã tạm ngưng chức danh và toàn bộ vị trí."

@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BVUB_WebTuyenDung.Areas.Admin.Data;
 using BVUB_WebTuyenDung.Areas.Admin.Models;
+using BVUB_WebTuyenDung.Areas.Admin.Services;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 {
@@ -18,10 +19,13 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     {
         private readonly AdminDbContext _ctx;
         private readonly IWebHostEnvironment _env;
-        public RecruitmentsController(AdminDbContext ctx, IWebHostEnvironment env)
+        private readonly IAuditTrailService _audit;
+        public RecruitmentsController(AdminDbContext ctx, IWebHostEnvironment env, IAuditTrailService audit)
         {
-            _ctx = ctx; _env = env;
+            _ctx = ctx; _env = env; _audit = audit;
         }
+
+        private string CurrentUser() => User?.Identity?.Name ?? "unknown";
 
         // ===== Danh sách =====
         [HttpGet]
@@ -110,6 +114,12 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             if (!ModelState.IsValid) return View(m);
             _ctx.ThongTinTuyenDungs.Add(m);
             await _ctx.SaveChangesAsync();
+
+            await _audit.LogAsync(
+                CurrentUser(),
+                $"Tạo tuyển dụng ID={m.TuyenDungId}, TieuDe='{m.TieuDe}', Loai='{m.LoaiTuyenDung}', TrangThai={m.TrangThai}, NgayDang={m.NgayDang:dd/MM/yyyy}, HanNop={m.HanNopHoSo:dd/MM/yyyy}"
+            );
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -134,6 +144,12 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             if (entity == null) return NotFound();
             if (!ModelState.IsValid) return View(m);
 
+            var oldTitle = entity.TieuDe;
+            var oldLoai = entity.LoaiTuyenDung;
+            var oldTrangThai = entity.TrangThai;
+            var oldNgayDang = entity.NgayDang;
+            var oldHanNop = entity.HanNopHoSo;
+
             entity.TieuDe = m.TieuDe;
             entity.NoiDung = m.NoiDung;
             entity.NgayDang = m.NgayDang;
@@ -143,6 +159,17 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             if (file != null && file.Length > 0) entity.FileDinhKem = await SaveUploadAsync(file);
             if (image != null && image.Length > 0) entity.FileAnh = await SaveImageAsync(image);
             await _ctx.SaveChangesAsync();
+
+            await _audit.LogAsync(
+                CurrentUser(),
+                $"Sửa tuyển dụng ID={entity.TuyenDungId}: " +
+                $"TieuDe '{oldTitle}' -> '{entity.TieuDe}', " +
+                $"Loai '{oldLoai}' -> '{entity.LoaiTuyenDung}', " +
+                $"TrangThai {oldTrangThai} -> {entity.TrangThai}, " +
+                $"NgayDang {oldNgayDang:dd/MM/yyyy} -> {entity.NgayDang:dd/MM/yyyy}, " +
+                $"HanNop {oldHanNop:dd/MM/yyyy} -> {entity.HanNopHoSo:dd/MM/yyyy}"
+            );
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -174,6 +201,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
             _ctx.ThongTinTuyenDungs.Remove(m);
             await _ctx.SaveChangesAsync();
+
+            await _audit.LogAsync(CurrentUser(), $"Xóa tuyển dụng ID={id}, TieuDe='{m.TieuDe}'");
+
             return Json(new { ok = true });
         }
 

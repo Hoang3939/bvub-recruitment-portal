@@ -1,13 +1,14 @@
-﻿using System;
-using System.Linq;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using BVUB_WebTuyenDung.Areas.Admin.Data;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
+﻿using BVUB_WebTuyenDung.Areas.Admin.Data;
 using BVUB_WebTuyenDung.Areas.Admin.Models;
+using BVUB_WebTuyenDung.Areas.Admin.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 {
@@ -17,12 +18,16 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     {
         private readonly AdminDbContext _ctx;
         private readonly IWebHostEnvironment _env;
+        private readonly IAuditTrailService _audit;
 
-        public GuidesController(AdminDbContext ctx, IWebHostEnvironment env)
+        public GuidesController(AdminDbContext ctx, IWebHostEnvironment env, IAuditTrailService audit)
         {
             _ctx = ctx;
             _env = env;
+            _audit = audit;
         }
+
+        private string CurrentUser() => User?.Identity?.Name ?? "unknown";
 
         // Hướng dẫn đăng ký
         public async Task<IActionResult> Index(string? loai)
@@ -60,6 +65,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             m.NgayCapNhat = DateTime.Today;
             _ctx.Add(m);
             await _ctx.SaveChangesAsync();
+
+            await _audit.LogAsync(CurrentUser(), $"Thêm hướng dẫn ID={m.HuongDanId}, Tiêu đề='{m.TieuDe}'");
+
             TempData["ok"] = "Đã thêm hướng dẫn.";
             return RedirectToAction(nameof(Index));
         }
@@ -94,6 +102,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
 
             await _ctx.SaveChangesAsync();
+
+            await _audit.LogAsync(CurrentUser(), $"Chỉnh sửa hướng dẫn ID={entity.HuongDanId}, Tiêu đề='{entity.TieuDe}'");
+
             TempData["ok"] = "Đã cập nhật.";
             return RedirectToAction(nameof(Index));
         }
@@ -118,6 +129,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
             _ctx.HuongDans.Remove(m);
             await _ctx.SaveChangesAsync();
+
+            await _audit.LogAsync(CurrentUser(), $"Xóa hướng dẫn ID={m.HuongDanId}, Tiêu đề='{m.TieuDe}'");
+
             return Json(new { ok = true });
         }
 

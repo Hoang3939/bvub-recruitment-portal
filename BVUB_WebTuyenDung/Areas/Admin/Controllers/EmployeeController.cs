@@ -8,6 +8,7 @@ using BVUB_WebTuyenDung.Areas.Admin.Models;
 using BVUB_WebTuyenDung.Areas.Admin.Security;
 using BVUB_WebTuyenDung.Areas.Admin.Utilities;
 using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
+using BVUB_WebTuyenDung.Areas.Admin.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,15 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     public class EmployeeController : Controller
     {
         private readonly AdminDbContext _context;
-        public EmployeeController(AdminDbContext context) => _context = context;
+        private readonly IAuditTrailService _audit;
+
+        public EmployeeController(AdminDbContext context, IAuditTrailService audit)
+        {
+            _context = context;
+            _audit = audit; // NEW
+        }
+
+        private string CurrentUser() => User?.Identity?.Name ?? "system";
 
         // Danh sách nhân viên
         public async Task<IActionResult> Index(string q)
@@ -118,6 +127,8 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             _context.AdminUsers.Add(entity);
             await _context.SaveChangesAsync();
 
+            await _audit.LogAsync(CurrentUser(), $"Tạo mới nhân viên: {entity.Username} ({entity.Email})");
+
             TempData["ToastType"] = "success";
             TempData["ToastMsg"] = "Đã thêm nhân viên mới.";
             return RedirectToAction(nameof(Index));
@@ -143,6 +154,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
             _context.AdminUsers.Remove(user);
             await _context.SaveChangesAsync();
+
+            await _audit.LogAsync(CurrentUser(), $"Xóa nhân viên: {user.Username} ({user.Email})");
+
             return Json(new { ok = true });
         }
 
@@ -274,6 +288,8 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            await _audit.LogAsync(CurrentUser(), $"Chỉnh sửa nhân viên ID={u.AdminId}, Username={u.Username}");
 
             TempData["ToastType"] = "success";
             TempData["ToastMsg"] = "Đã cập nhật nhân viên.";

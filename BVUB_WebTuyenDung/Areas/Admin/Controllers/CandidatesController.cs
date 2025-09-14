@@ -1,17 +1,18 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System;
-using System.Globalization;
-using System.IO;
-using BVUB_WebTuyenDung.Areas.Admin.Data;
+﻿using BVUB_WebTuyenDung.Areas.Admin.Data;
 using BVUB_WebTuyenDung.Areas.Admin.Models;
+using BVUB_WebTuyenDung.Areas.Admin.Services;
 using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
 using ClosedXML.Excel;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 {
@@ -20,12 +21,14 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     public class CandidatesController : Controller
     {
         private readonly AdminDbContext _context;
-        private readonly IWebHostEnvironment _env;
+        private readonly IWebHostEnvironment _env; 
+        private readonly IAuditTrailService _audit;
 
-        public CandidatesController(AdminDbContext context, IWebHostEnvironment env)
+        public CandidatesController(AdminDbContext context, IWebHostEnvironment env, IAuditTrailService audit)
         {
             _context = context;
             _env = env;
+            _audit = audit;
         }
 
         private static string FormatLoaiDonLabel(string? loaiDon)
@@ -615,54 +618,32 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 .FirstOrDefaultAsync(x => x.UngVienId == id);
             if (uv == null) return NotFound();
 
-            var vcRows = await (
-                from a in _context.AuditTrail.AsNoTracking()
-                join dvc in _context.DonVienChucs.AsNoTracking() on a.DonId equals dvc.VienChucId
-                where dvc.UngVienId == id && (a.LoaiDon == "VienChuc" || a.LoaiDon == "Viên chức")
-                select new
-                {
-                    a.AuditTrailId,
-                    Date = (DateTime?)a.NgayCapNhatMoi ?? (DateTime?)a.NgayTao,
-                    LoaiDon = "VienChuc",
-                    dvc.TrangThai
-                }
-            ).ToListAsync();
+            // Lấy đơn VC/HD mới nhất theo Ngày nộp (nếu null thì -∞), rồi theo Id
+            var latestVC = await _context.DonVienChucs.AsNoTracking()
+                .Where(d => d.UngVienId == id)
+                .OrderByDescending(x => x.NgayNop)
+                .ThenByDescending(d => d.VienChucId)
+                .Select(d => new { Type = "VC", Ten = "Đơn viên chức", TrangThai = (int?)d.TrangThai, Ngay = d.NgayNop })
+                .FirstOrDefaultAsync();
 
-            var hdRows = await (
-                from a in _context.AuditTrail.AsNoTracking()
-                join hd in _context.HopDongNguoiLaoDongs.AsNoTracking() on a.DonId equals hd.HopDongId
-                where hd.UngVienId == id && (a.LoaiDon == "NguoiLaoDong" || a.LoaiDon == "Người lao động")
-                select new
-                {
-                    a.AuditTrailId,
-                    Date = (DateTime?)a.NgayCapNhatMoi ?? (DateTime?)a.NgayTao,
-                    LoaiDon = "NguoiLaoDong",
-                    hd.TrangThai
-                }
-            ).ToListAsync();
-
-            var vcLatest = vcRows.OrderByDescending(x => x.Date ?? DateTime.MinValue)
-                                 .ThenByDescending(x => x.AuditTrailId).FirstOrDefault();
-            var hdLatest = hdRows.OrderByDescending(x => x.Date ?? DateTime.MinValue)
-                                 .ThenByDescending(x => x.AuditTrailId).FirstOrDefault();
+            var latestHD = await _context.HopDongNguoiLaoDongs.AsNoTracking()
+                .Where(h => h.UngVienId == id)
+                .OrderByDescending(x => x.NgayNop)
+                .ThenByDescending(h => h.HopDongId)
+                .Select(h => new { Type = "HD", Ten = "Hợp đồng lao động", TrangThai = (int?)h.TrangThai, Ngay = h.NgayNop })
+                .FirstOrDefaultAsync();
 
             string loaiDon = "-";
             int? stt = null;
-            if (vcLatest == null && hdLatest == null) { }
-            else if (hdLatest == null) { loaiDon = FormatLoaiDonLabel(vcLatest!.LoaiDon); stt = vcLatest.TrangThai; }
-            else if (vcLatest == null) { loaiDon = FormatLoaiDonLabel(hdLatest!.LoaiDon); stt = hdLatest.TrangThai; }
+
+            if (latestVC == null && latestHD == null) { }
+            else if (latestHD == null) { loaiDon = latestVC!.Ten; stt = latestVC.TrangThai; }
+            else if (latestVC == null) { loaiDon = latestHD!.Ten; stt = latestHD.TrangThai; }
             else
             {
-                var vcDate = vcLatest.Date ?? DateTime.MinValue;
-                var hdDate = hdLatest.Date ?? DateTime.MinValue;
-                if (vcDate > hdDate || (vcDate == hdDate && vcLatest.AuditTrailId > hdLatest.AuditTrailId))
-                {
-                    loaiDon = FormatLoaiDonLabel(vcLatest!.LoaiDon); stt = vcLatest.TrangThai;
-                }
-                else
-                {
-                    loaiDon = FormatLoaiDonLabel(hdLatest!.LoaiDon); stt = hdLatest.TrangThai;
-                }
+                var takeVC = latestVC.Ngay > latestHD.Ngay;
+                loaiDon = takeVC ? latestVC.Ten : latestHD.Ten;
+                stt = takeVC ? latestVC.TrangThai : latestHD.TrangThai;
             }
 
             string statusLabel = MapStatus(stt).Label;
@@ -671,41 +652,41 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             string fmtDate(DateTime d) => d.ToString("dd/MM/yyyy");
 
             var html = $@"
-        <html>
-        <head>
-        <meta charset='utf-8' />
-        <title>UngVien_{uv.UngVienId}</title>
-        <style>
-        body {{ font-family: 'Times New Roman', serif; font-size: 12pt; }}
-        h1 {{ text-align: center; margin: 0 0 16px 0; }}
-        table {{ width: 100%; border-collapse: collapse; }}
-        td {{ border: 1px solid #999; padding: 6px 8px; vertical-align: top; }}
-        td.label {{ width: 30%; font-weight: bold; background: #f5f5f5; }}
-        </style>
-        </head>
-        <body>
-        <h1>THÔNG TIN ỨNG VIÊN</h1>
-        <table>
-        <tr><td class='label'>Mã ứng viên</td><td>{uv.UngVienId}</td></tr>
-        <tr><td class='label'>Họ và tên</td><td>{G(uv.HoTen)}</td></tr>
-        <tr><td class='label'>Ngày sinh</td><td>{fmtDate(uv.NgaySinh)}</td></tr>
-        <tr><td class='label'>Giới tính</td><td>{(uv.GioiTinh == 1 ? "Nữ" : "Nam")}</td></tr>
-        <tr><td class='label'>Số điện thoại</td><td>{G(uv.SoDienThoai)}</td></tr>
-        <tr><td class='label'>Email</td><td>{G(uv.Email)}</td></tr>
-        <tr><td class='label'>CCCD</td><td>{G(uv.CCCD)}</td></tr>
-        <tr><td class='label'>Ngày cấp CCCD</td><td>{fmtDate(uv.NgayCapCCCD)}</td></tr>
-        <tr><td class='label'>Nơi cấp CCCD</td><td>{G(uv.NoiCapCCCD)}</td></tr>
-        <tr><td class='label'>Địa chỉ thường trú</td><td>{G(uv.DiaChiThuongTru)}</td></tr>
-        <tr><td class='label'>Địa chỉ cư trú</td><td>{G(uv.DiaChiCuTru)}</td></tr>
-        <tr><td class='label'>Mã số thuế</td><td>{G(uv.MaSoThue)}</td></tr>
-        <tr><td class='label'>Số tài khoản</td><td>{G(uv.SoTaiKhoan)}</td></tr>
-        <tr><td class='label'>Tình trạng sức khỏe</td><td>{G(uv.TinhTrangSucKhoe)}</td></tr>
-        <tr><td class='label'>Trình độ chuyên môn</td><td>{G(uv.TrinhDoChuyenMon)}</td></tr>
-        <tr><td class='label'>Loại đơn</td><td>{G(loaiDon)}</td></tr>
-        <tr><td class='label'>Trạng thái</td><td>{G(statusLabel)}</td></tr>
-        </table>
-        </body>
-        </html>";
+            <html>
+            <head>
+            <meta charset='utf-8' />
+            <title>UngVien_{uv.UngVienId}</title>
+            <style>
+            body {{ font-family: 'Times New Roman', serif; font-size: 12pt; }}
+            h1 {{ text-align: center; margin: 0 0 16px 0; }}
+            table {{ width: 100%; border-collapse: collapse; }}
+            td {{ border: 1px solid #999; padding: 6px 8px; vertical-align: top; }}
+            td.label {{ width: 30%; font-weight: bold; background: #f5f5f5; }}
+            </style>
+            </head>
+            <body>
+            <h1>THÔNG TIN ỨNG VIÊN</h1>
+            <table>
+            <tr><td class='label'>Mã ứng viên</td><td>{uv.UngVienId}</td></tr>
+            <tr><td class='label'>Họ và tên</td><td>{G(uv.HoTen)}</td></tr>
+            <tr><td class='label'>Ngày sinh</td><td>{fmtDate(uv.NgaySinh)}</td></tr>
+            <tr><td class='label'>Giới tính</td><td>{(uv.GioiTinh == 1 ? "Nữ" : "Nam")}</td></tr>
+            <tr><td class='label'>Số điện thoại</td><td>{G(uv.SoDienThoai)}</td></tr>
+            <tr><td class='label'>Email</td><td>{G(uv.Email)}</td></tr>
+            <tr><td class='label'>CCCD</td><td>{G(uv.CCCD)}</td></tr>
+            <tr><td class='label'>Ngày cấp CCCD</td><td>{fmtDate(uv.NgayCapCCCD)}</td></tr>
+            <tr><td class='label'>Nơi cấp CCCD</td><td>{G(uv.NoiCapCCCD)}</td></tr>
+            <tr><td class='label'>Địa chỉ thường trú</td><td>{G(uv.DiaChiThuongTru)}</td></tr>
+            <tr><td class='label'>Địa chỉ cư trú</td><td>{G(uv.DiaChiCuTru)}</td></tr>
+            <tr><td class='label'>Mã số thuế</td><td>{G(uv.MaSoThue)}</td></tr>
+            <tr><td class='label'>Số tài khoản</td><td>{G(uv.SoTaiKhoan)}</td></tr>
+            <tr><td class='label'>Tình trạng sức khỏe</td><td>{G(uv.TinhTrangSucKhoe)}</td></tr>
+            <tr><td class='label'>Trình độ chuyên môn</td><td>{G(uv.TrinhDoChuyenMon)}</td></tr>
+            <tr><td class='label'>Loại đơn</td><td>{G(loaiDon)}</td></tr>
+            <tr><td class='label'>Trạng thái</td><td>{G(statusLabel)}</td></tr>
+            </table>
+            </body>
+            </html>";
 
             var bytes = System.Text.Encoding.UTF8.GetBytes(html);
             var fileName = $"UngVien_{uv.UngVienId}.doc";
@@ -715,50 +696,37 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> GetApplicationLink(int id)
         {
-            var vcRows = await (
-                from a in _context.AuditTrail.AsNoTracking()
-                join dvc in _context.DonVienChucs.AsNoTracking() on a.DonId equals dvc.VienChucId
-                where dvc.UngVienId == id && (a.LoaiDon == "VienChuc" || a.LoaiDon == "Viên chức")
-                select new
-                {
-                    a.AuditTrailId,
-                    Date = (DateTime?)a.NgayCapNhatMoi ?? (DateTime?)a.NgayTao,
-                    DonId = dvc.VienChucId,
-                    Label = "Đơn viên chức",
-                    Url = Url.Action("Details", "DonVienChuc", new { area = "Admin", id = dvc.VienChucId })
-                }
-            ).ToListAsync();
+            var latestVC = await _context.DonVienChucs.AsNoTracking()
+                .Where(d => d.UngVienId == id)
+                .OrderByDescending(d => d.NgayNop)
+                .ThenByDescending(d => d.VienChucId)
+                .Select(d => new {
+                    Ngay = d.NgayNop,
+                    Url = Url.Action("Details", "DonVienChuc", new { area = "Admin", id = d.VienChucId }),
+                    Label = "Đơn viên chức"
+                })
+                .FirstOrDefaultAsync();
 
-            var hdRows = await (
-                from a in _context.AuditTrail.AsNoTracking()
-                join hd in _context.HopDongNguoiLaoDongs.AsNoTracking() on a.DonId equals hd.HopDongId
-                where hd.UngVienId == id && (a.LoaiDon == "NguoiLaoDong" || a.LoaiDon == "Người lao động")
-                select new
-                {
-                    a.AuditTrailId,
-                    Date = (DateTime?)a.NgayCapNhatMoi ?? (DateTime?)a.NgayTao,
-                    DonId = hd.HopDongId,
-                    Label = "Hợp đồng lao động",
-                    Url = Url.Action("Details", "HopDongNguoiLaoDong", new { area = "Admin", id = hd.HopDongId })
-                }
-            ).ToListAsync();
-
-            var vcLatest = vcRows.OrderByDescending(x => x.Date ?? DateTime.MinValue)
-                                 .ThenByDescending(x => x.AuditTrailId).FirstOrDefault();
-            var hdLatest = hdRows.OrderByDescending(x => x.Date ?? DateTime.MinValue)
-                                 .ThenByDescending(x => x.AuditTrailId).FirstOrDefault();
+            var latestHD = await _context.HopDongNguoiLaoDongs.AsNoTracking()
+                .Where(h => h.UngVienId == id)
+                .OrderByDescending(h => h.NgayNop)
+                .ThenByDescending(h => h.HopDongId)
+                .Select(h => new {
+                    Ngay = h.NgayNop,
+                    Url = Url.Action("Details", "HopDongNguoiLaoDong", new { area = "Admin", id = h.HopDongId }),
+                    Label = "Hợp đồng lao động"
+                })
+                .FirstOrDefaultAsync();
 
             string? url = null; string label = "";
-            if (vcLatest == null && hdLatest == null) { }
-            else if (hdLatest == null) { url = vcLatest!.Url; label = vcLatest.Label; }
-            else if (vcLatest == null) { url = hdLatest!.Url; label = hdLatest.Label; }
+            if (latestVC == null && latestHD == null) { }
+            else if (latestHD == null) { url = latestVC!.Url; label = latestVC.Label; }
+            else if (latestVC == null) { url = latestHD!.Url; label = latestHD.Label; }
             else
             {
-                var vcDate = vcLatest.Date ?? DateTime.MinValue;
-                var hdDate = hdLatest.Date ?? DateTime.MinValue;
-                var takeVC = vcDate > hdDate || (vcDate == hdDate && vcLatest.AuditTrailId > hdLatest.AuditTrailId);
-                if (takeVC) { url = vcLatest.Url; label = vcLatest.Label; }
-                else { url = hdLatest.Url; label = hdLatest.Label; }
+                var takeVC = latestVC.Ngay > latestHD.Ngay;
+                url = takeVC ? latestVC.Url : latestHD.Url;
+                label = takeVC ? latestVC.Label : latestHD.Label;
             }
 
             return Json(new { url, label });
@@ -779,6 +747,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
                     d.TrangThai = DA_DUYET;
                     await _context.SaveChangesAsync();
+
+                    var userName = User?.Identity?.Name ?? "system";                                
+                    await _audit.LogAsync(userName, $"Duyệt đơn viên chức #{id}");
+
                     return Json(new { ok = true, newStatusLabel = "Đã duyệt", newStatusClass = "approved" });
                 }
                 if (donType == "HD")
@@ -787,6 +759,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
                     d.TrangThai = DA_DUYET;
                     await _context.SaveChangesAsync();
+
+                    var userName = User?.Identity?.Name ?? "system";                                
+                    await _audit.LogAsync(userName, $"Duyệt hợp đồng NLĐ #{id}");
+
                     return Json(new { ok = true, newStatusLabel = "Đã duyệt", newStatusClass = "approved" });
                 }
                 return Json(new { ok = false, message = "Loại đơn không hợp lệ." });
@@ -816,6 +792,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
                     d.TrangThai = CHO_XU_LY;
                     await _context.SaveChangesAsync();
+
+                    var userName = User?.Identity?.Name ?? "system";
+                    await _audit.LogAsync(userName, $"Bỏ duyệt đơn viên chức #{id}");
+
                     return Json(new { ok = true, newStatusLabel = "Chờ xử lý", newStatusClass = "pending" });
                 }
                 if (donType == "HD")
@@ -824,6 +804,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
                     d.TrangThai = CHO_XU_LY;
                     await _context.SaveChangesAsync();
+
+                    var userName = User?.Identity?.Name ?? "system";
+                    await _audit.LogAsync(userName, $"Bỏ duyệt hợp đồng NLĐ #{id}");
+
                     return Json(new { ok = true, newStatusLabel = "Chờ xử lý", newStatusClass = "pending" });
                 }
                 return Json(new { ok = false, message = "Loại đơn không hợp lệ." });
@@ -853,6 +837,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
                     d.TrangThai = DA_HUY;
                     await _context.SaveChangesAsync();
+
+                    var userName = User?.Identity?.Name ?? "system";
+                    await _audit.LogAsync(userName, $"Hủy đơn viên chức #{id}");
+
                     return Json(new { ok = true, newStatusLabel = "Đã hủy", newStatusClass = "cancelled" });
                 }
                 if (donType == "HD")
@@ -861,6 +849,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
                     d.TrangThai = DA_HUY;
                     await _context.SaveChangesAsync();
+
+                    var userName = User?.Identity?.Name ?? "system";
+                    await _audit.LogAsync(userName, $"Hủy hợp đồng NLĐ #{id}");
+
                     return Json(new { ok = true, newStatusLabel = "Đã hủy", newStatusClass = "cancelled" });
                 }
 
@@ -891,6 +883,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
                     d.TrangThai = DA_DUYET;
                     await _context.SaveChangesAsync();
+
+                    var userName = User?.Identity?.Name ?? "system";
+                    await _audit.LogAsync(userName, $"Khôi phục đơn viên chức #{id}");
+
                     return Json(new { ok = true, newStatusLabel = "Đã duyệt", newStatusClass = "approved" });
                 }
                 if (donType == "HD")
@@ -899,6 +895,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
                     d.TrangThai = DA_DUYET;
                     await _context.SaveChangesAsync();
+
+                    var userName = User?.Identity?.Name ?? "system";
+                    await _audit.LogAsync(userName, $"Khôi phục cho hợp đồng NLĐ #{id}");
+
                     return Json(new { ok = true, newStatusLabel = "Đã duyệt", newStatusClass = "approved" });
                 }
 
@@ -929,11 +929,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
                 if (donType == "VC")
                 {
-                    var audits = _context.AuditTrail.Where(a =>
-                        (a.LoaiDon == "VienChuc" || a.LoaiDon == "Viên chức") &&
-                        a.DonId == id);
-                    _context.AuditTrail.RemoveRange(audits);
-
                     var d = await _context.DonVienChucs
                                           .FirstOrDefaultAsync(x => x.VienChucId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
@@ -942,11 +937,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 }
                 else if (donType == "HD")
                 {
-                    var audits = _context.AuditTrail.Where(a =>
-                        (a.LoaiDon == "NguoiLaoDong" || a.LoaiDon == "Người lao động") &&
-                        a.DonId == id);
-                    _context.AuditTrail.RemoveRange(audits);
-
                     var d = await _context.HopDongNguoiLaoDongs
                                           .FirstOrDefaultAsync(x => x.HopDongId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
@@ -960,6 +950,11 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
+
+                var userName = User?.Identity?.Name ?? "system";
+                var label = donType == "VC" ? "đơn viên chức" : "hợp đồng NLĐ";
+                await _audit.LogAsync(userName, $"Xóa {label} #{id}");
+
                 return Json(new { ok = true });
             }
             catch (DbUpdateException ex)

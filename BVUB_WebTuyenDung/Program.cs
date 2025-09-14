@@ -53,6 +53,8 @@ builder.Services.AddSingleton<IEmailSender, GmailSmtpEmailSender>();
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
 builder.Services.AddSingleton<InfrastructureEmailSender, SmtpEmailSender>();
 
+builder.Services.AddScoped<IAuditTrailService, AuditTrailService>();
+
 var app = builder.Build();
 
 // Pipeline

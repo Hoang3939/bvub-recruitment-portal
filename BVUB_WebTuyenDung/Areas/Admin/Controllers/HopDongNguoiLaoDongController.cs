@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using BVUB_WebTuyenDung.Areas.Admin.Data;
 using BVUB_WebTuyenDung.Areas.Admin.Models;
 using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
+using BVUB_WebTuyenDung.Areas.Admin.Services;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 {
@@ -21,7 +22,14 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     public class HopDongNguoiLaoDongController : Controller
     {
         private readonly AdminDbContext _context;
-        public HopDongNguoiLaoDongController(AdminDbContext context) => _context = context;
+        private readonly IAuditTrailService _audit;
+        public HopDongNguoiLaoDongController(AdminDbContext context, IAuditTrailService audit)
+        {
+            _context = context;
+            _audit = audit;
+        }
+
+        private string CurrentUser() => User?.Identity?.Name ?? "unknown";
 
         // Map trạng thái
         private static (string Label, string Css) MapStatus(int? stt) => stt switch
@@ -147,6 +155,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 TrangThaiLabel = don.TrangThai == 2 ? "Đã duyệt" : don.TrangThai == 3 ? "Đã hủy" : "Đang duyệt",
                 VanBangs = vbs
             };
+
             return View(vm);
         }
 
@@ -275,6 +284,11 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     await _context.VanBangs.AddRangeAsync(cleaned);
 
                 await _context.SaveChangesAsync();
+
+                await _audit.LogAsync(
+                    CurrentUser(),
+                    $"Cập nhật HĐNLĐ id={hd.HopDongId}, ungVienId={hd.UngVienId}, soVanBangMoi={cleaned.Count}"
+                );
 
                 if (IsAjax())
                     return Ok(new { ok = true, message = "Đã lưu thành công." });

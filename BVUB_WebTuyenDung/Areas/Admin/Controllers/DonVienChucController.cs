@@ -1,18 +1,19 @@
 ﻿// Areas/Admin/Controllers/DonVienChucController.cs
-using System;
-using System.Linq;
-using System.Net;
-using System.Text;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Threading.Tasks;
+using BVUB_WebTuyenDung.Areas.Admin.Data;
+using BVUB_WebTuyenDung.Areas.Admin.Models;
+using BVUB_WebTuyenDung.Areas.Admin.Services;
+using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using BVUB_WebTuyenDung.Areas.Admin.Data;
-using BVUB_WebTuyenDung.Areas.Admin.Models;
-using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 {
@@ -21,7 +22,14 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     public class DonVienChucController : Controller
     {
         private readonly AdminDbContext _context;
-        public DonVienChucController(AdminDbContext context) => _context = context;
+        private readonly IAuditTrailService _audit;
+        public DonVienChucController(AdminDbContext context, IAuditTrailService audit)
+        {
+            _context = context;
+            _audit = audit;
+        }
+
+        private string CurrentUser() => User?.Identity?.Name ?? "system";
 
         // Map trạng thái
         private static (string Label, string Css) MapStatus(int? stt) => stt switch
@@ -369,6 +377,13 @@ td.label { width:35%; font-weight:bold; background:#f5f5f5 }
                 await _context.VanBangs.AddRangeAsync(newVbs);
 
                 await _context.SaveChangesAsync();
+
+                await _audit.LogAsync(
+                    CurrentUser(),
+                    $"Cập nhật đơn viên chức ID={don.VienChucId} cho Ứng viên ID={don.UngVienId}; " +
+                    $"ViTriDuTuyenId={don.ViTriDuTuyenId}, ChucDanhDuTuyenId={don.ChucDanhDuTuyenId}, KhoaPhongId={don.KhoaPhongId}; " +
+                    $"Văn bằng: xóa {oldVbs.Count} / thêm {newVbs.Count}"
+                );
 
                 if (IsAjax())
                     return Ok(new { ok = true, message = "Đã lưu thành công." });

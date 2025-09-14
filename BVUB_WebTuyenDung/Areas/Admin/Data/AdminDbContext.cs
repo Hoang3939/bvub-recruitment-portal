@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using BVUB_WebTuyenDung.Areas.Admin.Models;
+using Microsoft.EntityFrameworkCore;
 using M = BVUB_WebTuyenDung.Areas.Admin.Models;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Data
@@ -19,7 +20,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Data
         public DbSet<M.DanhMucKhoaPhong> DanhMucKhoaPhongs { get; set; }
         public DbSet<M.VanBang> VanBangs { get; set; }
         public DbSet<M.KhoaPhongViTri> KhoaPhongViTris { get; set; }
-
+        public DbSet<AuditTrail> AuditTrails { get; set; }
         protected override void OnModelCreating(ModelBuilder model)
         {
             base.OnModelCreating(model);

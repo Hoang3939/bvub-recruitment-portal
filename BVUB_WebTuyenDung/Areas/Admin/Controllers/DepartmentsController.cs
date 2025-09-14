@@ -1,16 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Globalization; 
+﻿using BVUB_WebTuyenDung.Areas.Admin.Data;
+using BVUB_WebTuyenDung.Areas.Admin.Services;
+using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using BVUB_WebTuyenDung.Areas.Admin.Data;
-using BVUB_WebTuyenDung.Areas.Admin.ViewModels;
-using M = BVUB_WebTuyenDung.Areas.Admin.Models;
+using System;
+using System.Collections.Generic;
+using System.Globalization; 
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using M = BVUB_WebTuyenDung.Areas.Admin.Models;
 
 namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 {
@@ -19,7 +20,13 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
     public class DepartmentsController : Controller
     {
         private readonly AdminDbContext _ctx;
-        public DepartmentsController(AdminDbContext ctx) => _ctx = ctx;
+        private readonly IAuditTrailService _audit;
+
+        public DepartmentsController(AdminDbContext ctx, IAuditTrailService audit)
+        {
+            _ctx = ctx;
+            _audit = audit;
+        }
 
         // ===== Helpers: chuẩn hoá tên để so trùng
         private static string NormalizeDeptName(string input)
@@ -125,6 +132,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 _ctx.DanhMucKhoaPhongs.Add(kp);
                 await _ctx.SaveChangesAsync();
 
+                var userName = User?.Identity?.Name ?? "system";
+                await _audit.LogAsync(userName, $"Thêm khoa/phòng '{kp.Ten}' (ID={kp.KhoaPhongId})");
+
                 TempData["ToastSuccess"] = "Đã thêm khoa/phòng.";
                 return RedirectToAction(nameof(Index));
             }
@@ -191,6 +201,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 kp.Loai = vm.Loai;
                 kp.TamNgung = vm.TamNgung;
                 await _ctx.SaveChangesAsync();
+
+                var userName = User?.Identity?.Name ?? "system";
+                await _audit.LogAsync(userName, $"Sửa thông tin khoa/phòng ID={id} thành '{kp.Ten}'");
 
                 TempData["ToastSuccess"] = "Đã cập nhật khoa/phòng.";
                 return RedirectToAction(nameof(Index));
@@ -292,6 +305,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 }
 
                 await _ctx.SaveChangesAsync();
+
+                var userName = User?.Identity?.Name ?? "system";
+                await _audit.LogAsync(userName, $"Cập nhật khoa/phòng ID={id}, tên '{kp.Ten}' (chọn vị trí)");
+
                 TempData["ToastSuccess"] = "Đã cập nhật.";
                 return RedirectToAction(nameof(Index), new { tab = "map" });
             }
@@ -311,6 +328,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             {
                 _ctx.DanhMucKhoaPhongs.Remove(e);
                 await _ctx.SaveChangesAsync();
+
+                var userName = User?.Identity?.Name ?? "system";
+                await _audit.LogAsync(userName, $"Xóa khoa/phòng '{e.Ten}' (ID={id})");
+                
                 TempData["ToastSuccess"] = "Đã xóa khoa/phòng.";
             }
             return RedirectToAction(nameof(Index));
