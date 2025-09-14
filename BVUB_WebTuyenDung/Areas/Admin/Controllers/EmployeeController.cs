@@ -198,7 +198,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 Username = u.Username,
                 Email = u.Email,
                 SelectedPerms = selected
-                // Password/ConfirmPassword để trống (người dùng nhập mới nếu muốn đổi)
             };
 
             return View(vm);

@@ -6,14 +6,15 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Security
     public enum StaffPerms : int
     {
         None = 0,
-        Dashboard = 1 << 1, // 2
-        Candidates = 1 << 2, // 4
-        Recruitments = 1 << 3,// 8
-        Guides = 1 << 4,// 16
-        Departments = 1 << 5, // 32
-        Positions = 1 << 6,  // 64
-        Titles = 1 << 7,// 128
-        Reports = 1 << 8  //256
+        Dashboard = 1 << 1,                 // 2
+        Candidates = 1 << 2,                // 4
+        Recruitments = 1 << 3,              // 8
+        Guides = 1 << 4,                    // 16
+        Departments = 1 << 5,               // 32
+        Positions = 1 << 6,                 // 64
+        Titles = 1 << 7,                    // 128
+        Reports = 1 << 8,                   // 256
+        AuditTrail = 1 << 9                 // 512
     }
 
     public static class StaffPermOptions
@@ -28,6 +29,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Security
             ((int)StaffPerms.Positions   , "Quản lý danh mục vị trí dự tuyển"),
             ((int)StaffPerms.Titles      , "Quản lý danh mục chức danh dự tuyển"),
             ((int)StaffPerms.Reports     , "Báo cáo thống kê"),
+            ((int)StaffPerms.AuditTrail    , "Nhật ký hệ thống"),
         };
     }
 }
