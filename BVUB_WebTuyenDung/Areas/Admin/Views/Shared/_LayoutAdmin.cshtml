@@ -185,6 +185,17 @@
                     </a>
                 </li>
             }
+
+            <!-- Cài đặt -->
+            @if (Can(StaffPerms.Settings))
+            {
+                <li>
+                    <a asp-area="Admin" asp-controller="Settings" asp-action="Index"
+                       class="@(currentController == "Settings" ? "active" : "")">
+                        <i class="fas fa-gear"></i><span> Cài đặt</span>
+                    </a>
+                </li>
+            }
         </ul>
     </div>
 

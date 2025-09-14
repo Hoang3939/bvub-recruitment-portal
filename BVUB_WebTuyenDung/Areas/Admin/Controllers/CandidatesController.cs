@@ -31,6 +31,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             _audit = audit;
         }
 
+        // == Utils ==
         private static string FormatLoaiDonLabel(string? loaiDon)
         {
             if (string.IsNullOrWhiteSpace(loaiDon)) return "-";
@@ -51,6 +52,27 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             _ => (stt?.ToString() ?? "", "")
         };
 
+        // Ghi nhật ký (AuditTrail)
+        private async Task AddAuditAsync(string action)
+        {
+            try
+            {
+                var user = User?.Identity?.Name ?? "unknown";
+                _context.AuditTrail.Add(new AuditTrail
+                {
+                    UserName = user,
+                    Action = action,
+                    ActionDate = DateTime.Now
+                });
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                // giữ luồng nghiệp vụ, không throw
+            }
+        }
+
+        // == Danh sách ==
         [Authorize]
         public async Task<IActionResult> Index(string q, string type, string status, int page = 1, int pageSize = 20)
         {
@@ -232,7 +254,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             if (!System.IO.File.Exists(templatePath))
                 return BadRequest("Không tìm thấy template Excel: /wwwroot/templates/Thong tin Hop dong.xlsx");
 
-            // VC: đồng nhất tập thuộc tính
+            // VC
             var vc = _context.DonVienChucs.AsNoTracking()
                 .Select(d => new ExportRow
                 {
@@ -263,7 +285,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     NgheNghiepTruoc = null
                 });
 
-            // HD: đồng nhất tập thuộc tính
+            // HD
             var hd = _context.HopDongNguoiLaoDongs.AsNoTracking()
                 .Select(h => new ExportRow
                 {
@@ -356,7 +378,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             XLWorkbook wb;
             try
             {
-                // Kiểm tra kích thước file > 0 để tránh lỗi package rỗng
                 var fi = new FileInfo(templatePath);
                 if (!fi.Exists || fi.Length == 0)
                     throw new InvalidOperationException("File template rỗng hoặc không tồn tại.");
@@ -366,7 +387,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
             catch
             {
-                // Nếu template không hợp lệ (OpenXML hỏng, đổi file khác nhưng nội dung không đúng) => tạo workbook mới
                 wb = new XLWorkbook();
             }
 
@@ -374,7 +394,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
             int headerRow = 1;
 
-            // Nếu sheet đang trống: khởi tạo cột đầu tiên để tránh Last* null
             if (ws.LastRowUsed() == null && ws.LastColumnUsed() == null)
             {
                 ws.Cell(headerRow, 1).Value = "STT";
@@ -394,7 +413,6 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     headerToCol[name] = c;
             }
 
-            // HÀM SET: nếu header chưa có trong template thì TỰ TẠO CỘT MỚI + GHI HEADER
             void Set(IXLWorksheet s, int row, string header, object? val)
             {
                 if (!headerToCol.TryGetValue(header, out var col))
@@ -611,6 +629,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 fileName);
         }
 
+        // == In Word: lấy đơn mới nhất trực tiếp từ VC/HD ==
         [HttpGet]
         public async Task<IActionResult> ExportWord(int id)
         {
@@ -693,6 +712,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             return File(bytes, "application/msword", fileName);
         }
 
+        // == Link tới đơn mới nhất =
         [HttpGet]
         public async Task<IActionResult> GetApplicationLink(int id)
         {
@@ -732,6 +752,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             return Json(new { url, label });
         }
 
+        // == Actions thay đổi trạng thái ==
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "1,Admin")]
@@ -914,6 +935,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             }
         }
 
+        // == Xoá đơn ==
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "1,Admin")]
@@ -932,23 +954,24 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                     var d = await _context.DonVienChucs
                                           .FirstOrDefaultAsync(x => x.VienChucId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy đơn viên chức." });
-
                     _context.DonVienChucs.Remove(d);
+                    await _context.SaveChangesAsync();
+                    await AddAuditAsync($"Xoá đơn viên chức #{id}");
                 }
                 else if (donType == "HD")
                 {
                     var d = await _context.HopDongNguoiLaoDongs
                                           .FirstOrDefaultAsync(x => x.HopDongId == id);
                     if (d == null) return Json(new { ok = false, message = "Không tìm thấy hợp đồng NLĐ." });
-
                     _context.HopDongNguoiLaoDongs.Remove(d);
+                    await _context.SaveChangesAsync();
+                    await AddAuditAsync($"Xoá hợp đồng NLĐ #{id}");
                 }
                 else
                 {
                     return Json(new { ok = false, message = "Loại đơn không hợp lệ." });
                 }
 
-                await _context.SaveChangesAsync();
                 await tx.CommitAsync();
 
                 var userName = User?.Identity?.Name ?? "system";
