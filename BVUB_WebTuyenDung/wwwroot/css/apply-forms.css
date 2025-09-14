@@ -410,3 +410,169 @@ input[type="number"].no-spin {
     -moz-appearance: textfield;
     appearance: textfield;
 }
+
+/* ===================== IMPROVE / ADDITIONS ===================== */
+
+/* 0) Biến màu dùng chung (dễ chỉnh theme sau này) */
+:root {
+    --c-primary: #316bd6;
+    --c-primary-600: #2a59bb;
+    --c-ring: rgba(49,107,214,.25);
+    --c-border: #cfd7e6;
+    --c-border-soft: #e6eaf5;
+    --radius-8: 8px;
+    --radius-10: 10px;
+}
+
+/* 1) Focus ring đồng bộ cho control & nút (dùng :focus-visible để đỡ chói) */
+.form-control:focus-visible, select:focus-visible, input[type="date"]:focus-visible,
+.btn:focus-visible,
+.checkbox-item:has(input:focus-visible),
+.choice-item:has(input:focus-visible) {
+    outline: none;
+    border-color: var(--c-primary);
+    box-shadow: 0 0 0 3px var(--c-ring);
+}
+
+/* 2) Văn bằng: hiển thị dạng ma trận 4 cột, tự co giãn */
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 12px 16px;
+    margin-bottom: 18px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1px solid var(--c-border-soft);
+    border-radius: var(--radius-10);
+    background: #fff;
+    cursor: pointer;
+    transition: border-color .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+    .checkbox-item:hover {
+        background: #f6f8ff;
+        border-color: #cfe0ff;
+    }
+
+    /* accent màu xanh cho input trong label */
+    .checkbox-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--c-primary);
+        margin: 0;
+    }
+
+/* Responsive: thu dần số cột */
+@media (max-width: 920px) {
+    .checkbox-group {
+        grid-template-columns: repeat(3,1fr);
+    }
+}
+
+@media (max-width: 680px) {
+    .checkbox-group {
+        grid-template-columns: repeat(2,1fr);
+    }
+}
+
+@media (max-width: 420px) {
+    .checkbox-group {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 3) Radio “solid” có vòng tròn trong (đỡ cảm giác bị tô kín) */
+.radio-solid {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #bbb;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    display: inline-grid;
+    place-items: center;
+    transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+    .radio-solid:checked {
+        border-color: var(--c-primary);
+        box-shadow: 0 0 0 3px var(--c-ring);
+    }
+
+        .radio-solid:checked::after {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--c-primary);
+        }
+
+/* 4) Nút: đảm bảo tap-target >= 44px, hover/focus đồng bộ */
+.btn {
+    min-height: 44px;
+}
+
+.btn-primary {
+    background: var(--c-primary);
+    box-shadow: 0 6px 12px rgba(49,107,214,.18);
+}
+
+    .btn-primary:hover {
+        background: var(--c-primary-600);
+        opacity: 1;
+    }
+
+/* 5) Tiện ích bố cục 2 cột cho các nhóm field (tuỳ dùng) */
+.form-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap: 12px;
+}
+
+@media (max-width: 720px) {
+    .form-grid-2 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* 6) Sửa nhẹ .form-control viền & radius theo biến */
+.form-control, select,
+input[type="text"], input[type="email"], input[type="tel"],
+input[type="number"], input[type="date"] {
+    border: 1px solid var(--c-border);
+    border-radius: var(--radius-8);
+}
+
+/* 7) Card văn bằng “đã có” – hover nhẹ cho cảm giác clickable */
+.vb-card {
+    transition: box-shadow .15s ease, border-color .15s ease;
+}
+
+    .vb-card:hover {
+        border-color: #dfe6ff;
+        box-shadow: 0 8px 24px rgba(31,42,68,.06);
+    }
+
+.form-card > button[type="submit"].btn-primary {
+    display: block;
+    margin-left: auto; /* chìa sang phải */
+    margin-top: 12px;
+}
+
+.form-actions {
+    text-align: right;
+    margin-top: 20px; /* khoảng cách phía trên */
+}
+
+.checkbox-group .checkbox-item:has(input[value="Chứng chỉ bồi dưỡng nghiệp vụ công tác xã hội"]) {
+    grid-column: auto; /* không span hết */
+    width: max-content; /* dài vừa chữ */
+    white-space: nowrap; /* không tự xuống dòng */
+    padding-right: 18px;
+}

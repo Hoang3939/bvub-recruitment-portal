@@ -30,8 +30,8 @@ namespace BVUB_WebTuyenDung.Models
         public string Email { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập CCCD.")]
-        [MaxLength(12, ErrorMessage = "CCCD tối đa 12 số.")]
-        [RegularExpression(@"^\d{0,12}$", ErrorMessage = "CCCD chỉ chứa số.")]
+        [StringLength(12, MinimumLength = 12, ErrorMessage = "CCCD phải có đúng 12 chữ số")]
+        [RegularExpression(@"^\d{12}$", ErrorMessage = "CCCD phải gồm đúng 12 chữ số")]
         public string CCCD { get; set; }
 
         [Required(ErrorMessage = "Vui lòng chọn Ngày cấp CCCD.")]

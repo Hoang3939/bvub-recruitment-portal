@@ -1,10 +1,9 @@
-﻿/* 1) Kế thừa font & box-sizing cho toàn block tra cứu */
+﻿/* ===== Tra cứu – base ===== */
 .tracuu-wrap, .tracuu-wrap * {
-    font-family: inherit; /* lấy từ body → Inter */
+    font-family: inherit;
     box-sizing: border-box;
 }
 
-/* 2) Khung chính */
 .tracuu-wrap {
     max-width: 720px;
     margin: 32px auto;
@@ -14,92 +13,112 @@
     box-shadow: 0 10px 30px rgba(18,38,63,.06);
 }
 
-/* 3) Hàng select + input: mobile stack */
-.tracuu-inline {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
+/* ===== Controls chung ===== */
+.tracuu-input,
+.tracuu-select,
+.captcha-input {
+    min-height: 44px;
+    width: 100%;
+    border: 1px solid #dfe3ea;
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #fff;
+    font-size: 15px;
+    line-height: 1.2;
+    transition: border-color .15s ease, box-shadow .15s ease;
 }
 
-    /* 4) Control: bỏ height cứng → dùng min-height + line-height */
-    .tracuu-inline .tracuu-select,
-    .tracuu-inline .tracuu-input,
-    .captcha-line .captcha-input {
-        flex: 1 1 auto;
-        min-height: 44px; /* ≥ 44px cho mobile */
-        border: 1px solid #dfe3ea;
-        border-radius: 8px;
-        padding: 10px 12px;
-        background: #fff;
-        font-size: 15px;
-        line-height: 1.2;
-    }
+.tracuu-input:focus,
+.tracuu-select:focus,
+.captcha-input:focus {
+    outline: none;
+    border-color: #4d79c7;
+    box-shadow: 0 0 0 3px rgba(77,121,199,.15);
+}
 
-    .tracuu-inline .tracuu-select {
-        flex: 0 0 180px;
-        min-width: 160px;
-        /* để select không bị text dính mép */
-        padding-right: 28px;
-    }
+/* ===== Hàng chọn loại + nhập định danh (ép 1 dòng) ===== */
+.tracuu-inline {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: nowrap; /* ép 1 dòng */
+}
 
-/* 5) Captcha line */
+.tracuu-inline .tracuu-select {
+    flex: 0 0 200px; /* bề rộng cố định cho select */
+    min-width: 180px;
+    padding-right: 28px;
+}
+
+.tracuu-inline .tracuu-input {
+    flex: 1 1 auto; /* input giãn phần còn lại */
+}
+
+/* ===== Captcha (ép 1 dòng) ===== */
 .captcha-line {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
+    gap: 12px;
+    flex-wrap: nowrap; /* ép 1 dòng */
 }
 
-    .captcha-line .captcha-img {
-        height: 44px;
-        display: block;
-        border-radius: 6px;
-        border: 1px solid #e5e5e5;
-        background: #fff;
-    }
+.captcha-line .captcha-input {
+    flex: 1 1 auto;
+    min-width: 140px;
+}
 
-    .captcha-line .btn-refresh {
-        min-height: 44px;
-        padding: 0 14px;
-        border-radius: 8px;
-        border: 1px solid #dfe3ea;
-        background: #f6f7fb;
-        cursor: pointer;
-    }
+.captcha-line .captcha-img {
+    flex: 0 0 auto;
+    width: 120px; /* cố định để ổn định layout */
+    height: 44px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 1px solid #e5e5e5;
+    background: #fff;
+}
 
-/* 6) Nút tra cứu */
+.captcha-line .btn-refresh {
+    flex: 0 0 auto;
+    min-height: 44px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: 1px solid #dfe3ea;
+    background: #f6f7fb;
+    cursor: pointer;
+}
+
+/* ===== Nút tra cứu ===== */
 .tracuu-actions {
     text-align: center;
     margin-top: 14px;
 }
 
-    .tracuu-actions .btn-primary {
-        min-height: 44px;
-        padding: 10px 22px;
-        border-radius: 10px;
-        border: none;
-        background: #2f6fed;
-        color: #fff;
-        cursor: pointer;
-        font-weight: 600;
-        transition: box-shadow .15s ease, transform .05s ease, opacity .15s;
-    }
+.tracuu-actions .btn-primary {
+    min-height: 44px;
+    padding: 10px 22px;
+    border-radius: 10px;
+    border: 0;
+    background: #2f6fed;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: box-shadow .15s ease, transform .05s ease, opacity .15s;
+}
 
-        .tracuu-actions .btn-primary:hover {
-            opacity: .92;
-        }
+.tracuu-actions .btn-primary:hover {
+    opacity: .92;
+}
 
-        .tracuu-actions .btn-primary:active {
-            transform: translateY(1px);
-        }
+.tracuu-actions .btn-primary:active {
+    transform: translateY(1px);
+}
 
-        .tracuu-actions .btn-primary:focus {
-            outline: 2px solid rgba(47,111,237,.35);
-            outline-offset: 2px;
-        }
+.tracuu-actions .btn-primary:focus {
+    outline: 2px solid rgba(47,111,237,.35);
+    outline-offset: 2px;
+}
 
-/* 7) Card kết quả (giữ nguyên, thêm nowrap cho nút) */
+/* ===== Kết quả ===== */
 .tracuu-result {
     max-width: 720px;
     margin: 18px auto 28px;
@@ -110,30 +129,30 @@
     justify-content: space-between;
     align-items: center;
     gap: 16px;
+    padding: 18px 20px;
+    background: #fff;
     border: 1px solid #e8e8ef;
     border-radius: 12px;
-    background: #fff;
-    padding: 18px 20px;
     box-shadow: 0 6px 18px rgba(18,38,63,.05);
     margin-top: 12px;
-    flex-wrap: wrap; /* giúp xuống dòng ở mobile */
+    flex-wrap: wrap;
 }
 
-    .tracuu-card h5 {
-        margin: 0 0 4px;
-        font-weight: 700;
-    }
+.tracuu-card h5 {
+    margin: 0 0 4px;
+    font-weight: 700;
+}
 
-    .tracuu-card p {
-        margin: 0;
-        color: #555;
-    }
+.tracuu-card p {
+    margin: 0;
+    color: #555;
+}
 
-    .tracuu-card .btn-detail {
-        white-space: nowrap;
-    }
+.tracuu-card .btn-detail {
+    white-space: nowrap;
+}
 
-/* 8) Nút xem chi tiết (đồng bộ focus) */
+/* Nút xem chi tiết */
 .btn-detail, .btn-detail:link, .btn-detail:visited {
     display: inline-flex;
     align-items: center;
@@ -144,52 +163,43 @@
     border: 1px solid #2f6fed;
     background: #fff;
     color: #2f6fed;
-    text-decoration: none;
     font-weight: 600;
+    text-decoration: none;
     transition: all .18s ease;
 }
 
-    .btn-detail:hover {
-        background: #2f6fed;
-        color: #fff;
-        box-shadow: 0 6px 14px rgba(47,111,237,.18);
-    }
-
-    .btn-detail:active {
-        transform: translateY(1px);
-    }
-
-    .btn-detail:focus {
-        outline: 2px solid rgba(47,111,237,.35);
-        outline-offset: 2px;
-    }
-
-/* 9) Responsive breakpoints: dưới 480px xếp dọc gọn */
-@media (max-width: 480px) {
-    .tracuu-inline {
-        flex-direction: column;
-    }
-
-        .tracuu-inline .tracuu-select {
-            width: 100%;
-            flex: 1 1 auto;
-        }
-
-    .captcha-line {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-        .captcha-line .captcha-img {
-            align-self: flex-start;
-        }
+.btn-detail:hover {
+    background: #2f6fed;
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(47,111,237,.18);
 }
 
-/* 10) State focus đồng bộ cho inputs (accessibility) */
-.tracuu-inline .tracuu-select:focus,
-.tracuu-inline .tracuu-input:focus,
-.captcha-line .captcha-input:focus {
-    outline: none;
-    border-color: #4d79c7;
-    box-shadow: 0 0 0 3px rgba(77,121,199,.15);
+.btn-detail:active {
+    transform: translateY(1px);
+}
+
+.btn-detail:focus {
+    outline: 2px solid rgba(47,111,237,.35);
+    outline-offset: 2px;
+}
+
+/* ===== Responsive: chỉ khi màn hẹp mới cho xuống dòng ===== */
+@media (max-width: 600px) {
+    .tracuu-inline,
+    .captcha-line {
+        flex-wrap: wrap; /* cho xuống dòng ở mobile nhỏ */
+    }
+
+    .tracuu-inline .tracuu-select {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    .captcha-line .captcha-img {
+        order: 2;
+    }
+    /* tuỳ bố cục mong muốn */
+    .captcha-line .btn-refresh {
+        order: 3;
+    }
 }

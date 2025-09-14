@@ -1,4 +1,12 @@
-﻿.td-root, .td-root * {
+﻿.td-title {
+    max-width: 960px;
+    margin: 22px auto 12px;
+    font: 800 28px/1.2 system-ui;
+    color: #0f1f4b;
+    text-align: center;
+}
+
+.td-root, .td-root * {
     font-family: inherit;
     box-sizing: border-box;
 }

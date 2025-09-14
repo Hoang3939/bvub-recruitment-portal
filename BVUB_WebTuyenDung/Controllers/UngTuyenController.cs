@@ -394,10 +394,10 @@ namespace BVUB_WebTuyenDung.Controllers
                 "Cao đẳng",
                 "Trung cấp",
                 "Văn bằng 2",
-                "Chứng chỉ bồi dưỡng nghiệp vụ công tác xã hội",
                 "Ngoại ngữ",
                 "Tin học",
-                "Khác"
+                "Khác",
+                "Chứng chỉ bồi dưỡng nghiệp vụ công tác xã hội"
             };
         }
 

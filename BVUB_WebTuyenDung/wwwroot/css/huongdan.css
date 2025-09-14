@@ -145,10 +145,10 @@
 }
     /* tiêu đề thẻ */
 
-    .hd-card__title b,
-    .hd-card__title strong {
-        font-weight: inherit;
-    }
+.hd-card__title b,
+.hd-card__title strong {
+    font-weight: inherit;
+}
 /* không nhảy weight khi có <b> */
 /* Header 2 cột: trái (title+meta), phải (nút tải) */
 .hd-detail__head {
@@ -205,10 +205,10 @@
     transition: all .15s ease;
 }
 
-    .hd-btn:hover {
-        background: #2f6fed;
-        color: #fff;
-    }
+.hd-btn:hover {
+    background: #2f6fed;
+    color: #fff;
+}
 
 .hd-btn--primary {
     background: #2f6fed;
@@ -222,9 +222,9 @@
     border-color: #cfe0ff;
 }
 
-    .hd-btn--ghost:hover {
-        background: #eef4ff;
-    }
+.hd-btn--ghost:hover {
+    background: #eef4ff;
+}
 
 /* Nút nhỏ giống “Xem chi tiết” */
 .hd-btn--sm {

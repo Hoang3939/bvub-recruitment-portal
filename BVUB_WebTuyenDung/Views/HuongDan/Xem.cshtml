@@ -10,18 +10,29 @@
             ? raw
             : Url.Content(raw.StartsWith("/") ? raw : "~/uploads/huongdan/" + raw);
     }
+
+    // Chuẩn hoá LoaiHuongDan và xác định loại VC/NLD
+    var loaiRaw = (Model?.LoaiHuongDan ?? "").Trim();
+    bool isVC =
+        loaiRaw.Equals("VC", StringComparison.OrdinalIgnoreCase) ||
+        loaiRaw.Equals("Viên chức", StringComparison.OrdinalIgnoreCase) ||
+        loaiRaw.Replace(" ", "").Equals("Vienchuc", StringComparison.OrdinalIgnoreCase);
+
+    var applyAction = isVC ? "VienChuc" : "NguoiLaoDong";   // Action trong UngTuyenController
+    var applyController = "UngTuyen";
+    var loaiRoute = isVC ? "VC" : "NLD";                    // Truyền kèm để action đích biết chắc loại
 }
-@section Styles{
-  <link rel="stylesheet" href="~/css/huongdan.css" asp-append-version="true" />
+@section Styles {
+    <link rel="stylesheet" href="~/css/huongdan.css" asp-append-version="true" />
 }
 
 @if (Model is null)
 {
-  <div class="hd-detail">
-    <h1 class="hd-detail__title">Chưa có nội dung hướng dẫn</h1>
-    <p>Hiện chưa có hướng dẫn cho mục này.</p>
-    <a asp-action="Index" class="hd-btn">← Quay lại</a>
-  </div>
+    <div class="hd-detail">
+        <h1 class="hd-detail__title">Chưa có nội dung hướng dẫn</h1>
+        <p>Hiện chưa có hướng dẫn cho mục này.</p>
+        <a asp-action="Index" class="hd-btn">← Quay lại</a>
+    </div>
 }
 else
 {
@@ -31,19 +42,31 @@ else
                 <h1 class="hd-detail__title">@Model.TieuDe</h1>
                 <div class="hd-detail__meta">
                     <span class="hd-badge">
-                        @((Model.LoaiHuongDan ?? "").ToUpperInvariant() == "VC" ? "Viên chức"
-                                            : (Model.LoaiHuongDan ?? "").ToUpperInvariant() == "NLD" ? "Người lao động"
-                                            : Model.LoaiHuongDan)
+                        @(isVC ? "Viên chức"
+                                            : (loaiRaw.Equals("NLD", StringComparison.OrdinalIgnoreCase) ||
+                                            loaiRaw.Replace(" ", "").Equals("Nguoilaodong", StringComparison.OrdinalIgnoreCase))
+                                            ? "Người lao động"
+                                            : loaiRaw)
                 </span>
                 <span>Cập nhật: @Model.NgayCapNhat.ToString("dd/MM/yyyy")</span>
             </div>
         </div>
 
+            @* Nút tải file *@
         @if (!string.IsNullOrWhiteSpace(fileUrl))
             {
+                var ext = System.IO.Path.GetExtension(fileUrl).ToLowerInvariant();
+                var downloadLabel = ext switch
+                {
+                    ".pdf" => "Tải PDF",
+                    ".doc" or ".docx" => "Tải Word",
+                    _ => "Tải tệp đính kèm"
+                };
+
                 <div class="hd-detail__actions">
-                    <a href="@fileUrl" target="_blank" rel="noopener" class="hd-btn hd-btn--primary hd-btn--sm">
-                        Tải tệp đính kèm
+                    <a href="@fileUrl" target="_blank" rel="noopener"
+                       class="hd-btn hd-btn--primary hd-btn--sm">
+                        @downloadLabel
                     </a>
                 </div>
             }
@@ -53,8 +76,16 @@ else
             @Html.Raw(Model.NoiDung)
         </div>
 
-        <div class="hd-detail__footer">
+        <div class="hd-detail__footer" style="display:flex; justify-content:flex-end; gap:10px;">
             <a asp-action="Index" class="hd-btn hd-btn--ghost hd-btn--sm">← Quay lại</a>
+
+            @* Truyền kèm route 'loai' để chắc chắn mở đúng form *@
+            <a asp-controller="@applyController"
+               asp-action="@applyAction"
+               asp-route-loai="@loaiRoute"
+               class="hd-btn hd-btn--primary hd-btn--sm">
+                Đăng ký ứng tuyển
+            </a>
         </div>
     </div>
 }
