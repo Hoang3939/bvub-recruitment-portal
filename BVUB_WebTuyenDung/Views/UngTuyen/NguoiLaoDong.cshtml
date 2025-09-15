@@ -18,13 +18,12 @@
     <div class="form-group">
         <label asp-for="UngVien.Email" class="form-label">Email*</label>
         <div class="inline-row">
-            <input asp-for="UngVien.Email" class="form-control" id="txtEmail" placeholder="Ví dụ: abc@gmail.com"/>
+            <input asp-for="UngVien.Email" class="form-control" id="txtEmail" placeholder="Ví dụ: abc@gmail.com" />
             <button type="button" id="btnCheckEmail" class="btn btn-secondary">Kiểm tra</button>
         </div>
         <small id="emailHint" class="text-muted"></small>
         <span asp-validation-for="UngVien.Email" class="text-danger"></span>
     </div>
-
 
     <!-- Loại hồ sơ -->
     <div class="form-group">
@@ -149,45 +148,44 @@
 
     <div class="form-group">
         <label asp-for="HopDongNguoiLaoDong.ChuyenNganhDaoTao" class="form-label">Chuyên ngành đào tạo*</label>
-        <input asp-for="HopDongNguoiLaoDong.ChuyenNganhDaoTao" class="form-control" placeholder="Ví dụ: Quản lý nhà nước/ Tổ chức quản lý y tế/ Bác sĩ y khoa,..."/>
+        <input asp-for="HopDongNguoiLaoDong.ChuyenNganhDaoTao" class="form-control" placeholder="Ví dụ: Quản lý nhà nước/ Tổ chức quản lý y tế/ Bác sĩ y khoa,..." />
         <span asp-validation-for="HopDongNguoiLaoDong.ChuyenNganhDaoTao" class="text-danger"></span>
     </div>
 
     <div class="form-group">
         <label asp-for="HopDongNguoiLaoDong.NamTotNghiep" class="form-label">Năm tốt nghiệp*</label>
-        <input asp-for="HopDongNguoiLaoDong.NamTotNghiep" class="form-control" placeholder="Ví dụ: Cử nhân Quản lý bệnh viện: năm 2020"/>
+        <input asp-for="HopDongNguoiLaoDong.NamTotNghiep" class="form-control" placeholder="Ví dụ: Cử nhân Quản lý bệnh viện: năm 2020" />
         <span asp-validation-for="HopDongNguoiLaoDong.NamTotNghiep" class="text-danger"></span>
     </div>
 
     <div class="form-group">
         <label asp-for="HopDongNguoiLaoDong.TrinhDoTinHoc" class="form-label">Trình độ tin học (nếu có điền đầy đủ tên)*</label>
-        <input asp-for="HopDongNguoiLaoDong.TrinhDoTinHoc" class="form-control" placeholder="Ví dụ: Ứng dụng công nghệ thông tin cơ bản hoặc điền 'Không có'"/>
+        <input asp-for="HopDongNguoiLaoDong.TrinhDoTinHoc" class="form-control" placeholder="Ví dụ: Ứng dụng CNTT cơ bản hoặc 'Không có'" />
         <span asp-validation-for="HopDongNguoiLaoDong.TrinhDoTinHoc" class="text-danger"></span>
     </div>
 
     <div class="form-group">
         <label asp-for="HopDongNguoiLaoDong.TrinhDoNgoaiNgu" class="form-label">Trình độ ngoại ngữ (nếu có điền đầy đủ tên)*</label>
-        <input asp-for="HopDongNguoiLaoDong.TrinhDoNgoaiNgu" class="form-control" placeholder="Ví dụ: Tiếng anh trình độ B1/ IELTS 9.0/ TOEIC 990 hoặc điền 'Không có'"/>
+        <input asp-for="HopDongNguoiLaoDong.TrinhDoNgoaiNgu" class="form-control" placeholder="Ví dụ: B1/ IELTS/ TOEIC hoặc 'Không có'" />
         <span asp-validation-for="HopDongNguoiLaoDong.TrinhDoNgoaiNgu" class="text-danger"></span>
     </div>
 
     <div class="form-group">
         <label asp-for="HopDongNguoiLaoDong.ChungChiHanhNghe" class="form-label">Chứng chỉ hành nghề (nếu có điền đầy đủ số hiệu)*</label>
-        <input asp-for="HopDongNguoiLaoDong.ChungChiHanhNghe" class="form-control" placeholder="Ví dụ: 01234/HCM-CCHN hoặc điền 'Không có'"/>
+        <input asp-for="HopDongNguoiLaoDong.ChungChiHanhNghe" class="form-control" placeholder="Ví dụ: 01234/HCM-CCHN hoặc 'Không có'" />
         <span asp-validation-for="HopDongNguoiLaoDong.ChungChiHanhNghe" class="text-danger"></span>
     </div>
 
     <div class="form-group">
         <label asp-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung" class="form-label">Nghề nghiệp trước tuyển dụng (nếu có)*</label>
-        <input asp-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung" class="form-control" placeholder="Nếu không điền 'Không có'" />
+        <input asp-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung" class="form-control" placeholder="Nếu không thì 'Không có'" />
         <span asp-validation-for="HopDongNguoiLaoDong.NgheNghiepTruocTuyenDung" class="text-danger"></span>
     </div>
 
-    <!-- ====== VĂN BẰNG (NEW) ====== -->
+    <!-- ====== VĂN BẰNG ====== -->
     <hr class="hr-soft" />
     <h4 class="section-title">Văn bằng</h4>
 
-    <!-- Checkbox chọn loại văn bằng muốn bổ sung -->
     <div class="form-group checkbox-group">
         @foreach (var loai in loaiVanBangOptions)
         {
@@ -198,10 +196,9 @@
         }
     </div>
 
-    <!-- Chỗ render input VanBangs[i].* (JS sẽ chèn vào) -->
     <div id="vanbang-container" class="vanbang-container"></div>
 
-    <div class="form-actions">
+    <div class="form-actions d-flex justify-content-end">
         <button type="submit" class="btn btn-success">Nộp đơn</button>
     </div>
 </form>
@@ -221,5 +218,54 @@
     <script src="~/js/apply-init.js" asp-append-version="true"></script>
     <script src="~/js/apply-suckhoe.js" asp-append-version="true"></script>
 
-}
+    <!-- SweetAlert2 confirm (CDN đã add ở layout) -->
+    <script>
+        (function () {
+          const form = document.querySelector('form.form-card[data-mode="nld"]');
+          if (!form) return;
 
+          // Tránh Enter submit bỏ qua xác nhận
+          form.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT') e.preventDefault();
+          });
+
+          form.addEventListener('submit', function (e) {
+            if (form.dataset.confirmed === '1') return; // đã xác nhận rồi
+
+            e.preventDefault();
+
+            // Validate: ưu tiên jQuery Validate, fallback HTML5
+            let ok = true;
+            try { if (window.jQuery && typeof $(form).valid === 'function') ok = $(form).valid(); } catch (_){}
+            if (ok && form.checkValidity && !form.checkValidity()) ok = false;
+            if (!ok) { form.reportValidity && form.reportValidity(); return; }
+
+            const title = 'Xác nhận nộp đơn (Người lao động)';
+            const text  = 'Bạn có chắc chắn muốn nộp hồ sơ không? Sau khi nộp bạn sẽ nhận được mã tra cứu qua email.';
+
+            if (window.Swal && Swal.fire) {
+              Swal.fire({
+                title: title,
+                text: text,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận nộp',
+                cancelButtonText: 'Hủy',
+                reverseButtons: true,
+                allowOutsideClick: false
+              }).then(function(res){
+                if (res.isConfirmed) {
+                  form.dataset.confirmed = '1';
+                  form.submit();
+                }
+              });
+            } else {
+              if (confirm(title + '\n\n' + text)) {
+                form.dataset.confirmed = '1';
+                form.submit();
+              }
+            }
+          });
+        })();
+    </script>
+}

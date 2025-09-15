@@ -21,6 +21,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Data
         public DbSet<M.VanBang> VanBangs { get; set; }
         public DbSet<M.KhoaPhongViTri> KhoaPhongViTris { get; set; }
         public DbSet<AuditTrail> AuditTrails { get; set; }
+        public DbSet<SystemSetting> SystemSettings { get; set; }
         protected override void OnModelCreating(ModelBuilder model)
         {
             base.OnModelCreating(model);

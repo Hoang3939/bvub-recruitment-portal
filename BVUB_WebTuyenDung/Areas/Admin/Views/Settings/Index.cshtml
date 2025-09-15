@@ -1,0 +1,224 @@
+﻿@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.EmailSettingsIndexVM
+@{
+    ViewData["Title"] = "Cài đặt";
+}
+
+<h2 class="mb-3">Cài đặt Email</h2>
+
+@if (TempData["ToastSuccess"] != null)
+{
+    <div class="alert alert-success">@TempData["ToastSuccess"]</div>
+}
+
+<style>
+    /* ============ CHỈ ÁP DỤNG TRANG NÀY ============ */
+    .settings-page .row {
+        row-gap: 1.5rem;
+    }
+
+    /* Hai cột: card cao bằng nhau */
+    .settings-page .col-half {
+        display: flex;
+    }
+
+        .settings-page .col-half .card {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+    .settings-page .card-header {
+        padding: .75rem 1rem;
+        background: #f8f9fa;
+    }
+
+    .settings-page .card-body {
+        flex: 1;
+        padding: 1.25rem !important;
+    }
+
+    /* DẸP HOÀN TOÀN “Ô TRẮNG BO GÓC” QUANH FORM (mọi cấp) */
+    .content .settings-page form,
+    .content .settings-page .card form,
+    .content .settings-page .card .card-body form,
+    .content .settings-page .card .card-body > form,
+    .content .settings-page .card .card-body *:has(> form) {
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+    }
+
+    /* Cảm giác đồng bộ */
+    .settings-page .form-label {
+        margin-bottom: .4rem;
+    }
+
+    .settings-page .mb-3 {
+        margin-bottom: 1rem !important;
+    }
+
+    .settings-page .form-control {
+        border-radius: .6rem;
+    }
+
+        /* Input readonly bên trái cho nền trắng giống input thường */
+        .settings-page .form-control[readonly] {
+            background: #fff;
+            opacity: 1;
+        }
+
+    /* ====== Custom Switch đẹp (không lệ thuộc Bootstrap) ====== */
+    .switch {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+        user-select: none;
+    }
+
+        .switch input {
+            display: none;
+        }
+
+        .switch .slider {
+            width: 46px;
+            height: 26px;
+            border-radius: 999px;
+            background: #e5e7eb;
+            position: relative;
+            transition: background .2s;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+        }
+
+            .switch .slider::after {
+                content: "";
+                position: absolute;
+                top: 3px;
+                left: 3px;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: #fff;
+                box-shadow: 0 1px 3px rgba(0,0,0,.2);
+                transition: transform .2s;
+            }
+
+        .switch input:checked + .slider {
+            background: #0d6efd;
+        }
+
+            .switch input:checked + .slider::after {
+                transform: translateX(20px);
+            }
+
+        .switch .text {
+            font-size: .95rem;
+            color: #374151;
+        }
+</style>
+
+<div class="settings-page">
+    <div class="row g-4 align-items-stretch">
+        <!-- CỘT TRÁI -->
+        <div class="col-12 col-md-6 col-half">
+            <div class="card shadow-sm">
+                <div class="card-header fw-bold">Cấu hình hiện tại</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Username (SMTP)</label>
+                        <input class="form-control" value="@Model.Current?.Username" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Password (SMTP)</label>
+                        <input class="form-control" value="********" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">From Email</label>
+                        <input class="form-control" value="@Model.Current?.FromEmail" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">From Name</label>
+                        <input class="form-control" value="@Model.Current?.FromName" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">SMTP Host</label>
+                        <input class="form-control" value="@Model.Current?.SmtpHost" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">SMTP Port</label>
+                        <input class="form-control" value="@Model.Current?.SmtpPort" readonly />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Enable SSL</label>
+                        <input class="form-control" value="@(Model.Current?.EnableSsl == true ? "true" : "false")" readonly />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI -->
+        <div class="col-12 col-md-6 col-half">
+            <div class="card shadow-sm">
+                <div class="card-header fw-bold">Cập nhật cấu hình</div>
+                <div class="card-body">
+                    <form asp-action="Index" method="post" novalidate>
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-2"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Username (SMTP)</label>
+                            <input asp-for="Form.Username" class="form-control" />
+                            <span asp-validation-for="Form.Username" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Password (SMTP)</label>
+                            <input asp-for="Form.Password" type="password" class="form-control" placeholder="Để trống nếu không đổi" />
+                            <span asp-validation-for="Form.Password" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">From Email</label>
+                            <input asp-for="Form.FromEmail" class="form-control" />
+                            <span asp-validation-for="Form.FromEmail" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">From Name</label>
+                            <input asp-for="Form.FromName" class="form-control" />
+                            <span asp-validation-for="Form.FromName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">SMTP Host</label>
+                            <input asp-for="Form.SmtpHost" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">SMTP Port</label>
+                            <input asp-for="Form.SmtpPort" type="number" class="form-control" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label d-block">Enable SSL</label>
+                            <label class="switch">
+                                <input asp-for="Form.EnableSsl" type="checkbox" />
+                                <span class="slider" aria-hidden="true"></span>
+                                <span class="text">Bật SSL</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Lưu
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

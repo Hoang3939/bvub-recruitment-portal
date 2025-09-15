@@ -78,7 +78,7 @@
 
     <div class="form-group">
         <label asp-for="UngVien.DiaChiThuongTru" class="form-label">Địa chỉ thường trú (ghi đầy đủ và chính xác theo thông tin trong ứng dụng VNeID)*</label>
-        <input asp-for="UngVien.DiaChiThuongTru" class="form-control" placeholder="Ví dụ: 59 Nguyễn Thị Minh Khai, phường Bến Thành, Thành phố Hồ Chí Minh"/>
+        <input asp-for="UngVien.DiaChiThuongTru" class="form-control" placeholder="Ví dụ: 59 Nguyễn Thị Minh Khai, phường Bến Thành, Thành phố Hồ Chí Minh" />
         <span asp-validation-for="UngVien.DiaChiThuongTru" class="text-danger"></span>
     </div>
 
@@ -141,40 +141,39 @@
 
     <div class="form-group">
         <label asp-for="DonVienChuc.DanToc" class="form-label">Dân tộc (điền theo giấy khai sinh)*</label>
-        <input asp-for="DonVienChuc.DanToc" class="form-control"/>
+        <input asp-for="DonVienChuc.DanToc" class="form-control" placeholder="Ví dụ: Kinh" />
         <span asp-validation-for="DonVienChuc.DanToc" class="text-danger"></span>
     </div>
+
     <div class="form-group">
         <label asp-for="DonVienChuc.TonGiao" class="form-label">Tôn giáo*</label>
-        <input asp-for="DonVienChuc.TonGiao" class="form-control" />
+        <input asp-for="DonVienChuc.TonGiao" class="form-control" placeholder="Ví dụ: Không có" />
         <span asp-validation-for="DonVienChuc.TonGiao" class="text-danger"></span>
     </div>
+
     <div class="form-group">
         <label asp-for="DonVienChuc.QueQuan" class="form-label">Quê quán (dựa trên Đơn vị hành chính mới theo quy định)*</label>
-        <input asp-for="DonVienChuc.QueQuan" class="form-control" placeholder="Ví dụ: phường Bến Thành, Thành phố Hồ Chí Minh"/>
+        <input asp-for="DonVienChuc.QueQuan" class="form-control" placeholder="Ví dụ: phường Bến Thành, Thành phố Hồ Chí Minh" />
         <span asp-validation-for="DonVienChuc.QueQuan" class="text-danger"></span>
     </div>
+
     <div class="form-group">
         <label asp-for="DonVienChuc.HoKhau" class="form-label">Thông tin về hộ khẩu (nếu có ghi đầy đủ và chính xác thông tin)*</label>
-        <input asp-for="DonVienChuc.HoKhau" class="form-control" placeholder="Ví dụ: Không có"/>
+        <input asp-for="DonVienChuc.HoKhau" class="form-control" placeholder="Ví dụ: Không có" />
         <span asp-validation-for="DonVienChuc.HoKhau" class="text-danger"></span>
     </div>
+
     <div class="form-group">
         <label asp-for="DonVienChuc.ChieuCao" class="form-label">Chiều cao (cm)*</label>
-        <input asp-for="DonVienChuc.ChieuCao" type="number" class="form-control"
-               inputmode="numeric" autocomplete="off" placeholder="Ví dụ: 160"
-               min="1" step="1" />
+        <input asp-for="DonVienChuc.ChieuCao" type="number" class="form-control" inputmode="numeric" autocomplete="off" placeholder="Ví dụ: 160" min="1" step="1" />
         <span asp-validation-for="DonVienChuc.ChieuCao" class="text-danger"></span>
     </div>
 
     <div class="form-group">
         <label asp-for="DonVienChuc.CanNang" class="form-label">Cân nặng (kg)*</label>
-        <input asp-for="DonVienChuc.CanNang" type="number" class="form-control"
-               inputmode="numeric" autocomplete="off" placeholder="Ví dụ: 50"
-               min="1" step="1" />
+        <input asp-for="DonVienChuc.CanNang" type="number" class="form-control" inputmode="numeric" autocomplete="off" placeholder="Ví dụ: 50" min="1" step="1" />
         <span asp-validation-for="DonVienChuc.CanNang" class="text-danger"></span>
     </div>
-
 
     <div class="form-group">
         <label class="form-label fw-bold">Trình độ văn hóa*</label>
@@ -259,7 +258,6 @@
         <span asp-validation-for="DonVienChuc.DoiTuongUuTien" class="text-danger"></span>
     </div>
 
-
     <hr class="hr-soft" />
     <h4 class="section-title">Văn bằng</h4>
 
@@ -295,6 +293,57 @@
     <script src="~/js/apply-trinhdovanhoa.js" asp-append-version="true"></script>
     <script src="~/js/apply-uutien.js" asp-append-version="true"></script>
     <script src="~/js/apply-loaihinhdaotao.js" asp-append-version="true"></script>
-
     <script src="~/js/apply-cascade.js" asp-append-version="true"></script>
+
+    <!-- SweetAlert2 confirm (CDN đã đặt ở layout) -->
+    <script>
+        (function () {
+          const form = document.querySelector('form.form-card[data-mode="vc"]');
+          if (!form) return;
+
+          // Tránh Enter submit bỏ qua xác nhận
+          form.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' && e.target.tagName === 'INPUT') e.preventDefault();
+          });
+
+          form.addEventListener('submit', function (e) {
+            if (form.dataset.confirmed === '1') return; // đã xác nhận trước đó
+
+            e.preventDefault(); // chặn submit lần đầu
+
+            // Validate: ưu tiên jQuery Validate, fallback HTML5
+            let ok = true;
+            try { if (window.jQuery && typeof $(form).valid === 'function') ok = $(form).valid(); } catch (_){}
+            if (ok && form.checkValidity && !form.checkValidity()) ok = false;
+            if (!ok) { form.reportValidity && form.reportValidity(); return; }
+
+            const title = 'Xác nhận nộp đơn (Viên chức)';
+            const text  = 'Bạn có chắc chắn muốn nộp hồ sơ không? Sau khi nộp bạn sẽ nhận được mã tra cứu qua email.';
+
+            if (window.Swal && Swal.fire) {
+              Swal.fire({
+                title: title,
+                text: text,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Xác nhận nộp',
+                cancelButtonText: 'Hủy',
+                reverseButtons: true,
+                allowOutsideClick: false
+              }).then(function(res){
+                if (res.isConfirmed) {
+                  form.dataset.confirmed = '1';
+                  form.submit();
+                }
+              });
+            } else {
+              // Fallback nếu CDN không tải
+              if (confirm(title + '\n\n' + text)) {
+                form.dataset.confirmed = '1';
+                form.submit();
+              }
+            }
+          });
+        })();
+    </script>
 }
