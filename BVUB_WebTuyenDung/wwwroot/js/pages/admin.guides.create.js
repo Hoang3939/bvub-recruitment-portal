@@ -2,13 +2,11 @@
 (function () {
     let editor;
 
-    // Lấy anti-forgery token từ form
     function getToken() {
         const f = document.querySelector('#guideCreateForm input[name="__RequestVerificationToken"]');
         return f ? f.value : '';
     }
 
-    // Khởi tạo CKEditor Decoupled + SimpleUpload
     async function initEditor() {
         const el = document.querySelector('#editor');
         if (!el || !window.DecoupledEditor) return;
@@ -23,13 +21,13 @@
                 }
             });
             document.querySelector('#toolbar-container').appendChild(editor.ui.view.toolbar.element);
-            window.guideEditor = editor; // tiện dùng ở nơi khác nếu cần
+            window.guideEditor = editor;
         } catch (e) {
             console.error('CKEditor init fail:', e);
         }
     }
 
-    // Trước khi submit -> copy HTML vào hidden
+    // handler submit “mặc định” (khi không mở confirm)
     function bindSubmit() {
         const form = document.getElementById('guideCreateForm');
         if (!form) return;
@@ -38,7 +36,6 @@
         });
     }
 
-    // Modal “Thư viện ảnh”
     function bindMediaModal() {
         const mediaModal = document.getElementById('mediaModal');
         if (!mediaModal) return;
@@ -73,10 +70,59 @@
         });
     }
 
-    // Boot
+    // Confirm + Toast
+    function bindConfirmAndToast() {
+        const form = document.getElementById('guideCreateForm');
+        const modal = document.getElementById('confirmSaveModal');
+        const toast = document.getElementById('adminToast');
+        if (!form || !modal) return;
+
+        const btnCancel = modal.querySelector('.btn-cancel');
+        const btnOk = modal.querySelector('.btn-ok');
+        const btnClose = modal.querySelector('.modal-close');
+
+        // mở confirm bằng class .show (đúng với CSS)
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        });
+
+        const closeModal = () => {
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        };
+        btnCancel.onclick = closeModal;
+        btnClose.onclick = closeModal;
+        modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+        btnOk.onclick = () => {
+            // set hidden trước khi submit “trực tiếp”
+            try { if (editor) document.getElementById('NoiDung').value = editor.getData(); } catch { }
+            closeModal();
+            form.submit(); // submit trực tiếp
+        };
+
+        // Toast sau redirect (nếu TempData được set ở Index)
+        const ok = document.body.dataset.toastOk;
+        const err = document.body.dataset.toastErr;
+        if (ok) showToast(ok, 'success');
+        if (err) showToast(err, 'error');
+
+        function showToast(message, type = 'success') {
+            if (!toast) return;
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => toast.classList.remove('show'), 3800);
+            setTimeout(() => (toast.className = 'toast'), 4400);
+        }
+    }
+
     window.addEventListener('DOMContentLoaded', function () {
         initEditor();
         bindSubmit();
         bindMediaModal();
+        bindConfirmAndToast();
     });
 })();

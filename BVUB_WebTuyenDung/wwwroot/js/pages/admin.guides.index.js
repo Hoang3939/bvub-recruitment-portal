@@ -43,34 +43,89 @@
         openModal();
     });
 
-    // Xoá trong popup
-    delEl.addEventListener('click', async function () {
+    // Xoá trong popup (đẹp + toast)
+    delEl.addEventListener('click', function () {
         if (!currentId) return;
-        if (!confirm('Xoá hướng dẫn này?')) return;
 
-        try {
-            const resp = await fetch(deleteUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'RequestVerificationToken': getToken()
-                },
-                body: new URLSearchParams({ id: currentId })
-            });
+        // --- Modal xác nhận ---
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay show';
+        overlay.innerHTML = `
+        <div class="modal-card" style="max-width:400px;">
+            <div class="modal-header">
+                <h3 class="modal-title">Xác nhận xóa</h3>
+                <button class="modal-close" aria-label="Đóng">&times;</button>
+            </div>
+            <div class="modal-body" style="font-size:15px;line-height:1.5;">
+                Bạn có chắc chắn muốn xóa hướng dẫn này?<br>
+                <b>Hành động này không thể hoàn tác.</b>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-clear btn-cancel">Hủy</button>
+                <button class="btn btn-danger btn-ok">Xóa</button>
+            </div>
+        </div>
+    `;
+        document.body.appendChild(overlay);
 
-            const data = await resp.json().catch(() => ({}));
-            if (!resp.ok || !data.ok) {
-                alert(data.message || 'Xoá thất bại.'); return;
+        // Đóng modal
+        const closeConfirm = () => overlay.remove();
+        overlay.querySelector('.modal-close').addEventListener('click', closeConfirm);
+        overlay.querySelector('.btn-cancel').addEventListener('click', closeConfirm);
+        overlay.addEventListener('click', e => { if (e.target === overlay) closeConfirm(); });
+
+        // Khi nhấn "Xóa"
+        overlay.querySelector('.btn-ok').addEventListener('click', async () => {
+            const token = getToken();
+            overlay.querySelector('.btn-ok').disabled = true;
+
+            try {
+                const resp = await fetch(deleteUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                        'RequestVerificationToken': token
+                    },
+                    body: new URLSearchParams({ id: currentId })
+                });
+
+                const data = await resp.json().catch(() => ({}));
+                if (!resp.ok || !data.ok) {
+                    showToast(data.message || 'Xóa thất bại.', 'error');
+                    return;
+                }
+
+                // Xóa thành công
+                closeConfirm();
+                closeModal();
+
+                const card = document.querySelector(`.rec-card[data-id="${currentId}"]`);
+                if (card) card.remove();
+
+                showToast('Đã xóa hướng dẫn.', 'success');
+            } catch {
+                showToast('Có lỗi khi xóa.', 'error');
+            } finally {
+                overlay.remove();
             }
-
-            // loại bỏ card khỏi danh sách
-            const card = document.querySelector('.rec-card[data-id="' + currentId + '"]');
-            if (card) card.remove();
-
-            closeModal();
-            alert('Đã xoá hướng dẫn.');
-        } catch {
-            alert('Có lỗi khi xoá.');
-        }
+        });
     });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const holder = document.getElementById('toast-data');
+        const ok = holder?.dataset.ok;
+        const err = holder?.dataset.err;
+        if (ok) showToast(ok, 'success');
+        if (err) showToast(err, 'error');
+    });
+
+    function showToast(message, type = 'success') {
+        const t = document.createElement('div');
+        t.className = `toast ${type}`;
+        t.textContent = message;
+        document.body.appendChild(t);
+        setTimeout(() => t.classList.add('show'), 10);
+        setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 500); }, 3800);
+    }
+
 })();

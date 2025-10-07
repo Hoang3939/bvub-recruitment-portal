@@ -263,4 +263,16 @@
             } catch { alert('Có lỗi khi khôi phục.'); }
         });
     })();
+    (function () {
+        const btn = document.getElementById('btnFilterToggle');
+        if (!btn) return;
+        btn.addEventListener('click', function (e) {
+            const hasFilter = btn.dataset.hasFilter === 'true';
+            if (hasFilter) {
+                e.preventDefault(); // không submit form
+                location.href = btn.dataset.clearUrl; // quay về Index clear filter
+            }
+            // nếu chưa lọc: để form submit như bình thường
+        });
+    })();
 })();

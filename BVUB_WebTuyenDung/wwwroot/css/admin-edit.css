@@ -249,3 +249,87 @@
     .save-dialog::backdrop {
         background: rgba(0,0,0,.35);
     }
+
+#saveConfirm .modal-card {
+    width: min(420px, 90vw);
+    max-height: unset;
+}
+
+#saveConfirm .modal-body {
+    padding: 18px 20px;
+    text-align: center;
+}
+
+#saveConfirm .modal-footer {
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+#saveConfirm .modal-body p {
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+.modal-overlay {
+    position: fixed;
+    inset: 0; /* top/right/bottom/left: 0 */
+    background: rgba(0,0,0,.45); /* nền mờ */
+    display: none; /* ẩn mặc định */
+    z-index: 1200; /* nổi lên trên form */
+    align-items: center; /* để dùng display:flex căn giữa */
+    justify-content: center;
+}
+
+    /* Khi mở modal: thêm class .show */
+    .modal-overlay.show {
+        display: flex;
+    }
+
+/* Khung thẻ trong modal (an toàn nếu thiếu) */
+.modal-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(0,0,0,.25);
+    max-width: 420px;
+    width: 92vw;
+    overflow: hidden;
+}
+
+/* Header/Close trong modal */
+.modal-header {
+    padding: 14px 16px;
+    border-bottom: 1px solid #eef0f2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.modal-title {
+    margin: 0;
+    font-weight: 700;
+}
+
+.modal-close {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    font-size: 22px;
+    line-height: 1;
+}
+
+/* Body/Footer mặc định (nếu cần) */
+.modal-body {
+    padding: 16px;
+}
+
+.modal-footer {
+    padding: 12px 16px;
+    border-top: 1px solid #eef0f2;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}

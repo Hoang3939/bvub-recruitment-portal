@@ -294,15 +294,21 @@
     </div>
 </form>
 
-<!-- Popup kết quả lưu --> 
-<dialog id="saveDialog">
-    <h3 id="saveDlgTitle" style="margin:0 0 12px;">Kết quả lưu</h3>
-    <p id="saveDlgMsg" style="margin:0 0 18px;"></p>
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-        <a class="btn btn-secondary" href="@Url.Action("Index","Candidates", new { area = "Admin" })">Quay lại</a>
-        <button type="button" class="btn btn-primary" id="btnCloseSave">Đóng</button>
+<div id="saveConfirm" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="saveTitle">
+        <div class="modal-header">
+            <h3 id="saveTitle" class="modal-title">Xác nhận lưu</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0">Bạn có chắc muốn lưu thay đổi cho đơn viên chức?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-export" id="btnCancelSave">Hủy</button>
+            <button type="button" class="btn btn-primary" id="btnOkSave">Lưu</button>
+        </div>
     </div>
-</dialog>
+</div>
 
 <!-- Config cho JS -->
 <div id="admin-vc-edit-config"

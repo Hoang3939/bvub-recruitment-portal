@@ -2,12 +2,11 @@
 @{
     ViewData["Title"] = "Thêm hướng dẫn";
 }
+<link rel="stylesheet" href="~/css/admin-guides-form.css" asp-append-version="true" />
+
 <div class="header-row"><h2>@ViewData["Title"]</h2></div>
 
-<link rel="stylesheet" href="~/css/admin-guides-index.css" asp-append-version="true" />
-
 <div class="main-content">
-    <!-- Tạo mới -->
     <form asp-action="Create" method="post" id="guideCreateForm" enctype="multipart/form-data">
         @Html.AntiForgeryToken()
 
@@ -28,7 +27,7 @@
         <div class="mb-3">
             <label class="form-label">Nội dung</label>
             <div id="toolbar-container"></div>
-            <div id="editor" class="form-control" style="min-height:400px"></div>
+            <div id="editor" class="form-control"></div>
             <input type="hidden" id="NoiDung" name="NoiDung" />
             <div class="form-text">Bạn có thể dán ảnh, kéo thả ảnh, hoặc dùng nút “Chèn ảnh từ thư viện”.</div>
         </div>
@@ -48,7 +47,7 @@
     </form>
 </div>
 
-<!-- Modal: Thư viện ảnh -->
+<!-- Modal: Thư viện ảnh (Bootstrap) -->
 <div class="modal fade" id="mediaModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -56,12 +55,35 @@
                 <h5 class="modal-title">Thư viện ảnh</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <div id="mediaGrid" class="row g-2"></div>
-            </div>
+            <div class="modal-body"><div id="mediaGrid" class="row g-2"></div></div>
         </div>
     </div>
 </div>
+
+<!-- Modal xác nhận lưu (custom) -->
+<div id="confirmSaveModal" class="modal-overlay">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3 class="modal-title">Xác nhận lưu</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">Bạn có chắc muốn lưu thay đổi này không?</div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-clear btn-cancel">Hủy</button>
+            <button type="button" class="btn btn-primary btn-ok">Xác nhận</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div id="adminToast" class="toast"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.body.dataset.toastOk  = '@TempData["ok"]';
+      document.body.dataset.toastErr = '@TempData["error"]';
+    });
+</script>
 
 @section Scripts {
     <script src="https://cdn.ckeditor.com/ckeditor5/41.2.1/decoupled-document/ckeditor.js"></script>

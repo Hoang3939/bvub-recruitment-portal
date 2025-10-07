@@ -1,4 +1,5 @@
-﻿(function () {
+﻿// wwwroot/js/pages/admin.employee.index.js
+(function () {
     const cfg = document.getElementById('admin-emp-index-config') || {};
     const detailsUrl = (cfg.dataset && cfg.dataset.detailsUrl) || '';
     const deleteUrl = (cfg.dataset && cfg.dataset.deleteUrl) || '';
@@ -10,6 +11,7 @@
         return f ? f.value : '';
     }
 
+    // ===== Toast (góc phải) =====
     function ensureToast() {
         let t = document.getElementById('niceToast');
         if (!t) {
@@ -33,7 +35,66 @@
 
     if (toastMsg) window.addEventListener('DOMContentLoaded', () => niceToast(toastMsg, toastType));
 
-    // <-- Popup xem chi tiết -->
+    // ===== Reusable Confirm Modal (không dùng window.confirm) =====
+    function ensureConfirmModal() {
+        let m = document.getElementById('niceConfirm');
+        if (!m) {
+            m = document.createElement('div');
+            m.id = 'niceConfirm';
+            m.className = 'modal-overlay';
+            m.innerHTML = `
+                <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="nc-title">
+                    <div class="modal-header">
+                        <h3 id="nc-title" class="modal-title">Xác nhận</h3>
+                        <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="nc-message">Bạn có chắc không?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-export" id="nc-cancel">Hủy</button>
+                        <button type="button" class="btn btn-danger" id="nc-ok">Xóa</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(m);
+        }
+        return m;
+    }
+    function confirmNice(message, okText) {
+        return new Promise(resolve => {
+            const modal = ensureConfirmModal();
+            modal.querySelector('#nc-message').textContent = message || 'Bạn có chắc không?';
+            modal.querySelector('#nc-ok').textContent = okText || 'Đồng ý';
+
+            function open() { modal.classList.add('show'); document.body.style.overflow = 'hidden'; }
+            function close() { modal.classList.remove('show'); document.body.style.overflow = ''; cleanup(); }
+            function cleanup() {
+                okBtn.removeEventListener('click', onOk);
+                cancelBtn.removeEventListener('click', onCancel);
+                closeBtn.removeEventListener('click', onCancel);
+                modal.removeEventListener('click', onBackdrop);
+                document.removeEventListener('keydown', onEsc);
+            }
+            function onOk() { resolve(true); close(); }
+            function onCancel() { resolve(false); close(); }
+            function onBackdrop(e) { if (e.target === modal) onCancel(); }
+            function onEsc(e) { if (e.key === 'Escape') onCancel(); }
+
+            const okBtn = modal.querySelector('#nc-ok');
+            const cancelBtn = modal.querySelector('#nc-cancel');
+            const closeBtn = modal.querySelector('.modal-close');
+
+            okBtn.addEventListener('click', onOk);
+            cancelBtn.addEventListener('click', onCancel);
+            closeBtn.addEventListener('click', onCancel);
+            modal.addEventListener('click', onBackdrop);
+            document.addEventListener('keydown', onEsc);
+
+            open();
+        });
+    }
+
+    // ===== Popup xem chi tiết (giữ nguyên logic cũ) =====
     (function () {
         const modal = document.getElementById('empDetailModal');
         const container = document.getElementById('empDetailContainer');
@@ -97,7 +158,7 @@
         });
     })();
 
-    // <-- Xóa nhân viên -->
+    // ===== Xóa nhân viên (modal + toast) =====
     (function () {
         document.addEventListener('click', async function (e) {
             const btn = e.target.closest('.btn-delete');
@@ -107,7 +168,8 @@
             if (!row) return;
             const id = row.getAttribute('data-id');
 
-            if (!confirm('Bạn có chắc muốn xóa nhân viên #' + id + ' ?')) return;
+            const ok = await confirmNice(`Bạn có chắc muốn xóa nhân viên #${id}?`, 'Xóa');
+            if (!ok) return;
 
             try {
                 const resp = await fetch(deleteUrl, {
@@ -120,17 +182,23 @@
                 });
 
                 if (resp.status === 401 || resp.status === 403) {
-                    alert('Bạn không có quyền xóa.'); return;
+                    niceToast('Bạn không có quyền xóa.', 'error'); return;
                 }
 
                 const data = await resp.json().catch(() => null);
                 if (!resp.ok || !data?.ok) {
-                    alert((data && (data.message || '')) || 'Xóa thất bại'); return;
+                    niceToast((data && (data.message || 'Xóa thất bại')) || 'Xóa thất bại', 'error');
+                    return;
                 }
 
-                row.remove();
+                // Hiệu ứng mượt: fade-out rồi remove
+                row.style.transition = 'opacity .2s ease, height .2s ease';
+                row.style.opacity = '0';
+                setTimeout(() => { row.remove(); }, 200);
+
+                niceToast('Đã xóa nhân viên thành công.', 'success');
             } catch {
-                alert('Có lỗi khi xóa.');
+                niceToast('Có lỗi khi xóa.', 'error');
             }
         });
     })();

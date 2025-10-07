@@ -125,7 +125,26 @@
 </div>
 
 <form id="af-rec" method="post" style="display:none;">@Html.AntiForgeryToken()</form>
+@if (TempData["ToastMsg"] != null)
+{
+    <div id="recToast"
+         class="toast @(TempData["ToastType"] switch {
+             "success" => "toast-success show",
+             "error" => "toast-error show",
+             "warning" => "toast-warning show",
+             _ => "toast-success show"
+         })">
+        @TempData["ToastMsg"]
+    </div>
 
+    <script>
+        // Tự ẩn toast sau 4 giây
+        setTimeout(() => {
+            const t = document.getElementById('recToast');
+            if (t) t.classList.remove('show');
+        }, 4000);
+    </script>
+}
 <div id="rec-index-config"
      data-is-admin="@isAdmin.ToString().ToLower()"
      data-details-url='@Url.Action("DetailsPartial", "Recruitments", new { area = "Admin" })'

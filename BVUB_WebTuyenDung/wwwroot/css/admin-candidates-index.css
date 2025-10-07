@@ -453,3 +453,61 @@
 .is-invalid {
     border-color: #dc3545 !important
 }
+
+/* ===== Confirm modals (gọn như bên Nhân viên) ===== */
+#approveConfirm .modal-card,
+#unapproveConfirm .modal-card,
+#cancelConfirm .modal-card,
+#restoreConfirm .modal-card {
+    width: min(420px, 90vw); /* thu chiều ngang */
+    max-height: unset;
+}
+
+#approveConfirm .modal-body,
+#unapproveConfirm .modal-body,
+#cancelConfirm .modal-body,
+#restoreConfirm .modal-body {
+    padding: 18px 20px; /* gọn padding */
+    text-align: center; /* căn giữa câu hỏi */
+}
+
+#approveConfirm .modal-footer,
+#unapproveConfirm .modal-footer,
+#cancelConfirm .modal-footer,
+#restoreConfirm .modal-footer {
+    justify-content: flex-end; /* nút nằm bên phải */
+    gap: 10px;
+}
+
+/* Câu hỏi dài thì cắt gọn 3 dòng */
+#approveConfirm .modal-body p,
+#unapproveConfirm .modal-body p,
+#cancelConfirm .modal-body p,
+#restoreConfirm .modal-body p {
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    word-break: break-word;
+}
+
+/* Hiệu ứng mở nhẹ */
+#approveConfirm.show .modal-card,
+#unapproveConfirm.show .modal-card,
+#cancelConfirm.show .modal-card,
+#restoreConfirm.show .modal-card {
+    animation: popIn .16s ease;
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: translateY(6px);
+    }
+
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}

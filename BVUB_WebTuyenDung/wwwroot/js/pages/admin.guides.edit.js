@@ -8,7 +8,7 @@
     }
 
     async function initEditor() {
-        const el = document.querySelector('#editor');
+        const el = document.getElementById('editor');
         if (!el || !window.DecoupledEditor) return;
 
         try {
@@ -27,7 +27,7 @@
     }
 
     function bindSubmit() {
-        const form = document.getElementById('guideEditForm') || document.querySelector('form');
+        const form = document.getElementById('guideEditForm');
         if (!form) return;
         form.addEventListener('submit', function () {
             try { if (editor) document.getElementById('NoiDung').value = editor.getData(); } catch { }
@@ -67,9 +67,55 @@
         });
     }
 
+    function bindConfirmAndToast() {
+        const form = document.getElementById('guideEditForm');
+        const modal = document.getElementById('confirmSaveModal');
+        const toast = document.getElementById('adminToast');
+        if (!form || !modal) return;
+
+        const btnCancel = modal.querySelector('.btn-cancel');
+        const btnOk = modal.querySelector('.btn-ok');
+        const btnClose = modal.querySelector('.modal-close');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            modal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        });
+
+        const closeModal = () => {
+            modal.classList.remove('show');
+            document.body.style.overflow = '';
+        };
+        btnCancel.onclick = closeModal;
+        btnClose.onclick = closeModal;
+        modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+        btnOk.onclick = () => {
+            try { if (editor) document.getElementById('NoiDung').value = editor.getData(); } catch { }
+            closeModal();
+            form.submit();
+        };
+
+        const ok = document.body.dataset.toastOk;
+        const err = document.body.dataset.toastErr;
+        if (ok) showToast(ok, 'success');
+        if (err) showToast(err, 'error');
+
+        function showToast(message, type = 'success') {
+            if (!toast) return;
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => toast.classList.remove('show'), 3800);
+            setTimeout(() => (toast.className = 'toast'), 4400);
+        }
+    }
+
     window.addEventListener('DOMContentLoaded', function () {
         initEditor();
         bindSubmit();
         bindMediaModal();
+        bindConfirmAndToast();
     });
 })();

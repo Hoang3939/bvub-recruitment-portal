@@ -11,9 +11,14 @@
 
     <div>
         <label asp-for="LoaiTuyenDung" class="form-label">Loại tuyển dụng</label>
-        <input asp-for="LoaiTuyenDung" class="form-control" />
+        <select asp-for="LoaiTuyenDung" class="form-select">
+            <option value="">-- Chọn loại tuyển dụng --</option>
+            <option value="Người lao động">Người lao động</option>
+            <option value="Viên chức">Viên chức</option>
+        </select>
         <span asp-validation-for="LoaiTuyenDung" class="text-danger"></span>
     </div>
+
 
     <div>
         <label asp-for="TrangThai" class="form-label">Trạng thái</label>

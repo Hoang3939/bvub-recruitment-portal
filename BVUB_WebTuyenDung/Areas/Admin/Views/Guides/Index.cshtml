@@ -93,6 +93,12 @@
      data-delete-url='@Url.Action("DeleteAjax")'>
 </div>
 
+<!-- Holder chứa message từ TempData (an toàn vì Razor sẽ HTML-encode) -->
+<div id="toast-data"
+     data-ok="@TempData["ok"]"
+     data-err="@TempData["error"]"></div>
+
 @section Scripts {
     <script src="~/js/pages/admin.guides.index.js" asp-append-version="true"></script>
 }
+

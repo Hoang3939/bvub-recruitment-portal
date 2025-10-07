@@ -2,6 +2,8 @@
 @{
     ViewData["Title"] = "Thêm thông tin tuyển dụng";
 }
+<link rel="stylesheet" href="~/css/admin-recruitments-index.css" asp-append-version="true" />
+
 <div class="header-row"><h2>@ViewData["Title"]</h2></div>
 
 <div class="main-content">
@@ -14,10 +16,27 @@
         @await Html.PartialAsync("_RecruitmentForm", Model)
 
         <div class="actions" style="margin-top:14px;">
-            <button type="submit" class="btn btn-success">Lưu</button>
+            <button type="submit" id="btnRecSave" class="btn btn-success">Thêm</button>
             <a asp-area="Admin" asp-controller="Recruitments" asp-action="Index" class="btn btn-export">Hủy</a>
         </div>
     </form>
+</div>
+
+<!-- Modal xác nhận thêm mới -->
+<div id="recCreateConfirm" class="modal-overlay" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="recCreateTitle">
+        <div class="modal-header">
+            <h3 id="recCreateTitle" class="modal-title">Xác nhận thêm</h3>
+            <button type="button" class="modal-close" aria-label="Đóng">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0">Bạn có chắc muốn <b>thêm mới</b> thông tin tuyển dụng này?</p>
+        </div>
+        <div class="modal-footer">
+            <button type="button" id="btnRecCancel" class="btn btn-export">Hủy</button>
+            <button type="button" id="btnRecOk" class="btn btn-success">Thêm</button>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

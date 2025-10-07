@@ -406,3 +406,20 @@
         line-height: 1;
         cursor: pointer;
     }
+
+/* Modal confirm nhỏ gọn hơn */
+#niceConfirm .modal-card {
+    width: min(400px, 90vw);
+    max-height: unset; /* không giới hạn cao */
+}
+
+#niceConfirm .modal-body {
+    padding: 20px;
+    font-size: 1rem;
+    text-align: center;
+}
+
+#niceConfirm .modal-footer {
+    justify-content: flex-end; /* căn nút ra giữa */
+    gap: 12px;
+}

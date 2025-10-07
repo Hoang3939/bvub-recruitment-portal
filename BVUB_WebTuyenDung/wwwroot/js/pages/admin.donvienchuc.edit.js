@@ -8,60 +8,47 @@
     const urlViTri = cfg.dataset.urlVitriByChucdanh || '';
     const urlKhoaPg = cfg.dataset.urlKhoaphongByVitri || '';
 
-    // ===== Helper popup
-    function showPopup(title, msg) {
-        let wrap = document.getElementById('saveResultModal');
-        if (!wrap) {
-            wrap = document.createElement('div');
-            wrap.id = 'saveResultModal';
-            wrap.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:9999;';
-            wrap.innerHTML = `
-        <div style="background:#fff;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.15);max-width:520px;width:92%;padding:22px;">
-          <h3 id="sr-title" style="margin:0 0 10px;font-size:22px;"></h3>
-          <div id="sr-msg" style="white-space:pre-wrap;color:#333;margin-bottom:16px;"></div>
-          <div style="display:flex;gap:10px;justify-content:flex-end">
-            <a class="btn" id="sr-back">Quay lại</a>
-            <button type="button" class="btn btn-primary" id="sr-close">Đóng</button>
-          </div>
-        </div>`;
-            document.body.appendChild(wrap);
-            wrap.addEventListener('click', e => { if (e.target === wrap) wrap.style.display = 'none'; });
-            wrap.querySelector('#sr-close').addEventListener('click', () => wrap.style.display = 'none');
-            wrap.querySelector('#sr-back').addEventListener('click', () => { window.location.assign(backUrl); });
+    // ========== Utils ==========
+    function toast(text) {
+        // mini toast gọn nhẹ
+        let t = document.getElementById('miniToast');
+        if (!t) {
+            t = document.createElement('div');
+            t.id = 'miniToast';
+            t.style.cssText = 'position:fixed;right:16px;bottom:16px;background:#111;color:#fff;padding:8px 12px;border-radius:8px;opacity:0;transition:opacity .15s;z-index:99999';
+            document.body.appendChild(t);
         }
-        wrap.querySelector('#sr-title').textContent = title || '';
-        wrap.querySelector('#sr-msg').textContent = msg || '';
-        wrap.style.display = 'flex';
+        t.textContent = text || 'OK';
+        requestAnimationFrame(() => t.style.opacity = '1');
+        setTimeout(() => { t.style.opacity = '0'; }, 1600);
     }
 
-    // ===== chặn ngày tương lai
-    (function () {
-        const $dob = document.getElementById('NgaySinh');
-        const $cccd = document.getElementById('NgayCapCCCD');
-        [$dob, $cccd].forEach(el => {
-            if (!el) return;
-            if (todayStr) el.setAttribute('max', todayStr);
-            el.addEventListener('change', function () {
-                if (todayStr && this.value && this.value > todayStr) {
-                    alert('Ngày không được lớn hơn hôm nay.');
-                    this.value = todayStr;
-                }
-            });
+    function getToken(form) {
+        return form.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    }
+
+    // ========== Giới hạn ngày (không cho > hôm nay) ==========
+    (function limitDates() {
+        const ids = ['NgaySinh', 'NgayCapCCCD'];
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && todayStr) el.setAttribute('max', todayStr);
         });
     })();
 
-    // ===== Đồng bộ Sức khỏe
-    (function () {
+    // ========== Đồng bộ Sức khỏe ==========
+    (function bindSK() {
         const hid = document.getElementById('hidSK');
         const txt = document.getElementById('txtSkKhac');
         const radios = document.querySelectorAll('input[name="skUI"]');
+        if (!hid || !txt || !radios.length) return;
         const KNOWN = ['Loại I', 'Loại II', 'Loại III'];
 
-        function reflectHiddenToUI() {
+        function reflect() {
             const val = (hid.value || '').trim();
             if (!val) { txt.style.display = 'none'; txt.value = ''; radios.forEach(r => r.checked = false); return; }
             const known = KNOWN.includes(val);
-            radios.forEach(r => r.checked = (known ? r.value === val : r.value === '__OTHER__'));
+            radios.forEach(r => r.checked = known ? (r.value === val) : (r.value === '__OTHER__'));
             txt.style.display = known ? 'none' : 'block';
             if (!known) txt.value = val;
         }
@@ -70,24 +57,25 @@
             else { txt.style.display = 'none'; txt.value = ''; hid.value = this.value; }
         }));
         txt.addEventListener('input', function () {
-            const other = document.getElementById('skKhac');
-            if (other && other.checked) hid.value = this.value.trim();
+            const rd = document.getElementById('skKhac');
+            if (rd?.checked) hid.value = this.value.trim();
         });
-        if (hid) reflectHiddenToUI();
+        reflect();
     })();
 
-    // ===== Đồng bộ Trình độ văn hóa
-    (function () {
+    // ========== Đồng bộ Trình độ văn hóa ==========
+    (function bindTDVH() {
         const hid = document.getElementById('hidTDVH');
         const txt = document.getElementById('txtTrinhDoKhac');
         const radios = document.querySelectorAll('input[name="tdvhUI"]');
+        if (!hid || !txt || !radios.length) return;
         const KNOWN = ['12/12 Chính quy', '12/12 Bổ túc văn hóa'];
 
-        function reflectHiddenToUI() {
+        function reflect() {
             const val = (hid.value || '').trim();
             if (!val) { txt.style.display = 'none'; txt.value = ''; radios.forEach(r => r.checked = false); return; }
             const known = KNOWN.includes(val);
-            radios.forEach(r => r.checked = (known ? r.value === val : r.value === '__OTHER__'));
+            radios.forEach(r => r.checked = known ? (r.value === val) : (r.value === '__OTHER__'));
             txt.style.display = known ? 'none' : 'block';
             if (!known) txt.value = val;
         }
@@ -96,152 +84,143 @@
             else { txt.style.display = 'none'; txt.value = ''; hid.value = this.value; }
         }));
         txt.addEventListener('input', function () {
-            const other = document.getElementById('tdvhKhac');
-            if (other && other.checked) hid.value = this.value.trim();
+            const rd = document.getElementById('tdvhKhac');
+            if (rd?.checked) hid.value = this.value.trim();
         });
-        if (hid) reflectHiddenToUI();
+        reflect();
     })();
 
-    // ===== VB: Hình thức đào tạo (radio + ô khác)
-    (function () {
+    // ========== VB: hình thức đào tạo ==========
+    (function bindVBHT() {
         document.querySelectorAll('.vb-ht').forEach(r => {
             r.addEventListener('change', function () {
                 const name = this.getAttribute('name'); // vb-ht-<i>
                 const idx = (name || '').split('-').pop();
                 const other = document.querySelector(`.vb-ht-other[data-index="${idx}"]`);
                 const hid = document.querySelector(`.vb-ht-hidden[data-index="${idx}"]`);
-                if (!hid || !other) return;
-                if (this.value === '__OTHER__') {
-                    other.style.display = 'block';
-                    hid.value = (other.value || '').trim();
-                } else {
-                    other.style.display = 'none';
-                    other.value = '';
-                    hid.value = this.value;
-                }
+                if (!other || !hid) return;
+                if (this.value === '__OTHER__') { other.style.display = 'block'; hid.value = (other.value || '').trim(); }
+                else { other.style.display = 'none'; other.value = ''; hid.value = this.value; }
             });
         });
         document.querySelectorAll('.vb-ht-other').forEach(t => {
             t.addEventListener('input', function () {
                 const idx = this.dataset.index;
                 const hid = document.querySelector(`.vb-ht-hidden[data-index="${idx}"]`);
-                const otherRadio = document.getElementById(`vbht-${idx}-5`);
-                if (hid && otherRadio && otherRadio.checked) hid.value = this.value.trim();
+                const rd = document.getElementById(`vbht-${idx}-5`);
+                if (hid && rd?.checked) hid.value = this.value.trim();
             });
         });
     })();
 
-    // ===== Cascade Chức danh -> Vị trí -> Khoa/Phòng
-    (function () {
+    // ========== Cascade Chức danh -> Vị trí -> Khoa/Phòng ==========
+    (function cascades() {
         const $cd = document.getElementById('ChucDanhId');
         const $vt = document.getElementById('ViTriId');
         const $kp = document.getElementById('KhoaPhongId');
         if (!$cd || !$vt || !$kp) return;
 
         function resetSelect(el, placeholder) {
-            el.disabled = false;
-            el.innerHTML = '';
-            const opt = document.createElement('option'); opt.value = ''; opt.textContent = placeholder || '-- Chọn --';
-            el.appendChild(opt);
+            el.disabled = false; el.innerHTML = '';
+            el.append(new Option(placeholder || '-- Chọn --', ''));
         }
         function loading(el, text) {
-            el.disabled = true;
-            el.innerHTML = '';
-            const opt = document.createElement('option'); opt.textContent = text || 'Đang tải...';
-            el.appendChild(opt);
+            el.disabled = true; el.innerHTML = '';
+            const o = new Option(text || 'Đang tải...', ''); el.append(o);
         }
 
         $cd.addEventListener('change', async function () {
-            const idRaw = this.value;
             resetSelect($kp, '-- Chọn khoa/phòng --');
+            const id = this.value;
+            if (!id) { resetSelect($vt, '-- Chọn vị trí --'); return; }
             loading($vt, 'Đang tải vị trí...');
-            if (!idRaw) { resetSelect($vt, '-- Chọn vị trí --'); return; }
-
             try {
-                const resp = await fetch(`${urlViTri}?chucDanhId=${encodeURIComponent(idRaw)}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const resp = await fetch(`${urlViTri}?chucDanhId=${encodeURIComponent(id)}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                 const data = await resp.json();
                 resetSelect($vt, '-- Chọn vị trí --');
-                (data || []).forEach(x => {
-                    const text = x.tenViTri ?? x.TenViTri;
-                    const val = x.viTriId ?? x.ViTriId;
-                    if (val != null) $vt.append(new Option(text, val));
-                });
-            } catch {
-                resetSelect($vt, '-- Chọn vị trí --');
-                alert('Không tải được danh sách vị trí');
-            }
+                (data || []).forEach(x => $vt.append(new Option(x.tenViTri ?? x.TenViTri, x.viTriId ?? x.ViTriId)));
+            } catch { resetSelect($vt, '-- Chọn vị trí --'); toast('Không tải được vị trí'); }
         });
 
         $vt.addEventListener('change', async function () {
-            const idRaw = this.value;
+            const id = this.value;
+            if (!id) { resetSelect($kp, '-- Chọn khoa/phòng --'); return; }
             loading($kp, 'Đang tải khoa/phòng...');
-            if (!idRaw) { resetSelect($kp, '-- Chọn khoa/phòng --'); return; }
-
             try {
-                const resp = await fetch(`${urlKhoaPg}?viTriId=${encodeURIComponent(idRaw)}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                const resp = await fetch(`${urlKhoaPg}?viTriId=${encodeURIComponent(id)}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
                 const data = await resp.json();
                 resetSelect($kp, '-- Chọn khoa/phòng --');
-                (data || []).forEach(x => {
-                    const text = x.tenKhoaPhong ?? x.TenKhoaPhong;
-                    const val = x.khoaPhongId ?? x.KhoaPhongId;
-                    if (val != null) $kp.append(new Option(text, val));
-                });
-            } catch {
-                resetSelect($kp, '-- Chọn khoa/phòng --');
-                alert('Không tải được danh sách khoa/phòng');
-            }
+                (data || []).forEach(x => $kp.append(new Option(x.tenKhoaPhong ?? x.TenKhoaPhong, x.khoaPhongId ?? x.KhoaPhongId)));
+            } catch { resetSelect($kp, '-- Chọn khoa/phòng --'); toast('Không tải được khoa/phòng'); }
         });
     })();
 
-    // ===== Submit AJAX
-    (function () {
+    // ========== CONFIRM + AJAX SUBMIT (1 luồng duy nhất) ==========
+    (function saveFlow() {
         const form = document.getElementById('frmCreateVC');
-        if (!form) return;
+        const modal = document.getElementById('saveConfirm');
+        if (!form || !modal) return;
 
-        function getToken() { return form.querySelector('input[name="__RequestVerificationToken"]')?.value || ''; }
+        const okBtn = modal.querySelector('#btnOkSave');
+        const cancelBtn = modal.querySelector('#btnCancelSave');
+        const xBtn = modal.querySelector('.modal-close');
 
-        form.addEventListener('submit', async function (e) {
+        function open() { modal.classList.add('show'); document.body.style.overflow = 'hidden'; }
+        function close() { modal.classList.remove('show'); document.body.style.overflow = ''; }
+
+        [cancelBtn, xBtn].forEach(b => b && b.addEventListener('click', close));
+        modal.addEventListener('click', e => { if (e.target === modal) close(); });
+
+        // Chỉ mở confirm – KHÔNG submit thật
+        form.addEventListener('submit', function (e) {
             e.preventDefault();
+            // cho browser hiện lỗi required nếu có
+            if (!form.reportValidity()) return;
+            open();
+        });
 
-            // check ngày không vượt hôm nay
+        // Bấm "Lưu" trong modal -> submit AJAX
+        okBtn && okBtn.addEventListener('click', async function () {
+            close();
+
+            // kiểm tra ngày > hôm nay
             const bad = [];
-            const ns = document.getElementById('NgaySinh');
-            const nc = document.getElementById('NgayCapCCCD');
+            const ns = document.getElementById('NgaySinh')?.value;
+            const nc = document.getElementById('NgayCapCCCD')?.value;
             if (todayStr) {
-                if (ns?.value && ns.value > todayStr) bad.push('Ngày sinh');
-                if (nc?.value && nc.value > todayStr) bad.push('Ngày cấp CCCD');
+                if (ns && ns > todayStr) bad.push('Ngày sinh');
+                if (nc && nc > todayStr) bad.push('Ngày cấp CCCD');
             }
-            if (bad.length) { alert(bad.join(', ') + ' không được lớn hơn hôm nay.'); return; }
+            if (bad.length) { toast(bad.join(', ') + ' không được lớn hơn hôm nay.'); return; }
 
+            // gửi AJAX
             const fd = new FormData(form);
             const body = new URLSearchParams();
             for (const [k, v] of fd.entries()) body.append(k, v);
 
-            let resp, data, text;
             try {
-                resp = await fetch(form.action, {
+                const resp = await fetch(form.action, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                        'RequestVerificationToken': getToken(),
+                        'RequestVerificationToken': getToken(form),
                         'X-Requested-With': 'XMLHttpRequest',
                         'Accept': 'application/json'
                     },
                     body
                 });
                 const ct = resp.headers.get('content-type') || '';
-                if (ct.includes('application/json')) data = await resp.json();
-                else text = await resp.text();
-            } catch (err) {
-                showPopup('Lưu không thành công', 'Không gửi được yêu cầu.\n' + (err && err.message ? err.message : ''));
-                return;
-            }
+                const data = ct.includes('application/json') ? await resp.json() : null;
 
-            if (resp.ok && data?.ok) {
-                showPopup('Đã lưu', data.message || 'Đã lưu thành công.');
-            } else {
-                const msg = (data && (data.message + (data.errors ? '\n' + data.errors : ''))) || text || ('Lỗi máy chủ: ' + resp.status);
-                showPopup('Lưu không thành công', msg);
+                if (resp.ok && data?.ok) {
+                    toast('Đã lưu.');
+                    setTimeout(() => window.location.assign(backUrl), 800);
+                } else {
+                    const msg = (data && (data.message + (data.errors ? '\n' + data.errors : ''))) || ('Lỗi máy chủ: ' + resp.status);
+                    alert('Lưu không thành công\n\n' + msg);
+                }
+            } catch (err) {
+                alert('Lưu không thành công\n\n' + (err?.message || 'Không gửi được yêu cầu'));
             }
         });
     })();

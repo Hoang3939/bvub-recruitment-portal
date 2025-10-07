@@ -16,11 +16,11 @@ namespace BVUB_WebTuyenDung.Areas.Admin.ViewModels
 
         // Để trống nếu không đổi mật khẩu
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string? Password { get; set; }
 
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Xác nhận mật khẩu không khớp")]
-        public string ConfirmPassword { get; set; }
+        public string? ConfirmPassword { get; set; }
 
         // Checkbox phân quyền (bitmask)
         public List<int> SelectedPerms { get; set; } = new List<int>();

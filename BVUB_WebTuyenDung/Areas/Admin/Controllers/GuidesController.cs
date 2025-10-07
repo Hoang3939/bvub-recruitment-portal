@@ -54,23 +54,32 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(HuongDanDangKy m, IFormFile? file)
         {
-            if (!ModelState.IsValid) return View(m);
-
-            // <-- Upload file hướng dẫn -->
-            if (file != null && file.Length > 0)
+            if (!ModelState.IsValid)
             {
-                m.FileHuongDan = await SaveGuideFileAsync(file);
+                TempData["error"] = "Vui lòng kiểm tra lại thông tin nhập.";
+                return View(m);
             }
 
-            m.NgayCapNhat = DateTime.Today;
-            _ctx.Add(m);
-            await _ctx.SaveChangesAsync();
+            try
+            {
+                if (file != null && file.Length > 0)
+                    m.FileHuongDan = await SaveGuideFileAsync(file);
 
-            await _audit.LogAsync(CurrentUser(), $"Thêm hướng dẫn ID={m.HuongDanId}, Tiêu đề='{m.TieuDe}'");
+                m.NgayCapNhat = DateTime.Today;
+                _ctx.Add(m);
+                await _ctx.SaveChangesAsync();
 
-            TempData["ok"] = "Đã thêm hướng dẫn.";
-            return RedirectToAction(nameof(Index));
+                await _audit.LogAsync(CurrentUser(), $"Thêm hướng dẫn ID={m.HuongDanId}, Tiêu đề='{m.TieuDe}'");
+                TempData["ok"] = "Đã thêm hướng dẫn.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Lưu thất bại: " + ex.Message;
+                return View(m);
+            }
         }
+
 
         // Edit
         public async Task<IActionResult> Edit(int id)
@@ -85,28 +94,36 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         public async Task<IActionResult> Edit(int id, HuongDanDangKy m, IFormFile? file)
         {
             if (id != m.HuongDanId) return NotFound();
-            if (!ModelState.IsValid) return View(m);
-
-            var entity = await _ctx.HuongDans.FirstOrDefaultAsync(x => x.HuongDanId == id);
-            if (entity == null) return NotFound();
-
-            entity.TieuDe = m.TieuDe;
-            entity.LoaiHuongDan = m.LoaiHuongDan;
-            entity.NoiDung = m.NoiDung;
-            entity.NgayCapNhat = DateTime.Today;
-
-            // <-- Upload/thay thế file hướng dẫn -->
-            if (file != null && file.Length > 0)
+            if (!ModelState.IsValid)
             {
-                entity.FileHuongDan = await SaveGuideFileAsync(file);
+                TempData["error"] = "Vui lòng kiểm tra lại thông tin nhập.";
+                return View(m);
             }
 
-            await _ctx.SaveChangesAsync();
+            try
+            {
+                var entity = await _ctx.HuongDans.FirstOrDefaultAsync(x => x.HuongDanId == id);
+                if (entity == null) return NotFound();
 
-            await _audit.LogAsync(CurrentUser(), $"Chỉnh sửa hướng dẫn ID={entity.HuongDanId}, Tiêu đề='{entity.TieuDe}'");
+                entity.TieuDe = m.TieuDe;
+                entity.LoaiHuongDan = m.LoaiHuongDan;
+                entity.NoiDung = m.NoiDung;
+                entity.NgayCapNhat = DateTime.Today;
 
-            TempData["ok"] = "Đã cập nhật.";
-            return RedirectToAction(nameof(Index));
+                if (file != null && file.Length > 0)
+                    entity.FileHuongDan = await SaveGuideFileAsync(file);
+
+                await _ctx.SaveChangesAsync();
+
+                await _audit.LogAsync(CurrentUser(), $"Cập nhật hướng dẫn ID={entity.HuongDanId}");
+                TempData["ok"] = "Đã cập nhật hướng dẫn.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                TempData["error"] = "Cập nhật thất bại: " + ex.Message;
+                return View(m);
+            }
         }
 
         // GET: Xem chi tiết (popup)

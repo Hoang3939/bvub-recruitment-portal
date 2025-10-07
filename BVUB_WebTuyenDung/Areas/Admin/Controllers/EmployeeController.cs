@@ -225,6 +225,11 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
         {
             ViewBag.PermOptions = StaffPermOptions.All;
 
+            if (string.IsNullOrWhiteSpace(vm.Password))
+            {
+                ModelState.Remove(nameof(vm.Password));
+                ModelState.Remove(nameof(vm.ConfirmPassword));
+            }
             if (!ModelState.IsValid) return View(vm);
 
             // xác nhận admin đang đăng nhập

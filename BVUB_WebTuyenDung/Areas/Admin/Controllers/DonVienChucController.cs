@@ -388,7 +388,8 @@ td.label { width:35%; font-weight:bold; background:#f5f5f5 }
                 if (IsAjax())
                     return Ok(new { ok = true, message = "Đã lưu thành công." });
 
-                TempData["SavedOk"] = true;
+                TempData["ToastType"] = "success";
+                TempData["ToastMsg"] = "Đã lưu đơn viên chức.";
                 return RedirectToAction("Index", "Candidates", new { area = "Admin" });
             }
             catch (DbUpdateConcurrencyException ex)

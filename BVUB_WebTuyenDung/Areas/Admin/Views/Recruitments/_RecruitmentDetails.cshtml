@@ -1,11 +1,11 @@
 ﻿@model BVUB_WebTuyenDung.Areas.Admin.Models.ThongTinTuyenDung
+<link rel="stylesheet" href="~/css/admin-recruitments-index.css" asp-append-version="true" />
 
 <div>
-    <div style="margin-bottom:10px;">
+    <h4 class="rec-detail-title">
+        <span>@Model.TieuDe</span>
         <span class="status @(Model.TrangThaiClass)">@Model.TrangThaiLabel</span>
-    </div>
-
-    <h4 style="margin:0 0 8px 0; font-weight:800;">@Model.TieuDe</h4>
+    </h4>
 
     @if (!string.IsNullOrWhiteSpace(Model.FileAnh))
     {

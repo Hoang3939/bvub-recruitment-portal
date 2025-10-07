@@ -120,6 +120,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 $"Tạo tuyển dụng ID={m.TuyenDungId}, TieuDe='{m.TieuDe}', Loai='{m.LoaiTuyenDung}', TrangThai={m.TrangThai}, NgayDang={m.NgayDang:dd/MM/yyyy}, HanNop={m.HanNopHoSo:dd/MM/yyyy}"
             );
 
+            TempData["ToastMsg"] = "Đã thêm thông tin tuyển dụng.";
+            TempData["ToastType"] = "success";
+
             return RedirectToAction(nameof(Index));
         }
 
@@ -169,6 +172,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 $"NgayDang {oldNgayDang:dd/MM/yyyy} -> {entity.NgayDang:dd/MM/yyyy}, " +
                 $"HanNop {oldHanNop:dd/MM/yyyy} -> {entity.HanNopHoSo:dd/MM/yyyy}"
             );
+
+            TempData["ToastMsg"] = "Đã lưu thay đổi.";
+            TempData["ToastType"] = "success";
 
             return RedirectToAction(nameof(Index));
         }
