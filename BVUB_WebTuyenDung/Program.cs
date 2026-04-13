@@ -1,8 +1,9 @@
-﻿using BVUB_WebTuyenDung.Areas.Admin.Data;
+using BVUB_WebTuyenDung.Areas.Admin.Data;
 using BVUB_WebTuyenDung.Areas.Admin.Services;
 using BVUB_WebTuyenDung.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +55,11 @@ builder.Services.AddScoped<IEmailSender, DbSmtpEmailSender>();
 builder.Services.AddScoped<IAuditTrailService, AuditTrailService>();
 
 var app = builder.Build();
+
+await AdminBootstrapper.SeedDefaultAdminAsync(
+    app.Services,
+    app.Configuration,
+    app.Logger);
 
 // ===== Pipeline =====
 if (!app.Environment.IsDevelopment())

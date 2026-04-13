@@ -45,6 +45,22 @@ namespace BVUB_WebTuyenDung.Models
         [StringLength(100, ErrorMessage = "Nghề nghiệp trước khi tuyển dụng tối đa 100 ký tự.")]
         public string NgheNghiepTruocTuyenDung { get; set; }
 
+        [Required(ErrorMessage = "Vui lòng nhập Dân tộc.")]
+        [StringLength(50, ErrorMessage = "Dân tộc tối đa 50 ký tự.")]
+        public string DanToc { get; set; }
+
+        [Required(ErrorMessage = "Vui lòng nhập Tôn giáo.")]
+        [StringLength(50, ErrorMessage = "Tôn giáo tối đa 50 ký tự.")]
+        public string TonGiao { get; set; }
+
+        public bool DangVien { get; set; } = false;
+
+        [DataType(DataType.Date)]
+        public DateTime? NgayVaoDang { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime? NgayChinhThuc { get; set; }
+
         [Required(ErrorMessage = "Ngày nộp bắt buộc.")]
         [DataType(DataType.Date, ErrorMessage = "Ngày nộp không hợp lệ.")]
         public DateTime NgayNop { get; set; }

@@ -17,10 +17,7 @@
     <!-- Email -->
     <div class="form-group">
         <label asp-for="UngVien.Email" class="form-label">Email*</label>
-        <div class="inline-row">
-            <input asp-for="UngVien.Email" class="form-control" id="txtEmail" placeholder="Ví dụ: abc@gmail.com" />
-            <button type="button" id="btnCheckEmail" class="btn btn-secondary">Kiểm tra</button>
-        </div>
+        <input asp-for="UngVien.Email" class="form-control" id="txtEmail" placeholder="Ví dụ: abc@gmail.com" />
         <small id="emailHint" class="text-muted"></small>
         <span asp-validation-for="UngVien.Email" class="text-danger"></span>
     </div>
@@ -130,10 +127,68 @@
     </div>
 
     <hr class="hr-soft" />
+    <h4 class="section-title">Thông tin bổ sung</h4>
+
+    <!-- Dân tộc -->
+    <div class="form-group">
+        <label class="form-label">Dân tộc*</label>
+        <input type="hidden" asp-for="HopDongNguoiLaoDong.DanToc" id="hidDanToc" />
+        <select id="selDanToc" class="form-control">
+            <option value="">-- Chọn dân tộc --</option>
+            <option value="Kinh">Kinh</option>
+            <option value="Hoa">Hoa</option>
+            <option value="Khơ-me">Khơ-me</option>
+            <option value="Chăm">Chăm</option>
+            <option value="__OTHER__">Khác</option>
+        </select>
+        <input id="txtDanTocKhac" name="DanTocKhac" class="form-control mt-2" placeholder="Nhập dân tộc khác" style="display:none;" />
+        <span asp-validation-for="HopDongNguoiLaoDong.DanToc" class="text-danger"></span>
+    </div>
+
+    <!-- Tôn giáo -->
+    <div class="form-group">
+        <label class="form-label">Tôn giáo*</label>
+        <input type="hidden" asp-for="HopDongNguoiLaoDong.TonGiao" id="hidTonGiao" />
+        <select id="selTonGiao" class="form-control">
+            <option value="">-- Chọn tôn giáo --</option>
+            <option value="Phật giáo">Phật giáo</option>
+            <option value="Công giáo">Công giáo</option>
+            <option value="Không">Không</option>
+            <option value="__OTHER__">Khác</option>
+        </select>
+        <input id="txtTonGiaoKhac" name="TonGiaoKhac" class="form-control mt-2" placeholder="Nhập tôn giáo khác" style="display:none;" />
+        <span asp-validation-for="HopDongNguoiLaoDong.TonGiao" class="text-danger"></span>
+    </div>
+
+    <!-- Đảng viên -->
+    <div class="form-group">
+        <label class="form-label fw-bold">Đảng viên*</label>
+        <div class="choice-vertical">
+            <label class="choice-item"><input class="radio-solid" type="radio" name="dangVienUI" value="true" id="rdDangVienCo"> Có</label>
+            <label class="choice-item"><input class="radio-solid" type="radio" name="dangVienUI" value="false" id="rdDangVienKhong" checked> Không</label>
+        </div>
+        <input type="hidden" asp-for="HopDongNguoiLaoDong.DangVien" id="hidDangVien" value="false" />
+    </div>
+
+    <!-- Ngày vào Đảng + Ngày chính thức (ẩn khi Không) -->
+    <div id="dangVienDates" style="display:none;">
+        <div class="form-group">
+            <label asp-for="HopDongNguoiLaoDong.NgayVaoDang" class="form-label">Ngày vào Đảng</label>
+            <input asp-for="HopDongNguoiLaoDong.NgayVaoDang" class="form-control js-date" type="text" autocomplete="off" />
+            <span asp-validation-for="HopDongNguoiLaoDong.NgayVaoDang" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="HopDongNguoiLaoDong.NgayChinhThuc" class="form-label">Ngày chính thức</label>
+            <input asp-for="HopDongNguoiLaoDong.NgayChinhThuc" class="form-control js-date" type="text" autocomplete="off" />
+            <span asp-validation-for="HopDongNguoiLaoDong.NgayChinhThuc" class="text-danger"></span>
+        </div>
+    </div>
+
+    <hr class="hr-soft" />
     <h4 class="section-title">Thông tin hợp đồng người lao động</h4>
 
     <div class="form-group">
-        <label asp-for="HopDongNguoiLaoDong.KhoaPhongCongTacId" class="form-label">Khoa/phòng hiện đang công tác*</label>
+        <label asp-for="HopDongNguoiLaoDong.KhoaPhongCongTacId" class="form-label">Khoa/phòng dự tuyển*</label>
         <select asp-for="HopDongNguoiLaoDong.KhoaPhongCongTacId" class="form-control" asp-items="ViewBag.KhoaPhongList">
             <option value="">-- Chọn khoa/phòng --</option>
         </select>
@@ -217,6 +272,7 @@
     <script src="~/js/apply-macdinh.js" asp-append-version="true"></script>
     <script src="~/js/apply-init.js" asp-append-version="true"></script>
     <script src="~/js/apply-suckhoe.js" asp-append-version="true"></script>
+    <script src="~/js/apply-nld-bosung.js" asp-append-version="true"></script>
 
     <!-- SweetAlert2 confirm (CDN đã add ở layout) -->
     <script>

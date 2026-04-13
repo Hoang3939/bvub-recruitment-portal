@@ -19,17 +19,20 @@ namespace BVUB_WebTuyenDung.Controllers
         private readonly ApplicationDbContext _context;
         private readonly ILogger<UngTuyenController> _logger;
         private readonly IEmailSender _email;
+        private readonly ISettingsStore _settings;
 
         private static readonly char[] _maChars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".ToCharArray();
 
         public UngTuyenController(
             ApplicationDbContext context,
             IEmailSender email,
-            ILogger<UngTuyenController> logger)
+            ILogger<UngTuyenController> logger,
+            ISettingsStore settings)
         {
             _context = context;
             _email = email;
             _logger = logger;
+            _settings = settings;
         }
 
         // ===== Helpers sinh mã tra cứu =====
@@ -53,11 +56,19 @@ namespace BVUB_WebTuyenDung.Controllers
             return Guid.NewGuid().ToString("N")[..len].ToUpperInvariant();
         }
 
-        public IActionResult Index() => View();
+        public async Task<IActionResult> Index()
+        {
+            ViewBag.LinkVCOpen = await _settings.IsLinkOpenAsync("VC");
+            ViewBag.LinkNLDOpen = await _settings.IsLinkOpenAsync("NLD");
+            return View();
+        }
 
         // ===== Viên chức (GET form) =====
-        public IActionResult VienChuc(int? selectedChucDanhId = null)
+        public async Task<IActionResult> VienChuc(int? selectedChucDanhId = null)
         {
+            if (!await _settings.IsLinkOpenAsync("VC"))
+                return View("LinkKhoa", (object)"Viên chức");
+
             ViewBag.LoaiVanBangOptions = GetLoaiVanBangOptions();
 
             ViewBag.ChucDanhList = new SelectList(
@@ -87,8 +98,11 @@ namespace BVUB_WebTuyenDung.Controllers
         }
 
         // ===== Người lao động (GET form) =====
-        public IActionResult NguoiLaoDong()
+        public async Task<IActionResult> NguoiLaoDong()
         {
+            if (!await _settings.IsLinkOpenAsync("NLD"))
+                return View("LinkKhoa", (object)"Người lao động");
+
             var model = new UngTuyenNguoiLaoDongViewModel();
             ViewBag.KhoaPhongList = new SelectList(
                 _context.DanhMucKhoaPhong.Where(k => k.TamNgung == 0).AsNoTracking().ToList(),
@@ -102,12 +116,39 @@ namespace BVUB_WebTuyenDung.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UngTuyenNguoiLaoDong(UngTuyenNguoiLaoDongViewModel model)
         {
+            if (!await _settings.IsLinkOpenAsync("NLD"))
+                return View("LinkKhoa", (object)"Người lao động");
+
             ModelState.Remove("UngVien.NgayUngTuyen");
             ModelState.Remove("HopDongNguoiLaoDong.NgayNop");
             ModelState.Remove("HopDongNguoiLaoDong.UngVienId");
             ModelState.Remove("HopDongNguoiLaoDong.MaTraCuu");
             ModelState.Remove("HopDongNguoiLaoDong.Loai");
             ModelState.Remove("HopDongNguoiLaoDong.UngVien");
+
+            // Map "Khác" cho Dân tộc / Tôn giáo
+            var danTocKhac = (Request.Form["DanTocKhac"].ToString() ?? "").Trim();
+            if (string.Equals(model.HopDongNguoiLaoDong?.DanToc, "__OTHER__", StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(danTocKhac))
+                model.HopDongNguoiLaoDong.DanToc = danTocKhac;
+
+            var tonGiaoKhac = (Request.Form["TonGiaoKhac"].ToString() ?? "").Trim();
+            if (string.Equals(model.HopDongNguoiLaoDong?.TonGiao, "__OTHER__", StringComparison.OrdinalIgnoreCase)
+                && !string.IsNullOrWhiteSpace(tonGiaoKhac))
+                model.HopDongNguoiLaoDong.TonGiao = tonGiaoKhac;
+
+            // Nếu không phải Đảng viên → bỏ validate ngày
+            if (model.HopDongNguoiLaoDong?.DangVien != true)
+            {
+                ModelState.Remove("HopDongNguoiLaoDong.NgayVaoDang");
+                ModelState.Remove("HopDongNguoiLaoDong.NgayChinhThuc");
+                if (model.HopDongNguoiLaoDong != null)
+                {
+                    model.HopDongNguoiLaoDong.NgayVaoDang = null;
+                    model.HopDongNguoiLaoDong.NgayChinhThuc = null;
+                }
+            }
+
             PruneEmptyVanBangs(model.VanBangs, "VanBangs");
             ClearVBModelStateErrors();
 
@@ -206,6 +247,9 @@ namespace BVUB_WebTuyenDung.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UngTuyenVienChuc(UngTuyenVienChucViewModel model)
         {
+            if (!await _settings.IsLinkOpenAsync("VC"))
+                return View("LinkKhoa", (object)"Viên chức");
+
             var now = DateTime.Now;
             model.UngVien ??= new UngVien();
             model.DonVienChuc ??= new DonVienChuc();
@@ -243,6 +287,7 @@ namespace BVUB_WebTuyenDung.Controllers
             ModelState.Remove("DonVienChuc.MaTraCuu");
             ModelState.Remove("DonVienChuc.UngVienId");
             ModelState.Remove("DonVienChuc.ChucDanhDuTuyen");
+            ModelState.Remove("DonVienChuc.ThamGiaDaoTao");
             PruneEmptyVanBangs(model.VanBangs, "VanBangs");
             ClearVBModelStateErrors();
 

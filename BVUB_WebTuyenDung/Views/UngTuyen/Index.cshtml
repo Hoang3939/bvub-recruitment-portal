@@ -8,12 +8,31 @@
     <p class="title-center big-subtitle">Vui lòng chọn loại đơn ứng tuyển</p>
 
     <div class="button-wrapper mt-4">
-        <a asp-controller="UngTuyen" asp-action="VienChuc" class="btn btn-primary btn-lg">
-            Ứng tuyển viên chức
-        </a>
-        <a asp-controller="UngTuyen" asp-action="NguoiLaoDong" class="btn btn-success btn-lg">
-            Ứng tuyển người lao động
-        </a>
+        @if (ViewBag.LinkVCOpen == true)
+        {
+            <a asp-controller="UngTuyen" asp-action="VienChuc" class="btn btn-primary btn-lg">
+                Ứng tuyển viên chức
+            </a>
+        }
+        else
+        {
+            <button class="btn btn-secondary btn-lg" disabled>
+                <i class="fas fa-lock me-1"></i> Đã đóng đăng ký viên chức
+            </button>
+        }
+
+        @if (ViewBag.LinkNLDOpen == true)
+        {
+            <a asp-controller="UngTuyen" asp-action="NguoiLaoDong" class="btn btn-success btn-lg">
+                Ứng tuyển người lao động
+            </a>
+        }
+        else
+        {
+            <button class="btn btn-secondary btn-lg" disabled>
+                <i class="fas fa-lock me-1"></i> Đã đóng đăng ký người lao động
+            </button>
+        }
     </div>
 
 </div>

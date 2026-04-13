@@ -1,4 +1,4 @@
-﻿@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.EmailSettingsIndexVM
+@model BVUB_WebTuyenDung.Areas.Admin.ViewModels.EmailSettingsIndexVM
 @{
     ViewData["Title"] = "Cài đặt";
 }
@@ -16,7 +16,7 @@
         row-gap: 1.5rem;
     }
 
-    /* Hai cột: card cao bằng nhau */
+    /* Hai cột email: card cao bằng nhau */
     .settings-page .col-half {
         display: flex;
     }
@@ -27,9 +27,20 @@
             flex-direction: column;
         }
 
+    .settings-page .card {
+        border: 1px solid rgba(0, 0, 0, .125) !important;
+        border-left: 1px solid rgba(0, 0, 0, .125) !important;
+        border-radius: .375rem !important;
+        background: #fff !important;
+    }
+
     .settings-page .card-header {
         padding: .75rem 1rem;
-        background: #f8f9fa;
+        background: #f8f9fa !important;
+        color: #212529 !important;
+        border-bottom: 1px solid rgba(0, 0, 0, .125) !important;
+        border-top-left-radius: calc(.375rem - 1px) !important;
+        border-top-right-radius: calc(.375rem - 1px) !important;
     }
 
     .settings-page .card-body {
@@ -48,6 +59,17 @@
         box-shadow: none !important;
         padding: 0 !important;
         border-radius: 0 !important;
+    }
+
+    /* Form bên phải stretch full height trong card */
+    .settings-page .card-body form {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+
+    .settings-page .card-body form .btn {
+        margin-top: auto;
     }
 
     /* Cảm giác đồng bộ */
@@ -212,6 +234,52 @@
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-save"></i> Lưu
                         </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== Khóa / Mở link ứng tuyển ===== -->
+<h2 class="mb-3 mt-5">Khóa / Mở link ứng tuyển</h2>
+<div class="settings-page">
+    <div class="row g-4">
+        <!-- Link Viên chức -->
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header fw-bold">Link Viên chức</div>
+                <div class="card-body">
+                    <form asp-action="ToggleLink" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="type" value="VC" />
+                        <input type="hidden" name="open" value="@(ViewBag.LinkVCOpen == true ? "false" : "true")" />
+                        <label class="switch">
+                            <input type="checkbox" @(ViewBag.LinkVCOpen == true ? "checked" : "")
+                                   onchange="this.form.submit()" />
+                            <span class="slider"></span>
+                            <span class="text">@(ViewBag.LinkVCOpen == true ? "Đang MỞ" : "Đang KHÓA")</span>
+                        </label>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Link Người lao động -->
+        <div class="col-12 col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header fw-bold">Link Người lao động</div>
+                <div class="card-body">
+                    <form asp-action="ToggleLink" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="type" value="NLD" />
+                        <input type="hidden" name="open" value="@(ViewBag.LinkNLDOpen == true ? "false" : "true")" />
+                        <label class="switch">
+                            <input type="checkbox" @(ViewBag.LinkNLDOpen == true ? "checked" : "")
+                                   onchange="this.form.submit()" />
+                            <span class="slider"></span>
+                            <span class="text">@(ViewBag.LinkNLDOpen == true ? "Đang MỞ" : "Đang KHÓA")</span>
+                        </label>
                     </form>
                 </div>
             </div>

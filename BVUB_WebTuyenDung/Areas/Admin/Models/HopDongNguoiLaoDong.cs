@@ -41,6 +41,20 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
         [Required, MaxLength(100)]
         public string NgheNghiepTruocTuyenDung { get; set; }
 
+        [Required, MaxLength(50)]
+        public string DanToc { get; set; }
+
+        [Required, MaxLength(50)]
+        public string TonGiao { get; set; }
+
+        public bool DangVien { get; set; } = false;
+
+        [DataType(DataType.Date)]
+        public DateTime? NgayVaoDang { get; set; }
+
+        [DataType(DataType.Date)]
+        public DateTime? NgayChinhThuc { get; set; }
+
         [Column(TypeName = "datetime2(3)")]
         public DateTime NgayNop { get; set; }
 

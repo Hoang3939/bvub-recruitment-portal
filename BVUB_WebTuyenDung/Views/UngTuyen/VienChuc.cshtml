@@ -18,12 +18,9 @@
     <!-- Email -->
     <div class="form-group">
         <label asp-for="UngVien.Email" class="form-label">Email*</label>
-        <div class="inline-row">
-            <input asp-for="UngVien.Email" type="text" class="form-control" id="txtEmail" placeholder="Ví dụ: abc@gmail.com" />
-            <button type="button" id="btnCheckEmail" class="btn btn-secondary">Kiểm tra</button>
-        </div>
-        <span asp-validation-for="UngVien.Email" class="text-danger"></span>
+        <input asp-for="UngVien.Email" type="text" class="form-control" id="txtEmail" placeholder="Ví dụ: abc@gmail.com" />
         <small id="emailHint" class="text-muted"></small>
+        <span asp-validation-for="UngVien.Email" class="text-danger"></span>
     </div>
 
     <div class="form-group">
@@ -258,6 +255,31 @@
         <span asp-validation-for="DonVienChuc.DoiTuongUuTien" class="text-danger"></span>
     </div>
 
+    <!-- Có tham gia đào tạo (checkbox nhiều giá trị) -->
+    <div class="form-group">
+        <label class="form-label">Có tham gia đào tạo</label>
+        <input type="hidden" asp-for="DonVienChuc.ThamGiaDaoTao" id="hidThamGiaDaoTao" />
+        <div class="checkbox-group" id="daoTaoGroup">
+            <label class="checkbox-item">
+                <input type="checkbox" class="cb-daotao" value="Thạc sĩ" /> Thạc sĩ
+            </label>
+            <label class="checkbox-item">
+                <input type="checkbox" class="cb-daotao" value="BSNT" /> BSNT
+            </label>
+            <label class="checkbox-item">
+                <input type="checkbox" class="cb-daotao" value="BCKI" /> BCKI
+            </label>
+            <label class="checkbox-item">
+                <input type="checkbox" class="cb-daotao" value="BSCKII" /> BSCKII
+            </label>
+            <label class="checkbox-item">
+                <input type="checkbox" class="cb-daotao" value="__OTHER__" id="cbDaoTaoKhac" /> Khác
+            </label>
+        </div>
+        <input id="txtDaoTaoKhac" type="text" class="form-control mt-2"
+               placeholder="Nhập loại đào tạo khác" style="display:none;" />
+    </div>
+
     <hr class="hr-soft" />
     <h4 class="section-title">Văn bằng</h4>
 
@@ -294,6 +316,7 @@
     <script src="~/js/apply-uutien.js" asp-append-version="true"></script>
     <script src="~/js/apply-loaihinhdaotao.js" asp-append-version="true"></script>
     <script src="~/js/apply-cascade.js" asp-append-version="true"></script>
+    <script src="~/js/apply-vc-daotao.js" asp-append-version="true"></script>
 
     <!-- SweetAlert2 confirm (CDN đã đặt ở layout) -->
     <script>

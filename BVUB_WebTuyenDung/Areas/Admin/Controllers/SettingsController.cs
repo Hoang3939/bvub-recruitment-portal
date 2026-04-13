@@ -1,4 +1,5 @@
 ﻿// Areas/Admin/Controllers/SettingsController.cs
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -31,6 +32,10 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 Current = current,
                 Form = new EmailSettings()
             };
+
+            // Link ứng tuyển status
+            ViewBag.LinkVCOpen = await _store.IsLinkOpenAsync("VC");
+            ViewBag.LinkNLDOpen = await _store.IsLinkOpenAsync("NLD");
 
             return View(vm);
         }
@@ -92,5 +97,31 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
                 return View(vm);
             }
         }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleLink(string type, bool open)
+        {
+            if (!IsSupportedLinkType(type))
+                return BadRequest("Type phải là VC hoặc NLD.");
+
+            await _store.SetLinkStatusAsync(type, open, User?.Identity?.Name ?? "system");
+
+            await _audit.LogAsync(User?.Identity?.Name ?? "unknown",
+                $"Toggle link ứng tuyển {type}: {(open ? "MỞ" : "KHÓA")}");
+
+            TempData["ToastSuccess"] = $"Đã {(open ? "mở" : "khóa")} link đăng ký {GetLinkTypeLabel(type)}.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        private static bool IsSupportedLinkType(string type)
+        {
+            return type == "VC" || type == "NLD";
+        }
+
+        private static string GetLinkTypeLabel(string type)
+        {
+            return type == "VC" ? "Viên chức" : "Người lao động";
+        }
+
     }
 }

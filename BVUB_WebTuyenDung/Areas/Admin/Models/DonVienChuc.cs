@@ -45,6 +45,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Models
         [Required, MaxLength(50)]
         public string DoiTuongUuTien { get; set; }
 
+        [MaxLength(200)]
+        public string? ThamGiaDaoTao { get; set; }
+
         [Column(TypeName = "datetime2(3)")]
         public DateTime NgayNop { get; set; }
 

@@ -53,6 +53,9 @@ namespace BVUB_WebTuyenDung.Models
         [StringLength(50, ErrorMessage = "Đối tượng ưu tiên tối đa 50 ký tự.")]
         public string DoiTuongUuTien { get; set; }
 
+        [StringLength(200)]
+        public string? ThamGiaDaoTao { get; set; }
+
         [Required(ErrorMessage = "Ngày nộp bắt buộc.")]
         [DataType(DataType.Date, ErrorMessage = "Ngày nộp không hợp lệ.")]
         public DateTime NgayNop { get; set; }

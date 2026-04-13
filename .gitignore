@@ -431,3 +431,8 @@ obj/
 
 appsettings.Development.json
 BVUB_WebTuyenDung/appsettings.Development.json
+
+.roo
+.rooignore
+.roomodes
+roo-code-settings-optimized.json

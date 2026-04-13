@@ -17,6 +17,8 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Services
         private readonly IMemoryCache _cache;
         private readonly IDataProtector _protector;
         private const string CacheKey = "EmailSettingsCache";
+        private const string LinkCachePrefix = "LinkStatus_";
+        private const string LinkSection = "UngTuyen";
 
         public DbSettingsStore(AdminDbContext ctx, IConfiguration config, IMemoryCache cache, IDataProtectionProvider dp)
         {
@@ -110,6 +112,50 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Services
 
             await _ctx.SaveChangesAsync();
             _cache.Remove(CacheKey); // clear cache để lần sau đọc mới
+        }
+
+        // ===== Link ứng tuyển (Khóa / Mở) =====
+
+        public async Task<bool> IsLinkOpenAsync(string type)
+        {
+            var cacheKey = LinkCachePrefix + type;
+            if (_cache.TryGetValue(cacheKey, out bool cached)) return cached;
+
+            var setting = await _ctx.SystemSettings
+                .FirstOrDefaultAsync(s => s.Section == LinkSection && s.Key == "MoLink" + type);
+
+            var isOpen = setting?.Value != "false"; // default = true (mở) khi chưa có row
+
+            _cache.Set(cacheKey, isOpen, TimeSpan.FromMinutes(5));
+            return isOpen;
+        }
+
+        public async Task SetLinkStatusAsync(string type, bool open, string updatedBy)
+        {
+            var key = "MoLink" + type;
+            var entity = await _ctx.SystemSettings
+                .FirstOrDefaultAsync(x => x.Section == LinkSection && x.Key == key);
+
+            if (entity == null)
+            {
+                entity = new SystemSetting
+                {
+                    Section = LinkSection,
+                    Key = key,
+                    Value = open ? "true" : "false",
+                    UpdatedAt = DateTime.UtcNow,
+                    UpdatedBy = updatedBy
+                };
+                _ctx.SystemSettings.Add(entity);
+            }
+            else
+            {
+                entity.Value = open ? "true" : "false";
+                entity.UpdatedAt = DateTime.UtcNow;
+                entity.UpdatedBy = updatedBy;
+            }
+
+            _cache.Remove(LinkCachePrefix + type);
         }
     }
 }
