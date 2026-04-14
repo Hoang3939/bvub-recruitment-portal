@@ -50,7 +50,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             var current = vm.Current;
             var m = vm.Form ?? new EmailSettings();
             m.Username = m.Username?.Trim();
-            m.Password = m.Password?.Trim(); // rỗng = giữ nguyên
+            m.Password = NormalizeAppPassword(m.Password); // rỗng = giữ nguyên
 
             if (string.IsNullOrWhiteSpace(m.Username))
                 ModelState.AddModelError("Form.Username", "Username không được để trống.");
@@ -100,6 +100,13 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
 
             TempData["ToastSuccess"] = $"Đã {(open ? "mở" : "khóa")} link đăng ký {GetLinkTypeLabel(type)}.";
             return RedirectToAction(nameof(Index));
+        }
+
+        private static string? NormalizeAppPassword(string? password)
+        {
+            return string.IsNullOrWhiteSpace(password)
+                ? password?.Trim()
+                : password.Replace(" ", string.Empty).Trim();
         }
 
         private static bool IsSupportedLinkType(string type)
