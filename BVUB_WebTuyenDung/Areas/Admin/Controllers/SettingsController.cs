@@ -47,44 +47,33 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Controllers
             vm.Current = await _store.GetEmailSettingsAsync() ?? new EmailSettings();
 
             // Chuẩn hóa & validate
+            var current = vm.Current;
             var m = vm.Form ?? new EmailSettings();
             m.Username = m.Username?.Trim();
-            m.FromEmail = m.FromEmail?.Trim();
-            m.FromName = m.FromName?.Trim();
             m.Password = m.Password?.Trim(); // rỗng = giữ nguyên
 
             if (string.IsNullOrWhiteSpace(m.Username))
                 ModelState.AddModelError("Form.Username", "Username không được để trống.");
-
-            if (string.IsNullOrWhiteSpace(m.FromEmail))
-                ModelState.AddModelError("Form.FromEmail", "FromEmail không được để trống.");
-            else
-            {
-                var pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-                if (!System.Text.RegularExpressions.Regex.IsMatch(m.FromEmail, pattern,
-                    System.Text.RegularExpressions.RegexOptions.IgnoreCase))
-                    ModelState.AddModelError("Form.FromEmail", "FromEmail không đúng định dạng.");
-            }
-
-            if (string.IsNullOrWhiteSpace(m.FromName))
-                ModelState.AddModelError("Form.FromName", "FromName không được để trống.");
 
             if (!ModelState.IsValid)
                 return View(vm);
 
             try
             {
+                m.FromEmail = m.Username;
+                m.FromName = current.FromName;
+                m.SmtpHost = current.SmtpHost;
+                m.SmtpPort = current.SmtpPort;
+                m.EnableSsl = current.EnableSsl;
+
                 // Nếu Password trống -> giữ nguyên
                 if (string.IsNullOrWhiteSpace(m.Password))
-                {
-                    var current = await _store.GetEmailSettingsAsync();
-                    m.Password = current?.Password;
-                }
+                    m.Password = current.Password;
 
                 await _store.UpdateEmailSettingsAsync(m, User?.Identity?.Name ?? "system");
 
                 await _audit.LogAsync(User?.Identity?.Name ?? "unknown",
-                    "Cập nhật cài đặt Email (Username/FromEmail/FromName; Password " +
+                    "Cập nhật cài đặt Email (Username/FromEmail tự đồng bộ; Password " +
                     (string.IsNullOrWhiteSpace(vm.Form?.Password) ? "không đổi" : "đã đổi") + ")");
 
                 TempData["ToastSuccess"] = "Đã lưu cài đặt Email.";

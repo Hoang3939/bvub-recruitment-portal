@@ -36,7 +36,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Services
                 .Where(s => s.Section == "Email")
                 .ToDictionaryAsync(s => s.Key, s => s.Value);
 
-            // Fallback: nếu chưa có trong DB, lấy từ appsettings.json
+            // Đọc từ DB, fallback về giá trị mặc định nếu chưa có row
             string? get(string key, string? fallback = null)
             {
                 if (dict.TryGetValue(key, out var v) && !string.IsNullOrEmpty(v))
@@ -47,9 +47,12 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Services
                     }
                     return v;
                 }
-                // appsettings: Email:Username, ...
-                return _config[$"Email:{key}"] ?? fallback;
+                return fallback;
             }
+
+            var smtpHostValue = get("SmtpHost", "smtp.gmail.com");
+            var smtpPortValue = get("SmtpPort", "587");
+            var enableSslValue = get("EnableSsl", "true");
 
             var result = new EmailSettings
             {
@@ -57,9 +60,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Services
                 Password = get("Password"), // đã giải mã nếu có
                 FromEmail = get("FromEmail"),
                 FromName = get("FromName"),
-                SmtpHost = _config["Email:SmtpHost"] ?? "smtp.gmail.com",
-                SmtpPort = int.TryParse(_config["Email:SmtpPort"], out var p) ? p : 587,
-                EnableSsl = bool.TryParse(_config["Email:EnableSsl"], out var ssl) ? ssl : true
+                SmtpHost = smtpHostValue ?? "smtp.gmail.com",
+                SmtpPort = int.TryParse(smtpPortValue, out var p) ? p : 587,
+                EnableSsl = bool.TryParse(enableSslValue, out var ssl) ? ssl : true
             };
 
             _cache.Set(CacheKey, result, TimeSpan.FromMinutes(5));
@@ -109,6 +112,9 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Services
             await upsert("FromEmail", settings.FromEmail);
             await upsert("FromName", settings.FromName);
             await upsert("Password", settings.Password);
+            await upsert("SmtpHost", settings.SmtpHost);
+            await upsert("SmtpPort", settings.SmtpPort.ToString());
+            await upsert("EnableSsl", settings.EnableSsl.ToString());
 
             await _ctx.SaveChangesAsync();
             _cache.Remove(CacheKey); // clear cache để lần sau đọc mới

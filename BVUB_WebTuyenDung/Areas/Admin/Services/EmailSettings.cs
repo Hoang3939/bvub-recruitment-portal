@@ -8,7 +8,7 @@ namespace BVUB_WebTuyenDung.Areas.Admin.Services
         public string? FromEmail { get; set; }
         public string? FromName { get; set; }
 
-        // Các tham số ít thay đổi vẫn đọc từ appsettings.json (không cho sửa trên UI)
+        // SMTP server config — đọc/ghi từ DB, mặc định Gmail nếu chưa cấu hình
         public string SmtpHost { get; set; } = "smtp.gmail.com";
         public int SmtpPort { get; set; } = 587;
         public bool EnableSsl { get; set; } = true;
